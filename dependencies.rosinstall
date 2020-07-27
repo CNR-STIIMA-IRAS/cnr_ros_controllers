@@ -16,3 +16,6 @@
 -git: 
     local-name: eigen_control_toolbox
     uri: https://github.com/CNR-STIIMA-IRAS/eigen_control_toolbox
+-git:
+    local-name: eigen_matrix_utils
+    uri: https://github.com/CNR-STIIMA-IRAS/eigen_matrix_utils
