@@ -13,3 +13,6 @@
 - git:
     local-name: cnr_ros_control
     uri:  https://github.com/CNR-STIIMA-IRAS/cnr_ros_control
+-git: 
+    local-name: eigen_control_toolbox
+    uri: https://github.com/CNR-STIIMA-IRAS/eigen_control_toolbox

@@ -1,4 +1,0 @@
-[Project]
-CreatedFrom=CMakeLists.txt
-Manager=KDevCMakeManager
-Name=cnr_position_to_velocity_controller
