@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>inverse_kinematics_qp_controller</name>
+  <version>0.0.0</version>
+  <description>The inverse_kinematics_qp_controller package</description>
+  <maintainer email="marco.faroni@stiima.cnr.it">hypatia</maintainer>
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cartesian_msgs</build_depend>
+  <build_depend>eigen_conversions</build_depend>
+  <build_depend>eigen_matrix_utils</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>inverse_kinematics_qp_math</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>rosdyn_core</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>subscription_notifier</build_depend>
+  <build_export_depend>cartesian_msgs</build_export_depend>
+  <build_export_depend>eigen_conversions</build_export_depend>
+  <build_export_depend>eigen_matrix_utils</build_export_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>inverse_kinematics_qp_math</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rosdyn_core</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_export_depend>subscription_notifier</build_export_depend>
+  <exec_depend>cartesian_msgs</exec_depend>
+  <exec_depend>eigen_conversions</exec_depend>
+  <exec_depend>eigen_matrix_utils</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>inverse_kinematics_qp_math</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rosdyn_core</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>subscription_notifier</exec_depend>
+  <depend>cnr_hardware_interface</depend>
+  <depend>cnr_controller_interface</depend>
+  <depend>name_sorting  </depend>
+
+  <export>
+    <controller_interface plugin="${prefix}/plugin.xml"/>
+  </export>
+</package>

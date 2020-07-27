@@ -1,0 +1,8 @@
+<library path="lib/libinverse_kinematics_qp_controller">
+  <class name="inverse_kinematics_qp/InverseKinematicsQpPosVelEffController" type="inverse_kinematics_qp::InverseKinematicsQpPosVelEffController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      Inverse_kinematics_qp Controller - Position Vel Eff Interface
+    </description>
+  </class>  
+</library>
+

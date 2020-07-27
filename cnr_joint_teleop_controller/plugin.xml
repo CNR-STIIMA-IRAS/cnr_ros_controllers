@@ -1,0 +1,7 @@
+<library path="lib/libcnr_joint_teleop_controller">
+  <class name="itia/control/JointTeleopController" type="itia::control::JointTeleopController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      The Joint Teleop controller
+    </description>
+  </class>
+</library>

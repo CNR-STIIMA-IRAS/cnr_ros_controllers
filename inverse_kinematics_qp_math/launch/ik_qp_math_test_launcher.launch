@@ -1,0 +1,9 @@
+<launch>
+  <rosparam command="load" file="$(find inverse_kinematics_qp_math)/config/test.yaml" />
+
+  <node pkg="inverse_kinematics_qp_math" type="test_inverse_kinematics_qp_math_node" name="test_inverse_kinematics_qp_math_node"  output="screen"> 
+  </node>
+<!--   <node pkg="test_moveit_marco" type="dummy_camera_node" name="dummy_camera_node" output="screen"  launch-prefix="gdb -ex run -(-)args" /> -->
+<!--    <remap from="visualization_marker_array" to="/swiss_ranger_2/centroid" />-->
+<!--  </node>--> 
+</launch>

@@ -1,0 +1,6 @@
+<library path="lib/libanalog_state_publisher">
+  <class name="ros/control/AnalogStatePublisher" type="ros::control::AnalogStatePublisher" base_class_type="controller_interface::ControllerBase">
+    <description>
+    </description>
+  </class>
+</library>

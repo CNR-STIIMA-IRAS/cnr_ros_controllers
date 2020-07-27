@@ -1,0 +1,6 @@
+<library path="lib/libcnr_joint_state_publisher">
+  <class name="cnr/control/JointStatePublisher" type="cnr::control::JointStatePublisher" base_class_type="controller_interface::ControllerBase">
+    <description>
+    </description>
+  </class>
+</library>

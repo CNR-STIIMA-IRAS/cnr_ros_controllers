@@ -1,0 +1,7 @@
+<library path="lib/libcnr_simple_touch_controller">
+  <class name="itia/control/SimpleTouchController" type="itia::control::SimpleTouchController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      simple touch controller
+    </description>
+  </class>
+</library>
