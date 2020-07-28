@@ -10,17 +10,17 @@
    <author email="paolo.franceschi@stiima.cnr.it">Paolo Franceschi</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>controller_interface</build_depend>
+  <build_depend>cnr_controller_interface</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>cnr_hardware_interface</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rosdyn_core</build_depend>
-  <build_export_depend>controller_interface</build_export_depend>
+  <build_export_depend>cnr_controller_interface</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
   <build_export_depend>cnr_hardware_interface</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rosdyn_core</build_export_depend>
-  <exec_depend>controller_interface</exec_depend>
+  <exec_depend>cnr_controller_interface</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>cnr_hardware_interface</exec_depend>
   <exec_depend>roscpp</exec_depend>
@@ -32,7 +32,8 @@
   <depend>actionlib_msgs              </depend>
   <depend>tf_conversions              </depend>
   
-                                                      
+  <depend>controller_interface</depend>
+
   <export>
   <controller_interface plugin="${prefix}/plugin.xml"/>
   </export>

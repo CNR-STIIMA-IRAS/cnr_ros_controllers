@@ -1,4 +1,5 @@
 #include <locale>
+#include <controller_interface/controller.h>
 #include <cnr_simple_touch_controller/cnr_simple_touch_controller.h>
 #include <pluginlib/class_list_macros.h>
 #include <std_msgs/Float64.h>
@@ -8,7 +9,7 @@
 /**
  * @brief PLUGINLIB_EXPORT_CLASS
  */
-PLUGINLIB_EXPORT_CLASS(itia::control::SimpleTouchController, controller_interface::ControllerBase);
+PLUGINLIB_EXPORT_CLASS(cnr::control::SimpleTouchController, controller_interface::ControllerBase);
 
 
 namespace std
@@ -53,37 +54,22 @@ inline std::string to_string( const bool& val )
   }
 
 
-namespace itia
+namespace cnr
 {
 namespace control
 {
 
 
-bool SimpleTouchController::init(hardware_interface::ForceTorqueInterface *hw, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
+bool SimpleTouchController::doInit( )
 {
-  m_hw            = hw;
-  m_root_nh       = root_nh;
-  m_controller_nh = controller_nh;
-  m_controller_nh.setCallbackQueue(&m_controller_nh_callback_queue);
-
-  bool debug = false;
-  GET_AND_DEFAULT( m_controller_nh, "debug", debug, false );
-  if (debug)
-  {
-    if( ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug) )
-    {
-      ros::console::notifyLoggerLevelsChanged();
-    }
-  }
-
   //** PARAMS UNDER CONTROLLER PARAM NAMESPACE*********************************************
   std::string output_twist_name;
 
-  GET_AND_RETURN ( m_controller_nh, "sensor_name"   , m_ft_resource_name );
-  GET_AND_RETURN ( m_controller_nh, "base_link"     , m_base_frame    );
-  GET_AND_RETURN ( m_controller_nh, "tool_link"     , m_tool_frame    );
-  GET_AND_RETURN ( m_controller_nh, "sensor_frame"  , m_sensor_frame  );
-  GET_AND_DEFAULT( m_controller_nh, "output_twist_ns" , output_twist_name, m_controller_nh.getNamespace()+"/target_cart_twist" );
+  GET_AND_RETURN ( getControllerNh(), "sensor_name"   , m_ft_resource_name );
+  GET_AND_RETURN ( getControllerNh(), "base_link"     , m_base_frame    );
+  GET_AND_RETURN ( getControllerNh(), "tool_link"     , m_tool_frame    );
+  GET_AND_RETURN ( getControllerNh(), "sensor_frame"  , m_sensor_frame  );
+  GET_AND_DEFAULT( getControllerNh(), "output_twist_ns" , output_twist_name, getControllerNamespace()+"/target_cart_twist" );
 
   m_goal_wrench_frame = m_sensor_frame;
   m_goal_twist_frame  = m_tool_frame;
@@ -101,16 +87,16 @@ bool SimpleTouchController::init(hardware_interface::ForceTorqueInterface *hw, r
 
 
 
-  m_target_twist_pub = m_controller_nh.advertise<geometry_msgs::TwistStamped>(output_twist_name,1000);
+  add_publisher<geometry_msgs::TwistStamped>("target_twist", output_twist_name,1000);
 
-  m_listener.reset( new tf::TransformListener( m_controller_nh ) );
+  m_listener.reset( new tf::TransformListener( getControllerNh() ) );
   return true;
 }
 
 
-void SimpleTouchController::starting(const ros::Time& time)
+bool SimpleTouchController::doStarting(const ros::Time& time)
 {
-  ROS_INFO("[ %s ] Starting controller",  m_controller_nh.getNamespace().c_str());
+  CNR_TRACE_START(*m_logger, "Starting controller");
 
   m_touched = false;
 
@@ -119,23 +105,19 @@ void SimpleTouchController::starting(const ros::Time& time)
 
   m_target_twist.setZero( );
 
-
-  m_controller_nh_callback_queue.callAvailable();
-
-  m_as.reset(new actionlib::ActionServer<simple_touch_controller_msgs::simpleTouchAction>(m_controller_nh, "simple_touch",
+  m_as.reset(new actionlib::ActionServer<simple_touch_controller_msgs::simpleTouchAction>(getControllerNh(), "simple_touch",
                                                                       boost::bind(&SimpleTouchController::actionGoalCallback,    this,  _1), 
                                                                       boost::bind(&SimpleTouchController::actionCancelCallback,  this,  _1), 
                                                                       false));
   m_as->start();
 
-  ROS_INFO("[ %s ] Controller Started",  m_controller_nh.getNamespace().c_str());
-
+  CNR_RETURN_TRUE(*m_logger, "Controller Started");
 }
 
 
-void SimpleTouchController::stopping(const ros::Time& time)
+bool SimpleTouchController::doStopping(const ros::Time& time)
 {
-  ROS_INFO("[ %s ] Stopping Controller",  m_controller_nh.getNamespace().c_str());
+  CNR_TRACE_START(*m_logger, "Stopping Controller");
   m_target_twist.setZero();
 
   {
@@ -151,11 +133,9 @@ void SimpleTouchController::stopping(const ros::Time& time)
     tw.header.frame_id = m_sensor_frame;
     tw.header.stamp    = ros::Time::now();
 
-    m_target_twist_pub.publish( tw );
+    publish( "target_twist", tw );
 
   }
-
-  m_controller_nh_callback_queue.callAvailable();
   if (m_gh)
   {
     m_gh->setCanceled();
@@ -167,29 +147,24 @@ void SimpleTouchController::stopping(const ros::Time& time)
   }
   m_gh.reset();
   
-  ROS_INFO("[ %s ] Controller Succesfully Stopped",  m_controller_nh.getNamespace().c_str());
-  return;
+  CNR_RETURN_TRUE(*m_logger, "Controller Succesfully Stopped");
 }
 
 
 
-void SimpleTouchController::update(const ros::Time& time, const ros::Duration& period)
+bool SimpleTouchController::doUpdate(const ros::Time& time, const ros::Duration& period)
 {
-  
+  CNR_TRACE_START_THROTTLE(*m_logger,5.0);
   m_wrench_s.block(0,0,3,1) = Eigen::Vector3d( m_ft_h.getForce( ) );
   m_wrench_s.block(3,0,3,1) = Eigen::Vector3d( m_ft_h.getTorque( ) );
 
-
-  // ROS_DEBUG_STREAM_THROTTLE(2, "[ " << m_controller_nh.getNamespace() <<  "] Measured Wrench {" << m_sensor_frame<<"}: " << m_wrench_s.transpose() );
-  m_controller_nh_callback_queue.callAvailable();
-
   if(m_touched)
   {
-    ROS_DEBUG_STREAM_THROTTLE(2, "[ " << m_controller_nh.getNamespace() <<  "] Touched! Set to zero the output twist" );
+    CNR_DEBUG_THROTTLE(*m_logger, 2.0, "[ " << getControllerNamespace() <<  "] Touched! Set to zero the output twist" );
     m_target_twist.setZero();
   }
   
-  ROS_DEBUG_STREAM_THROTTLE(2, "[ " << m_controller_nh.getNamespace() <<  "] Output twist: " << m_target_twist.transpose() );
+  CNR_DEBUG_THROTTLE(*m_logger, 2.0, "[ " << getControllerNamespace() <<  "] Output twist: " << m_target_twist.transpose() );
 
   geometry_msgs::TwistStamped tw;
 
@@ -202,8 +177,9 @@ void SimpleTouchController::update(const ros::Time& time, const ros::Duration& p
   tw.header.frame_id = m_goal_twist_frame;
   tw.header.stamp    = ros::Time::now();
 
-  m_target_twist_pub.publish(tw);
+  publish("target_twist", tw);
 
+  CNR_RETURN_TRUE_THROTTLE(*m_logger,5.0);
 
 }
 
@@ -219,7 +195,7 @@ void SimpleTouchController::actionGoalCallback(actionlib::ActionServer< simple_t
     current_gh.reset(new actionlib::ActionServer<simple_touch_controller_msgs::simpleTouchAction>::GoalHandle(gh));
     m_gh = current_gh;
 
-    ROS_INFO("[ %s ] New Goal Received, action start!",  m_controller_nh.getNamespace().c_str());
+    CNR_INFO(*m_logger,"New Goal Received, action start!");
     m_gh->setAccepted();
 
 
@@ -243,8 +219,8 @@ void SimpleTouchController::actionGoalCallback(actionlib::ActionServer< simple_t
       m_goal_wrench_toll      = Eigen::Vector6d( goal->wrench_toll.data() ).cwiseAbs( );
 
       m_goal_wrench_frame     = goal->target_wrench_frame;
-      ROS_DEBUG_STREAM( "[ " << m_controller_nh.getNamespace() <<  "] Goal goal wrench        {" << m_goal_wrench_frame <<"} " << m_goal_wrench_g       .transpose() );
-      ROS_DEBUG_STREAM( "[ " << m_controller_nh.getNamespace() <<  "] Goal goal wrench toll   {" << m_goal_wrench_frame <<"} " << m_goal_wrench_toll    .transpose() );
+      CNR_DEBUG(*m_logger,"[ " << getControllerNamespace() <<  "] Goal goal wrench        {" << m_goal_wrench_frame <<"} " << m_goal_wrench_g       .transpose() );
+      CNR_DEBUG(*m_logger,"[ " << getControllerNamespace() <<  "] Goal goal wrench toll   {" << m_goal_wrench_frame <<"} " << m_goal_wrench_toll    .transpose() );
     }
 
 
@@ -263,10 +239,10 @@ void SimpleTouchController::actionGoalCallback(actionlib::ActionServer< simple_t
     }
     m_goal_twist            = Eigen::Vector6d( goal->goal_twist.data() );
 
-    ROS_DEBUG_STREAM( "[ " << m_controller_nh.getNamespace() <<  "] Goal goal wrench deadband {" << m_goal_wrench_frame <<"} " << m_goal_wrench_deadband.transpose() );
-    ROS_DEBUG_STREAM( "[ " << m_controller_nh.getNamespace() <<  "] Goal goal wrench frame    {" << m_goal_wrench_frame <<"} " << m_goal_wrench_frame                );
-    ROS_DEBUG_STREAM( "[ " << m_controller_nh.getNamespace() <<  "] Goal goal twist           {" << m_goal_twist_frame  <<"} " << m_goal_twist          .transpose() );
-    ROS_DEBUG_STREAM( "[ " << m_controller_nh.getNamespace() <<  "] Goal goal twist frame     {" << m_goal_wrench_frame <<"} " << m_goal_twist_frame                 );
+    CNR_DEBUG(*m_logger,"[ " << getControllerNamespace() <<  "] Goal goal wrench deadband {" << m_goal_wrench_frame <<"} " << m_goal_wrench_deadband.transpose() );
+    CNR_DEBUG(*m_logger,"[ " << getControllerNamespace() <<  "] Goal goal wrench frame    {" << m_goal_wrench_frame <<"} " << m_goal_wrench_frame                );
+    CNR_DEBUG(*m_logger,"[ " << getControllerNamespace() <<  "] Goal goal twist           {" << m_goal_twist_frame  <<"} " << m_goal_twist          .transpose() );
+    CNR_DEBUG(*m_logger,"[ " << getControllerNamespace() <<  "] Goal goal twist frame     {" << m_goal_wrench_frame <<"} " << m_goal_twist_frame                 );
 
     m_touched = false;
     m_stop_thread  = false;
@@ -274,12 +250,12 @@ void SimpleTouchController::actionGoalCallback(actionlib::ActionServer< simple_t
   }
   catch( std::exception& e )
   {
-    ROS_ERROR_STREAM("Exception at line: " << l << " what: " << e.what() );
+    CNR_ERROR(*m_logger, "Exception at line: " << l << " what: " << e.what() );
     assert(0);
   }
   catch( ... )
   {
-    ROS_ERROR_STREAM("Exception at line: " << l);
+    CNR_ERROR(*m_logger, "Exception at line: " << l);
     assert(0);
   }
   
@@ -287,7 +263,7 @@ void SimpleTouchController::actionGoalCallback(actionlib::ActionServer< simple_t
 
 void SimpleTouchController::actionCancelCallback(actionlib::ActionServer< simple_touch_controller_msgs::simpleTouchAction >::GoalHandle gh)
 {
-  ROS_DEBUG("[ %s ] Triggered the Cancel of the Action",  m_controller_nh.getNamespace().c_str());
+  CNR_DEBUG(*m_logger, "Triggered the Cancel of the Action");
   if (m_gh)
   {
     m_gh->setCanceled();
@@ -301,39 +277,39 @@ void SimpleTouchController::actionCancelCallback(actionlib::ActionServer< simple
   }
   else
   {
-    ROS_WARN("[ %s ] Triggered the Cancel of the Action but none Goal is active.",  m_controller_nh.getNamespace().c_str());
+    ROS_WARN("[ %s ] Triggered the Cancel of the Action but none Goal is active.",  getControllerNamespace().c_str());
   }
-  ROS_DEBUG("[ %s ] Action Succesfully Cancelled",  m_controller_nh.getNamespace().c_str());
+  CNR_DEBUG(*m_logger, "Action Succesfully Cancelled");
 }
 
 void SimpleTouchController::actionThreadTunction()
 {
-  ROS_DEBUG("[ %s ] START ACTION GOAL LOOP",  m_controller_nh.getNamespace().c_str());
+  CNR_DEBUG(*m_logger, "START ACTION GOAL LOOP");
   ros::WallRate lp(100);
 
-  while (m_controller_nh.ok())
+  while (getControllerNh().ok())
   {
     lp.sleep();
     if (!m_gh)
     {
-      ROS_ERROR("[ %s ] Goal handle is not initialized",  m_controller_nh.getNamespace().c_str());
+      CNR_ERROR(*m_logger, "Goal handle is not initialized");
       break;
     }
 
     if( m_stop_thread )
     {
-      ROS_ERROR("[ %s ] Triggered an external stop. Break the action loop.",  m_controller_nh.getNamespace().c_str());
+      CNR_ERROR(*m_logger, "Triggered an external stop. Break the action loop.");
       break;
     }
 
     Eigen::Affine3d T_gs;
 
     tf::StampedTransform TF_T_bs, TF_T_bt;
-    ROS_DEBUG_STREAM_THROTTLE( 2, "[ " << m_controller_nh.getNamespace() <<  "] Listening for TF transormation between '" << m_base_frame << "' and '" << m_sensor_frame  <<"'" );
+    CNR_DEBUG_THROTTLE( *m_logger, 2, "[ " << getControllerNamespace() <<  "] Listening for TF transormation between '" << m_base_frame << "' and '" << m_sensor_frame  <<"'" );
     m_listener->waitForTransform ( m_base_frame, m_sensor_frame       , ros::Time(0), ros::Duration ( 10.0 ) );
     m_listener->lookupTransform  ( m_base_frame, m_sensor_frame       , ros::Time(0), TF_T_bs);
 
-    ROS_DEBUG_STREAM_THROTTLE( 2, "[ " << m_controller_nh.getNamespace() <<  "] Listening for TF transormation between '" << m_base_frame << "' and '" << m_tool_frame  <<"'" );
+    CNR_DEBUG_THROTTLE( *m_logger, 2, "[ " << getControllerNamespace() <<  "] Listening for TF transormation between '" << m_base_frame << "' and '" << m_tool_frame  <<"'" );
     m_listener->waitForTransform ( m_base_frame, m_tool_frame         , ros::Time(0), ros::Duration ( 10.0 ) );
     m_listener->lookupTransform  ( m_base_frame, m_tool_frame         , ros::Time(0), TF_T_bt);
 
@@ -370,13 +346,13 @@ void SimpleTouchController::actionThreadTunction()
     if( m_goal_wrench_norm < 0)
     {
       Eigen::Vector3d goal_force_g  = m_goal_wrench_g.block(0,0,3,1);
-      ROS_DEBUG_STREAM_THROTTLE(2, "[ " << m_controller_nh.getNamespace() <<  "] Goal     Force {" << m_goal_wrench_frame  <<"}: " << goal_force_g.transpose() <<", norm:       " << goal_force_g.norm() );
-      ROS_DEBUG_STREAM_THROTTLE(2, "[ " << m_controller_nh.getNamespace() <<  "] Measured Force {" << m_goal_wrench_frame  <<"}: " << force_g     .transpose() << " projection: " << force_g.dot( goal_force_g.normalized()) );
+      CNR_DEBUG_THROTTLE(*m_logger, 2.0, "[ " << getControllerNamespace() <<  "] Goal     Force {" << m_goal_wrench_frame  <<"}: " << goal_force_g.transpose() <<", norm:       " << goal_force_g.norm() );
+      CNR_DEBUG_THROTTLE(*m_logger, 2.0, "[ " << getControllerNamespace() <<  "] Measured Force {" << m_goal_wrench_frame  <<"}: " << force_g     .transpose() << " projection: " << force_g.dot( goal_force_g.normalized()) );
 
       Eigen::Vector3d tracking_force_error  = (goal_force_g.norm() - force_g.dot( goal_force_g.normalized()) )
                                             *  goal_force_g.normalized();
 
-      ROS_DEBUG_STREAM_THROTTLE( 2, "[ " << m_controller_nh.getNamespace() <<  "] Tracking force error {"<< m_goal_wrench_frame <<" }: "<<tracking_force_error.transpose());
+      CNR_DEBUG_THROTTLE( *m_logger, 2, "[ " << getControllerNamespace() <<  "] Tracking force error {"<< m_goal_wrench_frame <<" }: "<<tracking_force_error.transpose());
       target_achieved = force_g.dot( goal_force_g.normalized() ) > goal_force_g.norm();
     }
     else
@@ -389,7 +365,7 @@ void SimpleTouchController::actionThreadTunction()
     if ( target_achieved )
     {
       m_touched = true;
-      ROS_INFO_STREAM("Measured wrench in {s} while stopping : " << m_wrench_s.transpose());
+      CNR_INFO(*m_logger,"Measured wrench in {s} while stopping : " << m_wrench_s.transpose());
       result.error_code   = 0;
       result.error_string = "finished";
       m_gh->setSucceeded(result);

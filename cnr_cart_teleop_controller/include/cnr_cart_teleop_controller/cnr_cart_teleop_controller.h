@@ -2,12 +2,11 @@
 #define cnr_cart_teleop_controller__201812051146
 
 #include <ros/ros.h>
-#include <controller_interface/controller.h>
+#include <cnr_controller_interface/cnr_joint_controller_interface.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <cnr_hardware_interface/posveleff_command_interface.h>
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/TwistStamped.h>
-#include <subscription_notifier/subscription_notifier.h>
 #include <urdf_model/model.h>
 #include <urdf_parser/urdf_parser.h>
 #include <rosdyn_core/spacevect_algebra.h>
@@ -24,28 +23,23 @@ namespace shared_ptr_namespace = boost;
 #endif
 
 
-namespace itia
+namespace cnr
 {
 namespace control
 {
-class CartTeleopController: public controller_interface::Controller<hardware_interface::PosVelEffJointInterface>
+class CartTeleopController: public cnr_controller_interface::JointController<hardware_interface::PosVelEffJointInterface>
 {
 
 public:
   CartTeleopController();
-  bool init(hardware_interface::PosVelEffJointInterface* hw, ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh);
-  void update(const ros::Time& time, const ros::Duration& period);
-  void starting(const ros::Time& time);
-  void stopping(const ros::Time& time);
+  bool doInit();
+  bool doUpdate(const ros::Time& time, const ros::Duration& period);
+  bool doStarting(const ros::Time& time);
+  bool doStopping(const ros::Time& time);
 
 protected:
-  hardware_interface::PosVelEffJointInterface* m_hw;
   std::vector<hardware_interface::PosVelEffJointHandle> m_jh;
-  ros::NodeHandle m_nh;
-  ros::NodeHandle m_root_nh;
-  ros::NodeHandle m_controller_nh;
-  std::vector<std::string> m_joint_names;
-  unsigned int m_nAx;
+
   std::vector<double> m_target_vel;
   std::vector<double> m_target_pos;
   std::vector<double> m_cmd_pos_old;
@@ -65,15 +59,11 @@ protected:
   std::vector<double> m_cmd_pos;
   double m_time;
   bool m_configured;
-  urdf::ModelInterfaceSharedPtr m_model;
-  double m_err;
-  double m_err_old = 0;
-  std::shared_ptr<ros_helper::SubscriptionNotifier<sensor_msgs::JointState>> m_joint_target_rec;
+  geometry_msgs::TwistStamped::Ptr m_twist;
 
+  std::mutex m_mtx;
+  void callback(const geometry_msgs::TwistStamped::ConstPtr& msg);
 
-
-
-  std::shared_ptr<ros_helper::SubscriptionNotifier<geometry_msgs::TwistStamped>> m_cart_target_rec;
   boost::shared_ptr<rosdyn::Chain> m_chain;
 
   Eigen::Matrix<double, 6, 1> m_target_twist;

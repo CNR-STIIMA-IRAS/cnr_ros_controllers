@@ -3,7 +3,6 @@ project(inverse_kinematics_qp_controller)
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  cartesian_msgs
   eigen_conversions
   eigen_matrix_utils
   geometry_msgs
@@ -19,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS cnr_controller_interface cartesian_msgs eigen_conversions eigen_matrix_utils geometry_msgs inverse_kinematics_qp_math roscpp rosdyn_core sensor_msgs subscription_notifier cnr_hardware_interface name_sorting
+  CATKIN_DEPENDS cnr_controller_interface eigen_conversions eigen_matrix_utils geometry_msgs inverse_kinematics_qp_math roscpp rosdyn_core sensor_msgs subscription_notifier cnr_hardware_interface name_sorting
 #  DEPENDS system_lib
 )
 

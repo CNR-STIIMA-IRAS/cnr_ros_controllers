@@ -6,7 +6,6 @@
   <maintainer email="marco.faroni@stiima.cnr.it">hypatia</maintainer>
   <license>TODO</license>
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>cartesian_msgs</build_depend>
   <build_depend>eigen_conversions</build_depend>
   <build_depend>eigen_matrix_utils</build_depend>
   <build_depend>geometry_msgs</build_depend>
@@ -15,7 +14,6 @@
   <build_depend>rosdyn_core</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>subscription_notifier</build_depend>
-  <build_export_depend>cartesian_msgs</build_export_depend>
   <build_export_depend>eigen_conversions</build_export_depend>
   <build_export_depend>eigen_matrix_utils</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
@@ -24,7 +22,6 @@
   <build_export_depend>rosdyn_core</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>
   <build_export_depend>subscription_notifier</build_export_depend>
-  <exec_depend>cartesian_msgs</exec_depend>
   <exec_depend>eigen_conversions</exec_depend>
   <exec_depend>eigen_matrix_utils</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
