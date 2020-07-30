@@ -7,6 +7,7 @@
 #include <rosdyn_core/primitives.h>
 #include <rosdyn_core/frame_distance.h>
 
+
 namespace inverse_kinematics_qp
 {
 namespace math
@@ -17,8 +18,8 @@ class InverseKinematicsQP
 protected:
   bool m_are_matrices_updated;
 
-  boost::shared_ptr<rosdyn::Chain> m_chain_task1;
-  boost::shared_ptr<rosdyn::Chain> m_chain_task2;
+  rosdyn::ChainPtr m_chain_task1;
+  rosdyn::ChainPtr m_chain_task2;
 
   unsigned int m_nax; //nmber of joints
   unsigned int m_nax_task2; //number of joints from base to elbow
@@ -66,7 +67,7 @@ protected:
   Eigen::VectorXd m_middle_configuration;
   Eigen::VectorXd m_obstacle_in_b;
 
-  void computeActualMatrices(const Eigen::VectorXd& targetDx,
+  void computeActualMatrices( const Eigen::VectorXd& targetDx,
                               const Eigen::Affine3d& next_targetX,
                               const Eigen::VectorXd& joint_position,
                               const Eigen::VectorXd& joint_velocity);
@@ -76,16 +77,19 @@ public:
 
   void updateMatrices();
 
-  void setConstraints(const Eigen::VectorXd& qmax,
-                 const Eigen::VectorXd& qmin,
-                 const Eigen::VectorXd& Dqmax,
-                 const Eigen::VectorXd& DDqmax);
+  void setConstraints( const Eigen::VectorXd& qmax,
+                       const Eigen::VectorXd& qmin,
+                       const Eigen::VectorXd& Dqmax,
+                       const Eigen::VectorXd& DDqmax);
 
   void enableInvariance(const bool enable_invariance);
 
   bool isInvarianceEnabled();
 
-  void setWeigthFunction( const double& lambda_distance, const double& lambda_effort, const double& lambda_return, const double& lambda_clik );
+  void setWeigthFunction( const double& lambda_distance,
+                          const double& lambda_effort,
+                          const double& lambda_return,
+                          const double& lambda_clik );
 
   bool computedUncostrainedSolution(  const Eigen::VectorXd& targetDx,
                                       const Eigen::Affine3d& next_targetX,
@@ -116,15 +120,19 @@ public:
   Eigen::Affine3d getPoseTask1();
   Eigen::Vector6d getTwistTask1();
 
-  void setDynamicsChainTask1(const boost::shared_ptr<rosdyn::Chain>&  chain);
-  void setDynamicsChainTask2(const boost::shared_ptr<rosdyn::Chain>&  chain);
+  void setDynamicsChainTask1(const rosdyn::ChainPtr&  chain);
+  void setDynamicsChainTask2(const rosdyn::ChainPtr&  chain);
   void setAxisNumberTask1( const unsigned int& nax );
   void setAxisNumberTask2( const unsigned int& nax );
 
-  boost::shared_ptr<rosdyn::Chain> getDynamicsChainTask1();
-  boost::shared_ptr<rosdyn::Chain> getDynamicsChainTask2();
+  rosdyn::ChainPtr getDynamicsChainTask1();
+  rosdyn::ChainPtr getDynamicsChainTask2();
 
-  void setClearanceOptions( const boost::shared_ptr<rosdyn::Chain>&  chain, const unsigned int& nax, const double& clearance_threshold, const Eigen::VectorXd& rest_configuration, const Eigen::Affine3d& obstacle_pose_in_b );
+  void setClearanceOptions( const rosdyn::ChainPtr&  chain,
+                            const unsigned int& nax,
+                            const double& clearance_threshold,
+                            const Eigen::VectorXd& rest_configuration,
+                            const Eigen::Affine3d& obstacle_pose_in_b );
 
   void printALL();
 

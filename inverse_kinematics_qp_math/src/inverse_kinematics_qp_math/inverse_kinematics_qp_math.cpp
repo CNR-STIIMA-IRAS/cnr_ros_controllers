@@ -67,7 +67,10 @@ void InverseKinematicsQP::updateMatrices()
   }
 }
 
-void InverseKinematicsQP::computeActualMatrices( const Eigen::VectorXd& targetDx, const Eigen::Affine3d& next_targetX, const Eigen::VectorXd& joint_position, const Eigen::VectorXd& joint_velocity)
+void InverseKinematicsQP::computeActualMatrices( const Eigen::VectorXd& targetDx,
+                                                 const Eigen::Affine3d& next_targetX,
+                                                 const Eigen::VectorXd& joint_position,
+                                                 const Eigen::VectorXd& joint_velocity)
 {
   Eigen::Affine3d Tba=m_chain_task1->getTransformation(m_joint_position); // current ee pose
   Eigen::MatrixXd jacobian_ee = m_select_task_axis_matrix*(m_chain_task1->getJacobian(m_joint_position));
@@ -79,9 +82,21 @@ void InverseKinematicsQP::computeActualMatrices( const Eigen::VectorXd& targetDx
   m_ce0=-(m_select_task_axis_matrix*targetDx+m_lambda_clik*task_error_in_b);
 
   if (!m_is_invariance_active)
-    m_ci0 << -m_qmin+m_joint_position, m_qmax-m_joint_position, m_Dqmax, m_Dqmax, -m_joint_velocity+m_dt*m_DDqmax, m_joint_velocity+m_dt*m_DDqmax; // pos, vel, acc limits
+    m_ci0 << -m_qmin+m_joint_position,
+              m_qmax-m_joint_position,
+              m_Dqmax,
+              m_Dqmax,
+             -m_joint_velocity+m_dt*m_DDqmax,
+              m_joint_velocity+m_dt*m_DDqmax; // pos, vel, acc limits
   else
-    m_ci0 << -m_qmin+m_joint_position, m_qmax-m_joint_position, m_Dqmax, m_Dqmax, -m_joint_velocity+m_dt*m_DDqmax, m_joint_velocity+m_dt*m_DDqmax, 0.99*(m_DDqmax.cwiseQuotient(m_Dqmax)).asDiagonal()*(m_joint_position-m_qmin), -0.99*(m_DDqmax.cwiseQuotient(m_Dqmax)).asDiagonal()*(m_joint_position-m_qmax); // pos, vel, acc, invariance limits
+    m_ci0 << -m_qmin+m_joint_position,
+              m_qmax-m_joint_position,
+              m_Dqmax,
+              m_Dqmax,
+             -m_joint_velocity+m_dt*m_DDqmax,
+              m_joint_velocity+m_dt*m_DDqmax,
+              0.99*(m_DDqmax.cwiseQuotient(m_Dqmax)).asDiagonal()*(m_joint_position-m_qmin), 
+             -0.99*(m_DDqmax.cwiseQuotient(m_Dqmax)).asDiagonal()*(m_joint_position-m_qmax); // pos, vel, acc, invariance limits
 
   if (!m_secondary_task.compare("minimum_velocity_norm"))
   {
@@ -117,7 +132,7 @@ void InverseKinematicsQP::computeActualMatrices( const Eigen::VectorXd& targetDx
 
 }
 
-void InverseKinematicsQP::setConstraints ( const Eigen::VectorXd& qmax, const Eigen::VectorXd& qmin, const Eigen::VectorXd& Dqmax, const Eigen::VectorXd& DDqmax )
+void InverseKinematicsQP::setConstraints(const Eigen::VectorXd& qmax, const Eigen::VectorXd& qmin, const Eigen::VectorXd& Dqmax, const Eigen::VectorXd& DDqmax)
 {
   m_qmax=qmax;
   m_qmin=qmin;
@@ -273,22 +288,22 @@ Eigen::Vector6d InverseKinematicsQP::getTwistTask1()
   return m_chain_task1->getTwistTool(m_joint_position,m_joint_velocity);
 }
 
-void InverseKinematicsQP::setDynamicsChainTask1(const boost::shared_ptr<rosdyn::Chain>&  chain)
+void InverseKinematicsQP::setDynamicsChainTask1(const rosdyn::ChainPtr& chain)
 {
   m_chain_task1=chain;
 }
 
-boost::shared_ptr<rosdyn::Chain> InverseKinematicsQP::getDynamicsChainTask1()
+rosdyn::ChainPtr InverseKinematicsQP::getDynamicsChainTask1()
 {
  return m_chain_task1;
 }
 
-void InverseKinematicsQP::setDynamicsChainTask2(const boost::shared_ptr<rosdyn::Chain>&  chain)
+void InverseKinematicsQP::setDynamicsChainTask2(const rosdyn::ChainPtr&  chain)
 {
   m_chain_task2=chain;
 }
 
-boost::shared_ptr<rosdyn::Chain> InverseKinematicsQP::getDynamicsChainTask2()
+rosdyn::ChainPtr InverseKinematicsQP::getDynamicsChainTask2()
 {
  return m_chain_task2;
 }
@@ -303,7 +318,7 @@ void InverseKinematicsQP::setAxisNumberTask2( const unsigned int& nax )
   m_nax_task2=nax;
 }
 
-void InverseKinematicsQP::setClearanceOptions( const boost::shared_ptr<rosdyn::Chain>&  chain, const unsigned int& nax, const double& clearance_threshold, const Eigen::VectorXd& rest_configuration, const Eigen::Affine3d& obstacle_pose_in_b )
+void InverseKinematicsQP::setClearanceOptions( const rosdyn::ChainPtr&  chain, const unsigned int& nax, const double& clearance_threshold, const Eigen::VectorXd& rest_configuration, const Eigen::Affine3d& obstacle_pose_in_b )
 {
   if (m_secondary_task.compare("clearance"))
     ROS_WARN("You are setting clearance options but the secondary task is not set to 'clearance'.");

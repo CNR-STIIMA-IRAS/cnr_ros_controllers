@@ -22,19 +22,19 @@ JointStatePublisher::~JointStatePublisher()
 bool JointStatePublisher::doInit()
 {
   CNR_TRACE_START(*m_logger);
-  if (m_nAx == 0)
+  if (nAx() == 0)
   {
     CNR_RETURN_FALSE(*m_logger, "The number of controlled axes is 0. Check the configuration. Abort");
   }
   add_publisher<sensor_msgs::JointState>("js", "joint_states", 1);
 
   m_msg.reset(new sensor_msgs::JointState());
-  m_msg->position.resize(m_nAx, 0);
-  m_msg->velocity.resize(m_nAx, 0);
-  m_msg->effort.resize(m_nAx, 0);
-  m_msg->name = m_joint_names;
+  m_msg->position.resize(nAx(), 0);
+  m_msg->velocity.resize(nAx(), 0);
+  m_msg->effort.resize(nAx(), 0);
+  m_msg->name = jointNames();
 
-  CNR_TRACE(*m_logger, "Published Topic '" + getPublisher("js")->getTopic() + "', axis names: " + cnr_controller_interface::to_string(m_joint_names) + " n. axes: " + std::to_string(m_nAx));
+  CNR_TRACE(*m_logger, "Published Topic '" + getPublisher("js")->getTopic() + "', axis names: " + cnr_controller_interface::to_string(jointNames()) + " n. axes: " + std::to_string(nAx()));
   CNR_RETURN_TRUE(*m_logger);
 }
 
@@ -52,12 +52,12 @@ bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duratio
   {
     sensor_msgs::JointStatePtr msg(new sensor_msgs::JointState());
 
-    for (std::size_t idx = 0; idx < m_nAx; idx++)
+    for (std::size_t idx = 0; idx<nAx(); idx++)
     {
-      msg->name    .push_back(m_joint_names.at(idx));
-      msg->position.push_back(m_hw->getHandle(m_joint_names.at(idx)).getPosition());
-      msg->velocity.push_back(m_hw->getHandle(m_joint_names.at(idx)).getVelocity());
-      msg->effort  .push_back(m_hw->getHandle(m_joint_names.at(idx)).getEffort());
+      msg->name    .push_back(jointName(idx));
+      msg->position.push_back(q(idx));
+      msg->velocity.push_back(qd(idx));
+      msg->effort  .push_back(effort(idx));
     }
     msg->header.stamp = ros::Time::now();
     publish("js", *msg);

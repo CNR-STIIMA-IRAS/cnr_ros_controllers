@@ -1,78 +1,60 @@
-#ifndef cnr_cart_teleop_controller__201812051146
-#define cnr_cart_teleop_controller__201812051146
+#ifndef CNR_CART_TELEOP_CONTROLLER__CNR_CART_TELEOP_CONTROLLER_H
+#define CNR_CART_TELEOP_CONTROLLER__CNR_CART_TELEOP_CONTROLLER_H
 
 #include <ros/ros.h>
-#include <cnr_controller_interface/cnr_joint_controller_interface.h>
+#include <controller_interface/controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <cnr_hardware_interface/posveleff_command_interface.h>
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <subscription_notifier/subscription_notifier.h>
 #include <urdf_model/model.h>
 #include <urdf_parser/urdf_parser.h>
 #include <rosdyn_core/spacevect_algebra.h>
 #include <rosdyn_core/primitives.h>
+#include <ros/callback_queue.h>
+#include <tf/transform_listener.h>
 
-#if ROS_VERSION_MINIMUM(1, 14, 1)
-# include <memory>
-namespace shared_ptr_namespace = std;
-#else
-# include <boost/concept_check.hpp>
-# include <boost/graph/graph_concepts.hpp>
-# include <boost/enable_shared_from_this.hpp>
-namespace shared_ptr_namespace = boost;
-#endif
-
+#include <inverse_kinematics_qp_controller/inverse_kinematics_qp_controller.h>
 
 namespace cnr
 {
 namespace control
 {
-class CartTeleopController: public cnr_controller_interface::JointController<hardware_interface::PosVelEffJointInterface>
+
+class CartTeleopController: public inverse_kinematics_qp::InverseKinematicsQpPosVelEffController
 {
 
 public:
-  CartTeleopController();
-  bool doInit();
-  bool doUpdate(const ros::Time& time, const ros::Duration& period);
-  bool doStarting(const ros::Time& time);
-  bool doStopping(const ros::Time& time);
+    CartTeleopController();
+    bool doInit      ( );
+    bool doUpdate    (const ros::Time& time, const ros::Duration& period);
+    bool doStarting  (const ros::Time& time);
+    bool doStopping  (const ros::Time& time);
 
 protected:
-  std::vector<hardware_interface::PosVelEffJointHandle> m_jh;
 
-  std::vector<double> m_target_vel;
-  std::vector<double> m_target_pos;
-  std::vector<double> m_cmd_pos_old;
-  std::vector<double> m_upper_limit;
-  std::vector<double> m_lower_limit;
-  Eigen::VectorXd m_last_target_vel;
-  Eigen::VectorXd m_velocity_limit;
-  Eigen::VectorXd m_acceleration_limit;
+    std::shared_ptr<tf::TransformListener> m_listener;
 
-  double m_max_cart_lin_vel;
-  double m_max_cart_lin_acc;
+    void setTargetCallback(const geometry_msgs::TwistStampedConstPtr& msg);
 
-  double m_max_cart_ang_vel;
-  double m_max_cart_ang_acc;
-  Eigen::Vector6d m_last_twist_of_in_b;
+    Eigen::Matrix<double, 6, 1> m_target_twist;
 
-  std::vector<double> m_cmd_pos;
-  double m_time;
-  bool m_configured;
-  geometry_msgs::TwistStamped::Ptr m_twist;
+    Eigen::Vector6d m_last_twist_in_b;
+    Eigen::Vector6d m_twist_in_b;
 
-  std::mutex m_mtx;
-  void callback(const geometry_msgs::TwistStamped::ConstPtr& msg);
+    Eigen::Affine3d m_target_p;
+    Eigen::Affine3d m_last_target_p;
 
-  boost::shared_ptr<rosdyn::Chain> m_chain;
+    Eigen::Vector6d m_target_v;
+    Eigen::Vector6d m_last_target_v;
 
-  Eigen::Matrix<double, 6, 1> m_target_twist;
-
-
-
+    Eigen::VectorXd m_target_q;
+    Eigen::VectorXd m_last_target_q;
 };
-}
-}
+
+}  // namespace control
+}  // namespace cnr
 
 
 
@@ -80,4 +62,4 @@ protected:
 
 
 
-#endif
+#endif  // CNR_CART_TELEOP_CONTROLLER__CNR_CART_TELEOP_CONTROLLER_H

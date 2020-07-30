@@ -1,0 +1,8 @@
+<library path="lib/libcnr_cartesian_motion_ctrl">
+  <class name="itia/control/CartMotionController" type="itia::control::CartMotionController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      simple touch controller
+    </description>
+  </class>
+</library>
+

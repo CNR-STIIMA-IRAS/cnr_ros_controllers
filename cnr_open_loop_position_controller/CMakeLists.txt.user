@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.5.2, 2020-07-28T16:29:16. -->
+<!-- Written by QtCreator 4.5.2, 2020-07-30T17:27:20. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -59,7 +59,7 @@
  <data>
   <variable>ProjectExplorer.Project.Target.0</variable>
   <valuemap type="QVariantMap">
-   <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Imported Kit - temporary</value>
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Imported Kit</value>
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Imported Kit</value>
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">{b6746dc1-ef98-4c9c-a46d-9c7546c56653}</value>
    <value type="int" key="ProjectExplorer.Target.ActiveBuildConfiguration">5</value>

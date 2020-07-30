@@ -2,7 +2,7 @@
 <package format="2">
   <name>cnr_cart_teleop_controller</name>
   <version>0.0.0</version>
-  <description>The cnr_cart_teleop_controller package</description>
+  <description>The itia_cart_teleop_controller package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/cnr_cart_teleop_controller</url> -->
+  <!-- <url type="website">http://wiki.ros.org/itia_cart_teleop_controller</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -49,7 +49,7 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>cnr_controller_interface</build_depend>
+  <build_depend>controller_interface</build_depend>
   <build_depend>controller_manager</build_depend>
   <build_depend>eigen_state_space_systems</build_depend>
   <build_depend>hardware_interface</build_depend>
@@ -61,7 +61,8 @@
   <build_depend>subscription_notifier</build_depend>
   <build_depend>urdf</build_depend>
   <build_depend>rosdyn_core</build_depend>
-  <build_export_depend>cnr_controller_interface</build_export_depend>
+  
+  <build_export_depend>controller_interface</build_export_depend>
   <build_export_depend>controller_manager</build_export_depend>
   <build_export_depend>eigen_state_space_systems</build_export_depend>
   <build_export_depend>hardware_interface</build_export_depend>
@@ -74,7 +75,7 @@
   <build_export_depend>urdf</build_export_depend>
   <build_export_depend>rosdyn_core</build_export_depend>
   
-  <exec_depend>cnr_controller_interface</exec_depend>
+  <exec_depend>controller_interface</exec_depend>
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>eigen_state_space_systems</exec_depend>
   <exec_depend>hardware_interface</exec_depend>
@@ -87,8 +88,22 @@
   <exec_depend>urdf</exec_depend>
   <exec_depend>rosdyn_core</exec_depend>
 
+<build_depend>inverse_kinematics_qp_controller</build_depend>
+<build_export_depend>inverse_kinematics_qp_controller</build_export_depend>
+<exec_depend>inverse_kinematics_qp_controller</exec_depend>
 
-  <depend>controller_interface</depend>
+<build_depend>tf</build_depend>
+<build_export_depend>tf</build_export_depend>
+<exec_depend>tf</exec_depend>
+  
+<build_depend>tf_conversions</build_depend>
+<build_export_depend>tf_conversions</build_export_depend>
+<exec_depend>tf_conversions</exec_depend>
+  
+
+
+
+  <!-- The export tag contains other, unspecified, tags -->
   <export>
     <controller_interface plugin="${prefix}/plugin.xml"/>
   </export>

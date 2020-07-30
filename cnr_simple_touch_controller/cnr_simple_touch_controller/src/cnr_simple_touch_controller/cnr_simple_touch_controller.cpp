@@ -333,6 +333,11 @@ void SimpleTouchController::actionThreadTunction()
       Eigen::Affine3d T_bg; tf::transformTFToEigen(TF_T_bg, T_bg);
       T_gs = T_bg.inverse() * T_bs;
     }
+    Eigen::IOFormat CleanFmt(Eigen::StreamPrecision, 0, ", ", "\n", "[", "]");
+    std::cout.precision(6);
+    std::cout.width (7);
+    ROS_DEBUG_STREAM_THROTTLE(2, "[ " << m_controller_nh.getNamespace() <<  "] T_gs:  " << std::fixed << T_gs.matrix().format(CleanFmt)  );
+
 
     Eigen::Vector3d force_g = T_gs.inverse() * Eigen::Vector3d( m_wrench_s.block(0,0,3,1) );
     for( size_t i=0; i<3; i++)

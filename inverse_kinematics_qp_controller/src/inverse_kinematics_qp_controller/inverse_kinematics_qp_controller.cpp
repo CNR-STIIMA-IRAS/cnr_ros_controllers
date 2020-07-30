@@ -1,7 +1,66 @@
+#include <ros/ros.h>
+
 #include <cnr_logger/cnr_logger.h>
 #include <inverse_kinematics_qp_controller/inverse_kinematics_qp_controller.h>
+
 #include <pluginlib/class_list_macros.h>
+
 PLUGINLIB_EXPORT_CLASS(inverse_kinematics_qp::InverseKinematicsQpPosVelEffController, controller_interface::ControllerBase);
+
+
+namespace std
+{
+inline std::string to_string( const std::vector<std::string>& vals )
+{
+  std::string ret = "< ";
+  for( auto const & val : vals ) ret += val + ", ";
+  ret += " >";
+  return ret;
+}
+inline std::string to_string( const std::vector<double>& vals )
+{
+  std::string ret = "< ";
+  for( auto const & val : vals ) ret += std::to_string(val) + ", ";
+  ret += " >";
+  return ret;
+}
+inline std::string to_string( const std::vector<int>& vals )
+{
+  std::string ret = "< ";
+  for( auto const & val : vals ) ret += std::to_string(val) + ", ";
+  ret += " >";
+  return ret;
+}
+
+inline std::string to_string( const std::string& val )
+{
+  return val;
+}
+
+inline std::string to_string( const bool& val )
+{
+  return val ? "TRUE" : "FALSE";
+}
+
+}
+
+
+#define GET_AND_RETURN( nh, param, value )\
+  if (!nh.getParam(param,value) )\
+  {\
+    ROS_ERROR("The param '%s/%s' is not defined", nh.getNamespace().c_str(), std::string( param ).c_str() );\
+    return false;\
+  }
+
+
+
+#define GET_AND_DEFAULT( nh, param, value, def )\
+  if (!nh.getParam(param,value) )\
+  {\
+    ROS_WARN("The param '%s/%s' is not defined", nh.getNamespace().c_str(), std::string( param ).c_str() );\
+    ROS_WARN("Default value '%s' superimposed. ", std::to_string( def ).c_str() );\
+    value=def;\
+  }
 
 namespace inverse_kinematics_qp
 {
@@ -16,203 +75,89 @@ namespace inverse_kinematics_qp
 
 bool InverseKinematicsQpPosVelEffController::doInit()
 {
-  CNR_TRACE_START(*m_logger, "Initializing Inverse Kinematics QP controller '" + m_controller_nh.getNamespace() + "'");
+  CNR_TRACE_START(*m_logger, "Initializing Inverse Kinematics QP controller '" + getControllerNh().getNamespace() + "'");
 
   bool cartesian_reference;
-  if (!m_controller_nh.getParam("cartesian_reference",cartesian_reference))
+  if (!getControllerNh().getParam("cartesian_reference",cartesian_reference))
   {
-    ROS_WARN("cartesian_reference not defined, using joint reference");
+    CNR_WARN(*m_logger, "cartesian_reference not defined, using joint reference");
     cartesian_reference=false;
   }
   if (cartesian_reference)
   {
     add_subscriber( "obstacle_subscriber",
-          "/obstacle_in_b",1,&inverse_kinematics_qp::InverseKinematicsQpPosVelEffController::obstacleCallback,this);
+      "/obstacle_in_b", 1, &inverse_kinematics_qp::InverseKinematicsQpPosVelEffController::obstacleCallback, this);
     add_subscriber("target_pose_subscriber",
-        "target_pose",1,&inverse_kinematics_qp::InverseKinematicsQpPosVelEffController::targetPoseCallback,this);
+      "target_pose", 1, &inverse_kinematics_qp::InverseKinematicsQpPosVelEffController::targetPoseCallback, this);
     add_subscriber("target_twist_subscriber",
-        "target_twist",1,&inverse_kinematics_qp::InverseKinematicsQpPosVelEffController::targetTwistCallback,this);
+      "target_twist",1, &inverse_kinematics_qp::InverseKinematicsQpPosVelEffController::targetTwistCallback, this);
   }
   else
   {
     std::string joint_target;
-    if (!m_controller_nh.getParam("joint_target_topic", joint_target))
-    {
-      ROS_WARN_STREAM(m_controller_nh.getNamespace()+"/'joint_target' does not exist. Default value 'joint_target' superimposed.");
-      joint_target = "joint_target";
-    }
+    GET_AND_DEFAULT( getControllerNh(), "joint_target_topic", joint_target, "joint_target");
+
     add_subscriber("joint_reference_subscriber",
       joint_target,1,&inverse_kinematics_qp::InverseKinematicsQpPosVelEffController::targetJointCallback,this);
   }
 
-  if (!m_controller_nh.getParam("controlled_joint",m_joint_names))
-  {
-    ROS_FATAL("controlled_joint not defined");
-    return false;
-  }
-  std::string base_frame;
-  std::string tool_frame;
-  if (!m_controller_nh.getParam("base_frame", base_frame) || !m_controller_nh.getParam("tool_frame", tool_frame))
-  {
-    ROS_FATAL("base_frame or tool_frame not defined");
-    return false;
-  }
-
-  m_base_frame=base_frame;
-
-
-  m_model.initParam("robot_description");
-  m_nAx=m_joint_names.size();
   Eigen::Vector3d grav;
   grav << 0, 0, -9.806;
-  boost::shared_ptr<rosdyn::Chain> chainTask1 = rosdyn::createChain(m_model,base_frame,tool_frame,grav);
-  chainTask1->setInputJointsName(m_joint_names);
 
-  std::vector<double> rest_config_std(m_nAx);
-  Eigen::VectorXd rest_config(m_nAx);
-  if (!m_controller_nh.getParam("rest_config", rest_config_std))
-  {
-    ROS_ERROR("unable to load param: rest_config. Loading deafult value: 0");
-    for (unsigned int idx=0;idx<rest_config_std.size();idx++)
-      rest_config_std.at(idx)=0.0;
-  }
-  for (unsigned int idx=0;idx<rest_config_std.size();idx++)
+  std::vector<double> rest_config_std(nAx(), 0.0);
+  Eigen::VectorXd rest_config(nAx());
+  GET_AND_DEFAULT( getControllerNh(), "rest_config", rest_config_std, std::vector<double>(nAx(), 0.0) );
+
+  for (size_t idx=0;idx<rest_config_std.size();idx++)
     rest_config(idx)=rest_config_std.at(idx);
 
-  Eigen::VectorXd qmax(m_nAx);
-  Eigen::VectorXd qmin(m_nAx);
-  Eigen::VectorXd Dqmax(m_nAx);
-  Eigen::VectorXd DDqmax(m_nAx);
+  Eigen::VectorXd qmax(nAx());
+  Eigen::VectorXd qmin(nAx());
+  Eigen::VectorXd Dqmax(nAx());
+  Eigen::VectorXd DDqmax(nAx());
   qmax.setConstant(3);
   qmin.setConstant(-3);
   Dqmax.setConstant(0.5);
   DDqmax.setConstant(4);
 
-  m_jh.resize(m_nAx);
-  for (unsigned int iAx=0; iAx<m_nAx; iAx++)
-  {
-    m_jh.at(iAx)=m_hw->getHandle(m_joint_names.at(iAx));
-    qmax(iAx) = m_model.getJoint(m_joint_names.at(iAx))->limits->upper;
-    qmin(iAx) = m_model.getJoint(m_joint_names.at(iAx))->limits->lower;
-
-    if ((qmax(iAx)==0) && (qmin(iAx)==0))
-    {
-      qmin(iAx)=1.0e9;
-      qmin(iAx)=-1.0e9;
-      ROS_INFO("upper and lower limits are both equal to 0, set +/- 1.0e9");
-    }
-
-    bool has_velocity_limits;
-    if (!m_root_nh.getParam("/robot_description_planning/joint_limits/"+m_joint_names.at(iAx)+"/has_velocity_limits",has_velocity_limits))
-      has_velocity_limits=false;
-    bool has_acceleration_limits;
-    if (!m_root_nh.getParam("/robot_description_planning/joint_limits/"+m_joint_names.at(iAx)+"/has_acceleration_limits",has_acceleration_limits))
-      has_acceleration_limits=false;
-
-    Dqmax(iAx)= m_model.getJoint(m_joint_names.at(iAx))->limits->velocity;
-    if (has_velocity_limits)
-    {
-      double vel;
-      if (!m_root_nh.getParam("/robot_description_planning/joint_limits/"+m_joint_names.at(iAx)+"/max_velocity",vel))
-      {
-        ROS_ERROR_STREAM("/robot_description_planning/joint_limits/"+m_joint_names.at(iAx)+"/max_velocity is not defined");
-        return false;
-      }
-      if (vel<Dqmax(iAx))
-        Dqmax(iAx)=vel;
-    }
-
-    if (has_acceleration_limits)
-    {
-      double acc;
-      if (!m_root_nh.getParam("/robot_description_planning/joint_limits/"+m_joint_names.at(iAx)+"/max_acceleration",acc))
-      {
-        ROS_ERROR_STREAM("/robot_description_planning/joint_limits/"+m_joint_names.at(iAx)+"/max_acceleration is not defined");
-        return false;
-      }
-      DDqmax(iAx)=acc;
-    }
-    else
-      DDqmax(iAx)=10*Dqmax(iAx);
-  }
-
-
-
-  double dt; // [ms]
   double lambda_effort;
   double lambda_clik;
   double lambda_distance;
   double lambda_return;
-  if (!m_root_nh.getParam("sampling_period",dt))
-  {
-    dt=0.008;
-    ROS_WARN("unable to load param: dt. Loading deafult value %f",dt);
-  }
-  if (!m_controller_nh.getParam("lambda_effort",lambda_effort))
-  {
-    lambda_effort=0.001;
-    ROS_WARN("unable to load param: lambda_effort. Loading deafult value %f",lambda_effort);
-  }
-  if (!m_controller_nh.getParam("lambda_clik",lambda_clik))
-  {
-    lambda_clik=0.1;
-    ROS_WARN("unable to load param: lambda_clik. Loading deafult value %f",lambda_clik);
-  }
-  if (!m_controller_nh.getParam("lambda_distance",lambda_distance))
-  {
-    lambda_distance=0.1;
-    ROS_WARN("unable to load param: lambda_distance. Loading deafult value %f",lambda_distance);
-  }
-  if (!m_controller_nh.getParam("lambda_return",lambda_return))
-  {
-    lambda_return=0.008;
-    ROS_WARN("unable to load param: lambda_return. Loading deafult value %f",lambda_return);
-  }
+  GET_AND_DEFAULT( getControllerNh(), "lambda_effort"  , lambda_effort  , 0.001);
+  GET_AND_DEFAULT( getControllerNh(), "lambda_clik"    , lambda_clik    , 0.1  );
+  GET_AND_DEFAULT( getControllerNh(), "lambda_distance", lambda_distance, 0.1  );
+  GET_AND_DEFAULT( getControllerNh(), "lambda_return"  , lambda_return  , 0.008);
 
   std::vector<int> select_task_axis;
-  if (!m_controller_nh.getParam("select_task_axis",select_task_axis))
-  {
-    ROS_WARN("unable to load param: select_task_axis. Default: 1,1,1,1,1,1");
-    select_task_axis={1,1,1,1,1,1};
-  }
-  if (select_task_axis.size()!=6)
+  GET_AND_DEFAULT( getControllerNh(), "select_task_axis" , select_task_axis, std::vector<int>(6,1) );
+
+  if (select_task_axis.size()!=6 )
   {
     ROS_WARN("length of param 'select_task_axis' expected to be equal to 6 but is equal to %zu",select_task_axis.size());
     return false;
   }
 
   std::string secondary_task;
-  if (!m_controller_nh.getParam("secondary_task",secondary_task))
-  {
-    secondary_task="other";
-    ROS_WARN("unable to load param: secondary_task. Default: %s",secondary_task.c_str());
-  }
+  GET_AND_DEFAULT( getControllerNh(), "secondary_task",secondary_task, "other" );
 
-  if (!secondary_task.compare("clearance"))
+  if (secondary_task == "clearance")
   {
     std::string task2_frame;
 
-    if (!m_controller_nh.getParam("elbow_frame", task2_frame))
-    {
-      ROS_FATAL("task2_frame or nAx2 not defined");
-      return false;
-    }
+    GET_AND_RETURN( getControllerNh(), "elbow_frame", task2_frame);
 
-    boost::shared_ptr<rosdyn::Chain> chainTask2 = rosdyn::createChain(m_model,base_frame,task2_frame,grav);
+    rosdyn::ChainPtr chainTask2 = rosdyn::createChain(*m_model,m_base_link,task2_frame,grav);
 
     m_nAx2=chainTask2->getActiveJointsNumber();
-    for (unsigned int idx=0;idx<m_nAx2;idx++)
+    for (size_t idx=0;idx<m_nAx2;idx++)
     {
-      m_joints_names_task2.push_back(m_joint_names.at(idx));
+      m_joints_names_task2.push_back(jointNames().at(idx));
     }
 
 
     double clearance_threshold;
-    if (!m_controller_nh.getParam("clearance_threshold",clearance_threshold))
-    {
-      clearance_threshold=1;
-      ROS_ERROR("unable to load param: clearance_threshold. Loading deafult value %f",clearance_threshold);
-    }
+    GET_AND_DEFAULT( getControllerNh(), "clearance_threshold",clearance_threshold, 1);
 
     Eigen::VectorXd obstacle_in_b(3);
     obstacle_in_b(0)=1.5;
@@ -222,35 +167,39 @@ bool InverseKinematicsQpPosVelEffController::doInit()
     m_obstacle_pose_in_b.translation()=obstacle_in_b;
     m_obstacle_pose_vector.push_back(m_obstacle_pose_in_b);
     m_ik_solver.setClearanceOptions(chainTask2,m_nAx2,clearance_threshold,rest_config,m_obstacle_pose_in_b);
-
   }
 
-  m_ik_solver.setAxisNumberTask1(m_nAx);
-  m_ik_solver.setDynamicsChainTask1(chainTask1);
+  m_ik_solver.setAxisNumberTask1(nAx());
+  m_ik_solver.setDynamicsChainTask1( m_chain );
   m_ik_solver.setConstraints(qmax,qmin,Dqmax,DDqmax);
-  m_ik_solver.setSamplingPeriod(dt);
+  m_ik_solver.setSamplingPeriod(m_sampling_period);
   m_ik_solver.computeTaskSelectionMatrix(select_task_axis);
   m_ik_solver.setSecondaryTask(secondary_task);
   m_ik_solver.setWeigthFunction(lambda_distance,lambda_effort,lambda_return,lambda_clik);
   m_ik_solver.updateMatrices();
+
+  GET_AND_DEFAULT( getControllerNh(), "max_cart_lin_vel", m_max_cart_lin_vel, 0.250);
+  GET_AND_DEFAULT( getControllerNh(), "max_cart_lin_acc", m_max_cart_lin_acc, 0.250);
+  GET_AND_DEFAULT( getControllerNh(), "max_cart_ang_vel", m_max_cart_ang_vel, 0.250);
+  GET_AND_DEFAULT( getControllerNh(), "max_cart_ang_acc", m_max_cart_ang_acc, 0.250);
 
   CNR_RETURN_TRUE(*m_logger);
 }
 
 bool InverseKinematicsQpPosVelEffController::doStarting(const ros::Time& time)
 {
-  CNR_TRACE_START(*m_logger, "Starting Inverse Kinematics QP controller '" + m_controller_nh.getNamespace() + "'");
+  CNR_TRACE_START(*m_logger, "Starting Inverse Kinematics QP controller '" + getControllerNh().getNamespace() + "'");
 
-  Eigen::VectorXd qini(m_nAx);
-  Eigen::VectorXd Dqini(m_nAx);
-  for (unsigned int idx=0;idx<m_nAx;idx++)
+  Eigen::VectorXd qini(nAx());
+  Eigen::VectorXd Dqini(nAx());
+  for (size_t idx=0;idx<nAx();idx++)
   {
-    qini(idx)=m_hw->getHandle(m_joint_names.at(idx)).getPosition();
-    Dqini(idx)=m_hw->getHandle(m_joint_names.at(idx)).getVelocity();
+    qini(idx)= q(idx);
+    Dqini(idx) = qd(idx);
   }
 
   m_ik_solver.setInitialState(qini,Dqini);
-  m_next_vel.resize(m_nAx);
+  m_next_vel.resize(nAx());
   m_next_vel.setZero();
   m_next_X=m_ik_solver.getPoseTask1();
   m_target_Dx.setZero();
@@ -262,7 +211,7 @@ bool InverseKinematicsQpPosVelEffController::doStarting(const ros::Time& time)
 
 bool InverseKinematicsQpPosVelEffController::doStopping(const ros::Time& time)
 {
-  CNR_TRACE_START(*m_logger, "Stopping Inverse Kinematics QP controller '" + m_controller_nh.getNamespace()+"'");
+  CNR_TRACE_START(*m_logger, "Stopping Inverse Kinematics QP controller '" + getControllerNh().getNamespace()+"'");
   CNR_RETURN_TRUE(*m_logger);
 }
 
@@ -273,21 +222,20 @@ bool InverseKinematicsQpPosVelEffController::doUpdate(const ros::Time& time, con
   {
     // get m_target_Dx m_next_X
     // get obstacle vector from topic,
-
     m_ik_solver.computeClosestObstacle(m_obstacle_pose_vector,m_obstacle_pose_in_b);
     m_ik_solver.setObstaclePosition(m_obstacle_pose_in_b);
     // get custom matrices if necessary
 
-    m_ik_solver.computedCostrainedSolution(m_target_Dx,m_next_X,m_ik_solver.getJointPosition(),m_ik_solver.getJointVelocity(),m_next_vel);
+    m_ik_solver.computedCostrainedSolution(m_target_Dx,
+                                           m_next_X,
+                                           m_ik_solver.getJointPosition(),
+                                           m_ik_solver.getJointVelocity(),
+                                           m_next_vel);
     m_ik_solver.updateState(m_next_vel);
 
-
-    for (unsigned int iDim = 0;iDim<m_nAx;iDim++)
-    {
-      m_hw->getHandle(m_joint_names.at(iDim)).setCommandPosition(m_ik_solver.getJointPosition()(iDim));
-      m_hw->getHandle(m_joint_names.at(iDim)).setCommandVelocity(m_ik_solver.getJointVelocity()(iDim));
-      m_hw->getHandle(m_joint_names.at(iDim)).setCommandEffort(0.0);
-    }
+    setPositionCommand( m_ik_solver.getJointPosition() );
+    setVelocityCommand( m_ik_solver.getJointVelocity() );
+    setEffortCommand  ( Eigen::Vector6d::Zero() );
   }
   catch (std::exception& e)
   {
@@ -300,12 +248,12 @@ void InverseKinematicsQpPosVelEffController::obstacleCallback(const geometry_msg
 {
   if (msg->poses.size()>0)
   {
-    if (m_base_frame.compare(msg->header.frame_id))
-      ROS_ERROR("Obstacle frame expected to be '%s' but received msg frame is '%s'. Message neglected.",m_base_frame.c_str(),(msg->header.frame_id).c_str());
+    if (m_base_link.compare(msg->header.frame_id))
+      ROS_ERROR("Obstacle frame expected to be '%s' but received msg frame is '%s'. Message neglected.",m_base_link.c_str(),(msg->header.frame_id).c_str());
     else
     {
       m_obstacle_pose_vector.clear();
-      for (unsigned int idx=0;idx<msg->poses.size();idx++)
+      for (size_t idx=0;idx<msg->poses.size();idx++)
       {
         Eigen::Affine3d obstacleEigen;
         tf::poseMsgToEigen(msg->poses.at(idx),obstacleEigen);
@@ -335,16 +283,16 @@ void InverseKinematicsQpPosVelEffController::targetJointCallback(const sensor_ms
   try
   {
     sensor_msgs::JointState tmp_msg=*msg;
-    if (!name_sorting::permutationName(m_joint_names,tmp_msg.name,tmp_msg.position,tmp_msg.velocity))
+    if (!name_sorting::permutationName(jointNames(),tmp_msg.name,tmp_msg.position,tmp_msg.velocity))
     {
       ROS_ERROR("joints not found");
       return;
     }
 
-    boost::shared_ptr<rosdyn::Chain> chain=m_ik_solver.getDynamicsChainTask1();
-    Eigen::VectorXd joint_pos_target(m_nAx);
-    Eigen::VectorXd joint_vel_target(m_nAx);
-    for (unsigned int idx=0;idx<m_nAx;idx++)
+    rosdyn::ChainPtr chain=m_ik_solver.getDynamicsChainTask1();
+    Eigen::VectorXd joint_pos_target(nAx());
+    Eigen::VectorXd joint_vel_target(nAx());
+    for (size_t idx=0;idx<nAx();idx++)
     {
       joint_pos_target(idx)=tmp_msg.position.at(idx);
       joint_vel_target(idx)=tmp_msg.velocity.at(idx);
@@ -365,4 +313,33 @@ InverseKinematicsQpPosVelEffController::~InverseKinematicsQpPosVelEffController(
 
 }
 
+void InverseKinematicsQpPosVelEffController::setConstraints(const Eigen::VectorXd& qmax, const Eigen::VectorXd& qmin,
+                                                            const Eigen::VectorXd& Dqmax, const Eigen::VectorXd& DDqmax)
+{
+  m_ik_solver.setConstraints(qmax,qmin,Dqmax,DDqmax);
 }
+
+void InverseKinematicsQpPosVelEffController::setConstraints(const Eigen::Vector6d& constrained_twist)
+{
+  Eigen::MatrixXd  W  = speedLimit().asDiagonal() * (1. / speedLimit().maxCoeff() );
+  Eigen::Matrix6Xd JJ = m_J * W * m_J.transpose();
+  double           t  = constrained_twist.norm();
+  if( t < 1e-4 )
+  {
+    CNR_ERROR_THROTTLE(*m_logger, 5.0, "The constrained veclocity is too low");
+  }
+  else
+  {
+    Eigen::Vector6d  u  =  constrained_twist / t;
+
+    double  max_twist = double( u.transpose() * JJ * u ) * double( 1.0 * speedLimit().maxCoeff() );
+    double  lambda = t > max_twist ? 1.0 : t / max_twist;
+
+    m_ik_solver.setConstraints(upperLimit(), lowerLimit(), lambda * speedLimit(), accelerationLimit() );
+  }
+}
+
+}
+
+#undef GET_AND_RETURN
+#undef GET_AND_DEFAULT

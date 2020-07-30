@@ -5,23 +5,34 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
   urdf
-  cnr_controller_interface
-  controller_manager
-  eigen_state_space_systems
-  hardware_interface
   pluginlib
   roscpp
   sensor_msgs
   std_msgs
-  subscription_notifier
+  controller_interface
+  tf
+  tf_conversions
+  eigen_state_space_systems
   cnr_hardware_interface
+  inverse_kinematics_qp_controller
   rosdyn_core
 )
 
 catkin_package(
  INCLUDE_DIRS include
- LIBRARIES cnr_joint_teleop_controller
- CATKIN_DEPENDS urdf cnr_controller_interface controller_manager eigen_state_space_systems hardware_interface pluginlib roscpp sensor_msgs std_msgs subscription_notifier cnr_hardware_interface rosdyn_core
+ LIBRARIES ${PROJECT_NAME}
+ CATKIN_DEPENDS  urdf
+                 pluginlib
+                 roscpp
+                 sensor_msgs
+                 std_msgs
+                 controller_interface
+                 tf
+                 tf_conversions
+                 eigen_state_space_systems
+                 cnr_hardware_interface
+                 inverse_kinematics_qp_controller
+                 rosdyn_core
  DEPENDS
 )
 

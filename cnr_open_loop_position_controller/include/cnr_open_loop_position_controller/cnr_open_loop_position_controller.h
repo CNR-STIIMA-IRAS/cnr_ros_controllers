@@ -13,7 +13,7 @@
 #include <pluginlib/class_list_macros.h>
 
 #include <subscription_notifier/subscription_notifier.h>
-#include <cnr_controller_interface/cnr_joint_controller_interface.h>
+#include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
 
 namespace cnr
 {
@@ -21,7 +21,7 @@ namespace control
 {
 
 
-class OpenLoopPositionController : public cnr_controller_interface::JointController<hardware_interface::PositionJointInterface>
+class OpenLoopPositionController : public cnr_controller_interface::JointCommandController<hardware_interface::PositionJointInterface>
 {
 public:
   bool doInit();
@@ -29,16 +29,24 @@ public:
   bool doStarting(const ros::Time& time);
   bool doStopping(const ros::Time& time);
 
+  virtual void startJointKinematicStatus(Eigen::VectorXd& q,
+                                         Eigen::VectorXd& qd,
+                                         Eigen::VectorXd& qdd,
+                                         Eigen::VectorXd& effort );
+
+  virtual void updateJointKinematicStatus(Eigen::VectorXd& q,
+                                          Eigen::VectorXd& qd,
+                                          Eigen::VectorXd& qdd,
+                                          Eigen::VectorXd& effort );
+
+
 protected:
 
-  hardware_interface::JointHandle m_jh;
-  std::string                     setpoint_topic_name;
-
-  double          m_pos_cmd;
-  bool            m_configured;
+  std::string setpoint_topic_name;
+  bool        m_configured;
 
   void callback(const sensor_msgs::JointStateConstPtr msg);
-  bool extractJoint(const sensor_msgs::JointState msg, const std::string name, double& vel);
+  bool extractJoint(const sensor_msgs::JointState &msg);
 
   const std::string   SP_TOPIC_ID = "sp";
 };

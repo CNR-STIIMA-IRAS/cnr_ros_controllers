@@ -1,9 +1,11 @@
 #ifndef cnr_joint_teleop_controller__20188101642
 #define cnr_joint_teleop_controller__20188101642
 
+#include <eigen3/Eigen/Core>
+
 #include <ros/ros.h>
 
-#include <cnr_controller_interface/cnr_joint_controller_interface.h>
+#include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <cnr_hardware_interface/posveleff_command_interface.h>
 #include <sensor_msgs/JointState.h>
@@ -22,7 +24,14 @@ namespace cnr
 {
 namespace control
 {
-class JointTeleopController: public cnr_controller_interface::JointController<hardware_interface::PosVelEffJointInterface>
+
+
+
+/**
+ * @brief The JointTeleopController class
+ */
+
+class JointTeleopController: public cnr_controller_interface::JointCommandController<hardware_interface::PosVelEffJointInterface>
 {
 
 public:
@@ -33,28 +42,8 @@ public:
   bool doStopping(const ros::Time& time);
 
   void callback(const sensor_msgs::JointStateConstPtr msg);
-  void delta();
 
 protected:
-  std::vector<hardware_interface::PosVelEffJointHandle> m_jh;
-
-  std::vector<double> m_last_target_vel;
-  std::vector<double> m_target_vel;
-  std::vector<double> m_target_pos;
-  std::vector<double> m_cmd_pos;
-  std::vector<double> m_err_pos_delta;
-  double m_err_delta;
-  std::vector<double> m_saturated_vel;
-
-
-  double m_time;
-  bool m_configured;
-  bool m_compared;
-  bool m_check1 = false;
-  bool m_check2 = false;
-
-  double m_err;
-  double m_err_old = 0;
 
 };
 }

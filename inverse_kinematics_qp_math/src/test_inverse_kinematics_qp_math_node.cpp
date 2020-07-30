@@ -28,8 +28,8 @@ int main(int argc, char** argv)
     ROS_ERROR("unable to load param base_frame || tool_frame || elbow_frame");
     return -1;
   }
-  boost::shared_ptr<rosdyn::Chain> chain_ee = rosdyn::createChain(model,base_frame,tool_frame,grav);
-  boost::shared_ptr<rosdyn::Chain> chain_elbow = rosdyn::createChain(model,base_frame,elbow_frame,grav);
+  std::shared_ptr<rosdyn::Chain> chain_ee = rosdyn::createChain(model,base_frame,tool_frame,grav);
+  std::shared_ptr<rosdyn::Chain> chain_elbow = rosdyn::createChain(model,base_frame,elbow_frame,grav);
 
 
   const unsigned int df=7; //chain_ee->getActiveJointsNumber();

@@ -1,5 +1,5 @@
-<library path="lib/libcnr_cart_teleop_controller">
-  <class name="cnr/control/CartTeleopController" type="cnr::control::CartTeleopController" base_class_type="controller_interface::ControllerBase">
+<library path="lib/libitia_cart_teleop_controller">
+  <class name="itia/control/CartTeleopController" type="itia::control::CartTeleopController" base_class_type="controller_interface::ControllerBase">
     <description>
       The Cart Teleop controller
     </description>
