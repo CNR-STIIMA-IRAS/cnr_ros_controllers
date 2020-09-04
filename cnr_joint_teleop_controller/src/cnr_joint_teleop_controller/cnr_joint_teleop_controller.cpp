@@ -79,7 +79,7 @@ void JointTeleopController::callback(const sensor_msgs::JointStateConstPtr msg)
         {
            if(msg->velocity.size() > 0 )
            {
-              m_target.qd( j ) = ( !std::isnan( msg->velocity[i] ) ) ? msg->velocity[i] : m_target.qd( j );
+              this->setPositionCommand(( !std::isnan( msg->velocity[i] ) ) ? msg->velocity[i] : m_target.qd( j ), j );
            }
            else
            {
@@ -92,8 +92,8 @@ void JointTeleopController::callback(const sensor_msgs::JointStateConstPtr msg)
   catch(...)
   {
     ROS_WARN("[ %s ] Something wrong in Target Callback",  getControllerNamespace().c_str());
-    m_target.q = q();
-    m_target.qd.setZero();
+    this->setPositionCommand( this->q() );
+    this->setVelocityCommand( this->qd() * 0.0 );
   }
   return;
 }
