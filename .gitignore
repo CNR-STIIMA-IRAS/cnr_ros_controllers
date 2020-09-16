@@ -11,3 +11,4 @@ kdev4/
 *.kate-swp
 *.vscode
 .vscode/
+*.autosave

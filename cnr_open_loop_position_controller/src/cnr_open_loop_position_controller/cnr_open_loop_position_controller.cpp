@@ -4,7 +4,7 @@
 #include <cnr_open_loop_position_controller/cnr_open_loop_position_controller.h>
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_EXPORT_CLASS(cnr::control::OpenLoopPositionController, controller_interface::ControllerBase);
+PLUGINLIB_EXPORT_CLASS(cnr::control::OpenLoopPositionController, controller_interface::ControllerBase)
 
 
 namespace cnr
@@ -15,42 +15,21 @@ namespace control
 
 bool OpenLoopPositionController::doInit()
 {
-
   CNR_TRACE_START(*m_logger);
-  for (size_t iHw = 0; iHw < m_hw->getNames().size(); iHw++)
+  if (!getControllerNh().getParam("setpoint_topic_name", m_setpoint_topic_name))
   {
-    for (size_t iAx=0; iAx < nAx(); iAx++)
-    {
-      if ( m_hw->getNames().at(iHw) == jointNames().at(iAx) )
-      {
-        m_hw->getHandle(jointNames().at(iAx) );
-      }
-    }
+    CNR_RETURN_FALSE(*m_logger, "The param '" + getControllerNamespace() + "/setpoint_topic_name' does not exist");
   }
+  add_subscriber<sensor_msgs::JointState>(SP_TOPIC_ID, m_setpoint_topic_name, 1,
+        boost::bind(&OpenLoopPositionController::callback, this, _1) );
 
-  if (!getControllerNh().getParam("setpoint_topic_name", setpoint_topic_name))
-  {
-    CNR_RETURN_FALSE(*m_logger, getControllerNamespace() + "/'setpoint_topic_name' does not exist");
-  }
-  add_subscriber(SP_TOPIC_ID, setpoint_topic_name, 1, &OpenLoopPositionController::callback, this);
+  this->setPriority(Q_PRIORITY);
 
-  CNR_DEBUG(*m_logger, "Controller ' " + getControllerNamespace() + "' controls the following joint: " + cnr_controller_interface::to_string(jointNames()));
-  CNR_DEBUG(*m_logger, "Controller ' " + getControllerNamespace() + "' get the setpoint from the topic: '" + setpoint_topic_name + "'");
+  CNR_DEBUG(*m_logger, "Controller ' " + getControllerNamespace() + "' controls the following joint: "
+                     + cnr_controller_interface::to_string(jointNames()));
+  CNR_DEBUG(*m_logger, "Controller ' " + getControllerNamespace() + "' get the setpoint from the topic: '"
+                     + m_setpoint_topic_name + "'");
   CNR_RETURN_TRUE(*m_logger);
-}
-
-void OpenLoopPositionController::updateJointKinematicStatus  ( Eigen::VectorXd& q,
-                                                               Eigen::VectorXd& qd,
-                                                               Eigen::VectorXd& qdd,
-                                                               Eigen::VectorXd& effort )
-{
-  for (size_t iAx = 0; iAx <nAx(); iAx++)
-  {
-    q(iAx) = m_hw->getHandle(jointNames().at(iAx) ).getPosition();
-    qd(iAx) = m_hw->getHandle(jointNames().at(iAx) ).getVelocity();
-    qdd(iAx) = 0.0;
-    effort(iAx) = m_hw->getHandle(jointNames().at(iAx) ).getEffort();
-  }
 }
 
 bool OpenLoopPositionController::doStarting(const ros::Time& time)
@@ -63,6 +42,7 @@ bool OpenLoopPositionController::doStarting(const ros::Time& time)
 bool OpenLoopPositionController::doStopping(const ros::Time& time)
 {
   CNR_TRACE_START(*m_logger);
+  m_configured = false;
   CNR_RETURN_TRUE(*m_logger);
 }
 
@@ -76,7 +56,7 @@ bool OpenLoopPositionController::doUpdate(const ros::Time& time, const ros::Dura
 bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointState& msg)
 {
   size_t cnt = 0;
-  Eigen::VectorXd target = getPositionCommand();
+  Eigen::VectorXd target = getCommandPosition();
   for (size_t iJoint=0; iJoint < msg.name.size(); iJoint++)
   {
     for (size_t iAx=0; iAx < jointNames().size(); iAx++)
@@ -99,15 +79,14 @@ bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointState& msg
   bool ok = (cnt == nAx());
   if ( ok )
   {
-    setPositionCommand(target);
+    setCommandPosition(target);
   }
   return ok;
 }
 
-void OpenLoopPositionController::callback(const sensor_msgs::JointStateConstPtr msg)
+void OpenLoopPositionController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
   CNR_TRACE_START_THROTTLE(*m_logger, 5.0);
-  tick(SP_TOPIC_ID);
   if (extractJoint(*msg))
   {
     m_configured = true;

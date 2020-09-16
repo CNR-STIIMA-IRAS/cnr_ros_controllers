@@ -4,9 +4,9 @@ Package to control joint position using velocity as control variable. It is a si
 
 Plugins list:
 
-- itia/control/PositionToVelocityControllerFfw uses a VelocityJointInterface
+- cnr/control/PositionToVelocityControllerFfw uses a VelocityJointInterface
 
-- itia/control/StateSpacePositionToVelocityControllerFfw uses a PosVelEffJointInterface, namely also torque is feedforwarded. 
+- cnr/control/StateSpacePositionToVelocityControllerFfw uses a PosVelEffJointInterface, namely also torque is feedforwarded. 
 
 
 

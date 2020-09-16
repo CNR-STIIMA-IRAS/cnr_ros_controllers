@@ -2,7 +2,7 @@
 
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_EXPORT_CLASS(cnr::control::JointStatePublisher, controller_interface::ControllerBase);
+PLUGINLIB_EXPORT_CLASS(cnr::control::JointStatePublisher, controller_interface::ControllerBase)
 
 
 namespace cnr
@@ -46,7 +46,6 @@ bool JointStatePublisher::doStarting(const ros::Time& time)
 
 bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
-
   CNR_TRACE_START_THROTTLE(*m_logger, 10.0);
   try
   {

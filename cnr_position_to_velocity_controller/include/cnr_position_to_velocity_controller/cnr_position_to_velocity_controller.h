@@ -1,22 +1,20 @@
-#ifndef __cnr_pos_to_vel_control__
-#define __cnr_pos_to_vel_control__
+#ifndef CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER__H
+#define CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER__H
 
-#include <cnr_controller_interface/cnr_controller_interface.h>
+#include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
 
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/posvelacc_command_interface.h>
 #include <cnr_hardware_interface/posveleff_command_interface.h>
 #include <cnr_position_to_velocity_controller/cnr_position_to_velocity_math.h>
 
-
-
-
 namespace cnr
 {
 namespace control
 {
 
-class PositionToVelocityController : public cnr_controller_interface::Controller<hardware_interface::VelocityJointInterface>
+class PositionToVelocityController :
+    public cnr_controller_interface::JointCommandController<hardware_interface::VelocityJointInterface>
 {
 public:
   bool doInit();
@@ -26,17 +24,11 @@ public:
 
 
 protected:
-
   cnr::control::PositionToVelocityControllerMath ctrl;
-  hardware_interface::JointHandle                m_jh;
-
-  double m_pos_cmd;
-  double m_vel_cmd;
-  double m_eff_cmd;
-
 };
 
-class PositionToVelocityControllerFfw : public cnr_controller_interface::Controller<hardware_interface::PosVelEffJointInterface>
+class PositionToVelocityControllerFfw :
+    public cnr_controller_interface::JointCommandController<hardware_interface::PosVelEffJointInterface>
 {
 public:
   bool doInit();
@@ -46,17 +38,12 @@ public:
 
 
 protected:
-
   cnr::control::PositionToVelocityControllerMath  ctrl;
-  hardware_interface::PosVelEffJointHandle        m_jh;
 
-  double m_pos_cmd;
-  double m_vel_cmd;
-  double m_eff_cmd;
 
 };
 
-}
-}
+}  // namespace control
+}  // namespace cnr
 
-# endif
+#endif  // CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER__H

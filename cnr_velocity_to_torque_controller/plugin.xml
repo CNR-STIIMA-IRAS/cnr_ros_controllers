@@ -1,5 +1,5 @@
 <library path="lib/libcnr_velocity_to_torque_controller">
-  <class name="itia/control/VelocityToTorqueController" type="itia::control::VelocityToTorqueController" base_class_type="controller_interface::ControllerBase">
+  <class name="cnr/control/VelocityToTorqueController" type="cnr::control::VelocityToTorqueController" base_class_type="controller_interface::ControllerBase">
 		<description>
 			Single Joint Velocity controller by using Effort interface
 		</description>

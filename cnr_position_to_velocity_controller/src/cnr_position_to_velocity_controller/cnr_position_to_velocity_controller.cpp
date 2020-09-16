@@ -1,8 +1,8 @@
 #include <cnr_position_to_velocity_controller/cnr_position_to_velocity_controller.h>
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_EXPORT_CLASS(cnr::control::PositionToVelocityController, controller_interface::ControllerBase);
-PLUGINLIB_EXPORT_CLASS(cnr::control::PositionToVelocityControllerFfw, controller_interface::ControllerBase);
+PLUGINLIB_EXPORT_CLASS(cnr::control::PositionToVelocityController, controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(cnr::control::PositionToVelocityControllerFfw, controller_interface::ControllerBase)
 
 namespace cnr
 {
@@ -12,63 +12,48 @@ namespace control
 
 bool PositionToVelocityController::doInit()
 {
+  CNR_TRACE_START(*m_logger);
+  if(nAx()>1)
+  {
+    CNR_RETURN_FALSE(*m_logger, "The controller is designed to control only one joint.");
+  }
   if (!ctrl.init(getRootNh(), getControllerNh()))
   {
-    CNR_FATAL(*m_logger, "DoInit of the math ctrl of the PositionToVelocityController failed in initialization.");
-    return false;
+    CNR_RETURN_FALSE(*m_logger, "Math ctrl of the PositionToVelocityController failed in initialization.");
   }
 
-  bool flag = false;
-  for (unsigned idx = 0; idx < m_hw->getNames().size(); idx++)
-  {
-    if (!m_hw->getNames().at(idx).compare(ctrl.getJointName()))
-    {
-      m_jh = m_hw->getHandle(ctrl.getJointName());
-      flag = true;
-      break;
-    }
-  }
-  if (!flag)
-  {
-    CNR_FATAL(*m_logger, "There is an error in the names of the controlled joints, they mismatch with the handles.");
-    return false;
-  }
-  return true;
+  this->setPriority(QD_PRIORITY);
+  CNR_RETURN_TRUE(*m_logger);
 }
 
 bool PositionToVelocityController::doStarting(const ros::Time& time)
 {
-  // CHECK IF JOINT NAME IS PRESENT
-  double fb_pos = m_jh.getPosition();
-  double fb_vel = m_jh.getVelocity();
-  ctrl.starting(time, fb_pos, fb_vel);
-  return true;
+  CNR_TRACE_START(*m_logger);
+  ctrl.starting(time, q(0), qd(0));
+  CNR_RETURN_TRUE(*m_logger);
 }
 
 bool PositionToVelocityController::doStopping(const ros::Time& time)
 {
+  CNR_TRACE_START(*m_logger);
   ctrl.stopping(time);
-  m_jh.setCommand(0);
-  return true;
+  setCommandVelocity(0,0);
+  CNR_RETURN_TRUE(*m_logger);
 }
 
 bool PositionToVelocityController::doUpdate(const ros::Time& time, const ros::Duration& period)
 {
-  double fb_pos = m_jh.getPosition();
-  double fb_vel = m_jh.getVelocity();
-
   try
   {
-    ctrl.update(time, period, fb_pos, fb_vel);
-    m_jh.setCommand(ctrl.getVelCmd());
+    ctrl.update(time, period, q(0), qd(0));
+    setCommandVelocity(ctrl.getVelCmd(), 0);
   }
   catch (...)
   {
-    CNR_WARN_THROTTLE(*m_logger, 2.0, "something wrong: Controller '" + getControllerNamespace() + "'");
-    m_jh.setCommand(0);
-    return false;
+    setCommandVelocity(0,0);
+    CNR_RETURN_FALSE_THROTTLE(*m_logger, 2.0, "something wrong: Controller '" + getControllerNamespace() + "'");
   }
-  return true;
+  CNR_RETURN_TRUE(*m_logger);
 }
 
 
@@ -78,67 +63,53 @@ bool PositionToVelocityController::doUpdate(const ros::Time& time, const ros::Du
 
 bool PositionToVelocityControllerFfw::doInit()
 {
+  CNR_TRACE_START(*m_logger);
+  if(nAx()>1)
+  {
+    CNR_RETURN_FALSE(*m_logger, "The controller is designed to control only one joint.");
+  }
   if (!ctrl.init(getRootNh(), getControllerNh()))
   {
-    CNR_ERROR(*m_logger, "unable to initialize controller");
+    CNR_RETURN_FALSE(*m_logger, "Math ctrl of the PositionToVelocityControllerFfw failed in initialization.");
     return false;
   }
-  bool flag = false;
-  for (unsigned idx = 0; idx < m_hw->getNames().size(); idx++)
-  {
-    if (!m_hw->getNames().at(idx).compare(ctrl.getJointName()))
-    {
-      m_jh = m_hw->getHandle(ctrl.getJointName());
-      flag = true;
-      break;
-    }
-  }
-  if (!flag)
-  {
-    CNR_FATAL(*m_logger, "There is an error in the names of the controlled joints, they mismatch with the handles.");
-    return false;
-  }
-  return true;
+  CNR_RETURN_TRUE(*m_logger);
 }
 
 bool PositionToVelocityControllerFfw::doStarting(const ros::Time& time)
 {
-  // CHECK IF JOINT NAME IS PRESENT
-  double fb_pos = m_jh.getPosition();
-  double fb_vel = m_jh.getVelocity();
-  ctrl.starting(time, fb_pos, fb_vel);
-  return true;
+  CNR_TRACE_START(*m_logger);
+  ctrl.starting(time, q(0), qd(0));
+  CNR_RETURN_TRUE(*m_logger);
 }
 
 bool PositionToVelocityControllerFfw::doStopping(const ros::Time& time)
 {
+  CNR_TRACE_START(*m_logger);
   ctrl.stopping(time);
-  m_jh.setCommandVelocity(0);
-  m_jh.setCommandEffort(0);
-  return true;
+  setCommandVelocity(0,0);
+  setCommandEffort(0,0);
+  CNR_RETURN_TRUE(*m_logger);
 }
 
 bool PositionToVelocityControllerFfw::doUpdate(const ros::Time& time, const ros::Duration& period)
 {
-  double fb_pos = m_jh.getPosition();
-  double fb_vel = m_jh.getVelocity();
-
   try
   {
-    ctrl.update(time, period, fb_pos, fb_vel);
-    m_jh.setCommandPosition(ctrl.getPosCmd());
-    m_jh.setCommandVelocity(ctrl.getVelCmd());
-    m_jh.setCommandEffort(ctrl.getEffCmd());
+    ctrl.update(time, period, q(0), qd(0));
+    setCommandPosition(ctrl.getPosCmd(),0);
+    setCommandVelocity(ctrl.getVelCmd(),0);
+    setCommandEffort(ctrl.getEffCmd(),0);
   }
   catch (...)
   {
-    CNR_WARN_THROTTLE(*m_logger, 2.0, "something wrong: Controller '" + getControllerNamespace() + "'");
-    m_jh.setCommandVelocity(0);
-    m_jh.setCommandEffort(0);
-    return false;
+    setCommandVelocity(0,0);
+    setCommandEffort(0,0);
+    CNR_RETURN_FALSE_THROTTLE(*m_logger, 2.0, "something wrong: Controller '" + getControllerNamespace() + "'");
   }
-  return true;
+  CNR_RETURN_TRUE(*m_logger);
 }
 
-}
-}
+
+}  // namespace control
+}  // namespace cnr

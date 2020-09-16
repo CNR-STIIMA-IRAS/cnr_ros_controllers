@@ -1,7 +1,7 @@
 #include <cnr_joint_teleop_controller/cnr_joint_teleop_controller.h>
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_EXPORT_CLASS(cnr::control::JointTeleopController, controller_interface::ControllerBase);
+PLUGINLIB_EXPORT_CLASS(cnr::control::JointTeleopController, controller_interface::ControllerBase)
 
 
 namespace cnr
@@ -28,10 +28,10 @@ bool JointTeleopController::doInit()
   std::string setpoint_topic_name;
   setpoint_topic_name = getControllerNamespace() + "/target_joint_teleop";
 
-  add_subscriber("joint_target", setpoint_topic_name, 5, &JointTeleopController::callback, this);
+  add_subscriber<sensor_msgs::JointState>("joint_target", setpoint_topic_name, 5,
+          boost::bind(&JointTeleopController::callback, this, _1) );
 
-  CNR_INFO(*m_logger,"JointTeleopControllerinitialized");
-
+  this->setPriority(QD_PRIORITY);
   CNR_RETURN_TRUE(*m_logger);
 }
 
@@ -66,25 +66,24 @@ bool JointTeleopController::doUpdate(const ros::Time& time, const ros::Duration&
 
 
 
-void JointTeleopController::callback(const sensor_msgs::JointStateConstPtr msg)
+void JointTeleopController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
   try
   {
-    m_target.qd.setZero();
     for( size_t i = 0; i< msg->name.size( ); i++)
     {
       for( size_t j=0; j< jointNames().size(); j++)
       {
         if( msg->name.at(i)==jointNames().at(j) )
         {
-           if(msg->velocity.size() > 0 )
-           {
-              this->setPositionCommand(( !std::isnan( msg->velocity[i] ) ) ? msg->velocity[i] : m_target.qd( j ), j );
-           }
-           else
-           {
-              ROS_ERROR_STREAM("The message is broken.. NO velocity stored: " << *msg  );
-           }
+          if(msg->velocity.size() > 0 )
+          {
+            this->setCommandVelocity(!std::isnan(msg->velocity[i]) ? msg->velocity[i] : this->getCommandVelocity(j), j);
+          }
+          else
+          {
+            CNR_ERROR_THROTTLE(*m_logger, 5.0, "The message is broken.. No velocity stored " << *msg  );
+          }
         }
       }
     }
@@ -92,8 +91,8 @@ void JointTeleopController::callback(const sensor_msgs::JointStateConstPtr msg)
   catch(...)
   {
     ROS_WARN("[ %s ] Something wrong in Target Callback",  getControllerNamespace().c_str());
-    this->setPositionCommand( this->q() );
-    this->setVelocityCommand( this->qd() * 0.0 );
+    this->setCommandPosition( this->q() );
+    this->setCommandVelocity( this->qd() * 0.0 );
   }
   return;
 }

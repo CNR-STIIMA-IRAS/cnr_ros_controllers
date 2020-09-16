@@ -1,0 +1,10 @@
+<library path="lib/libdigital_io_controller">
+  <class name="ros/control/DigitalInputController" type="ros::control::DigitalInputController" base_class_type="controller_interface::ControllerBase">
+    <description>
+    </description>
+  </class>
+  <class name="ros/control/DigitalOutputController" type="ros::control::DigitalOutputController" base_class_type="controller_interface::ControllerBase">
+    <description>
+    </description>
+  </class>
+</library>
