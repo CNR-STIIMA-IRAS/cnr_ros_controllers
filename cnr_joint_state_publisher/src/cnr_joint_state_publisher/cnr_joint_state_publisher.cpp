@@ -26,7 +26,7 @@ bool JointStatePublisher::doInit()
   {
     CNR_RETURN_FALSE(*m_logger, "The number of controlled axes is 0. Check the configuration. Abort");
   }
-  add_publisher<sensor_msgs::JointState>("js", "joint_states", 1);
+  m_pub_handle = this->add_publisher<sensor_msgs::JointState>("joint_states", 1);
 
   m_msg.reset(new sensor_msgs::JointState());
   m_msg->position.resize(nAx(), 0);
@@ -34,7 +34,9 @@ bool JointStatePublisher::doInit()
   m_msg->effort.resize(nAx(), 0);
   m_msg->name = jointNames();
 
-  CNR_TRACE(*m_logger, "Published Topic '" + getPublisher("js")->getTopic() + "', axis names: " + cnr_controller_interface::to_string(jointNames()) + " n. axes: " + std::to_string(nAx()));
+  CNR_TRACE(*m_logger, "Published Topic '" + getPublisher(m_pub_handle)->getTopic()
+                     + "', axis names: " + cnr_controller_interface::to_string(jointNames())
+            + " n. axes: " + std::to_string(nAx()));
   CNR_RETURN_TRUE(*m_logger);
 }
 
@@ -59,7 +61,10 @@ bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duratio
       msg->effort  .push_back(effort(idx));
     }
     msg->header.stamp = ros::Time::now();
-    publish("js", *msg);
+    if(!publish(m_pub_handle, *msg))
+    {
+      CNR_RETURN_FALSE(this->logger());
+    }
   }
   catch (std::exception& e)
   {
@@ -71,7 +76,7 @@ bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duratio
 bool JointStatePublisher::doStopping(const ros::Time& time)
 {
   CNR_TRACE_START(*m_logger);
-  getPublisher("js")->shutdown();
+  getPublisher(m_pub_handle)->shutdown();
   CNR_RETURN_TRUE(*m_logger);
 }
 

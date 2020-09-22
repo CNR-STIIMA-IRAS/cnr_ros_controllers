@@ -7,6 +7,7 @@
 PLUGINLIB_EXPORT_CLASS(cnr::control::OpenLoopPositionController, controller_interface::ControllerBase)
 
 
+
 namespace cnr
 {
 namespace control
@@ -16,11 +17,11 @@ namespace control
 bool OpenLoopPositionController::doInit()
 {
   CNR_TRACE_START(*m_logger);
-  if (!getControllerNh().getParam("setpoint_topic_name", m_setpoint_topic_name))
+  if(!getControllerNh().getParam("setpoint_topic_name", m_setpoint_topic_name))
   {
     CNR_RETURN_FALSE(*m_logger, "The param '" + getControllerNamespace() + "/setpoint_topic_name' does not exist");
   }
-  add_subscriber<sensor_msgs::JointState>(SP_TOPIC_ID, m_setpoint_topic_name, 1,
+  add_subscriber<sensor_msgs::JointState>(m_setpoint_topic_name, 1,
         boost::bind(&OpenLoopPositionController::callback, this, _1) );
 
   this->setPriority(Q_PRIORITY);
@@ -48,9 +49,9 @@ bool OpenLoopPositionController::doStopping(const ros::Time& time)
 
 bool OpenLoopPositionController::doUpdate(const ros::Time& time, const ros::Duration& period)
 {
-  CNR_TRACE_START_THROTTLE(*m_logger, 10.0);
+  CNR_TRACE_START_THROTTLE_DEFAULT(*m_logger);
 
-  CNR_RETURN_TRUE_THROTTLE(*m_logger, 10.0);
+  CNR_RETURN_TRUE_THROTTLE_DEFAULT(*m_logger);
 }
 
 bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointState& msg)
@@ -61,9 +62,9 @@ bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointState& msg
   {
     for (size_t iAx=0; iAx < jointNames().size(); iAx++)
     {
-      if (msg.name.at(iJoint) == jointNames().at(iAx))
+      if(msg.name.at(iJoint) == jointNames().at(iAx))
       {
-        if (msg.position.size() > (iJoint))
+        if(msg.position.size() > (iJoint))
         {
           target(iAx) = msg.position.at(iJoint);
           cnt++;
@@ -77,7 +78,7 @@ bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointState& msg
   }
 
   bool ok = (cnt == nAx());
-  if ( ok )
+  if( ok )
   {
     setCommandPosition(target);
   }
@@ -86,8 +87,8 @@ bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointState& msg
 
 void OpenLoopPositionController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
-  CNR_TRACE_START_THROTTLE(*m_logger, 5.0);
-  if (extractJoint(*msg))
+  CNR_TRACE_START_THROTTLE(*m_logger, 1.0);
+  if(extractJoint(*msg))
   {
     m_configured = true;
   }
@@ -95,7 +96,7 @@ void OpenLoopPositionController::callback(const sensor_msgs::JointStateConstPtr&
   {
     CNR_FATAL(*m_logger, getControllerNamespace() + " command message dimension is wrong.");
   }
-  CNR_RETURN_OK_THROTTLE(*m_logger, void(), 5.0);
+  CNR_RETURN_OK_THROTTLE(*m_logger, void(), 1.0);
 }
 
 

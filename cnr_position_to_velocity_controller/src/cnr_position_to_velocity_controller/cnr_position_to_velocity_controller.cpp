@@ -10,105 +10,67 @@ namespace control
 {
 
 
-bool PositionToVelocityController::doInit()
-{
-  CNR_TRACE_START(*m_logger);
-  if(nAx()>1)
-  {
-    CNR_RETURN_FALSE(*m_logger, "The controller is designed to control only one joint.");
-  }
-  if (!ctrl.init(getRootNh(), getControllerNh()))
-  {
-    CNR_RETURN_FALSE(*m_logger, "Math ctrl of the PositionToVelocityController failed in initialization.");
-  }
-
-  this->setPriority(QD_PRIORITY);
-  CNR_RETURN_TRUE(*m_logger);
-}
-
-bool PositionToVelocityController::doStarting(const ros::Time& time)
-{
-  CNR_TRACE_START(*m_logger);
-  ctrl.starting(time, q(0), qd(0));
-  CNR_RETURN_TRUE(*m_logger);
-}
-
-bool PositionToVelocityController::doStopping(const ros::Time& time)
-{
-  CNR_TRACE_START(*m_logger);
-  ctrl.stopping(time);
-  setCommandVelocity(0,0);
-  CNR_RETURN_TRUE(*m_logger);
-}
-
-bool PositionToVelocityController::doUpdate(const ros::Time& time, const ros::Duration& period)
-{
-  try
-  {
-    ctrl.update(time, period, q(0), qd(0));
-    setCommandVelocity(ctrl.getVelCmd(), 0);
-  }
-  catch (...)
-  {
-    setCommandVelocity(0,0);
-    CNR_RETURN_FALSE_THROTTLE(*m_logger, 2.0, "something wrong: Controller '" + getControllerNamespace() + "'");
-  }
-  CNR_RETURN_TRUE(*m_logger);
-}
-
-
-
-
-
-
+/**
+ * @brief PositionToVelocityControllerFfw::doInit
+ * @return
+ */
 bool PositionToVelocityControllerFfw::doInit()
 {
-  CNR_TRACE_START(*m_logger);
-  if(nAx()>1)
+  CNR_TRACE_START(this->logger());
+  if(PositionToVelocityControllerBase::doInit())
   {
-    CNR_RETURN_FALSE(*m_logger, "The controller is designed to control only one joint.");
+    CNR_RETURN_FALSE(this->logger());
   }
-  if (!ctrl.init(getRootNh(), getControllerNh()))
-  {
-    CNR_RETURN_FALSE(*m_logger, "Math ctrl of the PositionToVelocityControllerFfw failed in initialization.");
-    return false;
-  }
-  CNR_RETURN_TRUE(*m_logger);
+  CNR_RETURN_TRUE(this->logger());
 }
 
 bool PositionToVelocityControllerFfw::doStarting(const ros::Time& time)
 {
-  CNR_TRACE_START(*m_logger);
-  ctrl.starting(time, q(0), qd(0));
-  CNR_RETURN_TRUE(*m_logger);
+  CNR_TRACE_START(this->logger());
+  if(PositionToVelocityControllerBase::doStarting(time))
+  {
+    CNR_RETURN_FALSE(this->logger());
+  }
+  CNR_RETURN_TRUE(this->logger());
 }
 
 bool PositionToVelocityControllerFfw::doStopping(const ros::Time& time)
 {
-  CNR_TRACE_START(*m_logger);
-  ctrl.stopping(time);
-  setCommandVelocity(0,0);
-  setCommandEffort(0,0);
-  CNR_RETURN_TRUE(*m_logger);
+  CNR_TRACE_START(this->logger());
+  if(PositionToVelocityControllerBase::doStopping(time))
+  {
+    CNR_RETURN_FALSE(this->logger());
+  }
+  this->setCommandVelocity(0,0);
+  this->setCommandEffort(0,0);
+  CNR_RETURN_TRUE(this->logger());
 }
 
 bool PositionToVelocityControllerFfw::doUpdate(const ros::Time& time, const ros::Duration& period)
 {
+  CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   try
   {
-    ctrl.update(time, period, q(0), qd(0));
-    setCommandPosition(ctrl.getPosCmd(),0);
-    setCommandVelocity(ctrl.getVelCmd(),0);
-    setCommandEffort(ctrl.getEffCmd(),0);
+    if(PositionToVelocityControllerBase::doUpdate(time, period))
+    {
+      CNR_RETURN_FALSE(this->logger());
+    }
+    this->setCommandPosition(ctrl.getPosCmd(),0);
+    this->setCommandVelocity(ctrl.getVelCmd(),0);
+    this->setCommandEffort(ctrl.getEffCmd(),0);
   }
   catch (...)
   {
-    setCommandVelocity(0,0);
-    setCommandEffort(0,0);
-    CNR_RETURN_FALSE_THROTTLE(*m_logger, 2.0, "something wrong: Controller '" + getControllerNamespace() + "'");
+    this->setCommandVelocity(0,0);
+    this->setCommandEffort(0,0);
+    CNR_RETURN_FALSE_THROTTLE(this->logger(), 2.0, "something wrong: Controller '" + getControllerNamespace() + "'");
   }
-  CNR_RETURN_TRUE(*m_logger);
+  CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
 }
+
+
+
+
 
 
 }  // namespace control

@@ -28,13 +28,11 @@ bool JointTeleopController::doInit()
   std::string setpoint_topic_name;
   setpoint_topic_name = getControllerNamespace() + "/target_joint_teleop";
 
-  add_subscriber<sensor_msgs::JointState>("joint_target", setpoint_topic_name, 5,
-          boost::bind(&JointTeleopController::callback, this, _1) );
+  add_subscriber<sensor_msgs::JointState>(setpoint_topic_name,5,boost::bind(&JointTeleopController::callback,this,_1));
 
   this->setPriority(QD_PRIORITY);
   CNR_RETURN_TRUE(*m_logger);
 }
-
 
 /**
  * @brief JointTeleopController::doStarting
@@ -57,15 +55,21 @@ bool JointTeleopController::doStopping(const ros::Time& time)
   CNR_RETURN_TRUE(*m_logger);
 }
 
-
-
+/**
+ * @brief JointTeleopController::doUpdate
+ * @param time
+ * @param period
+ * @return
+ */
 bool JointTeleopController::doUpdate(const ros::Time& time, const ros::Duration& period)
 {
   return true;
 }
 
-
-
+/**
+ * @brief JointTeleopController::callback
+ * @param msg
+ */
 void JointTeleopController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
   try

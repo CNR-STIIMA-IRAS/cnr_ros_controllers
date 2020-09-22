@@ -19,6 +19,7 @@ public:
   virtual bool doUpdate(const ros::Time& time, const ros::Duration& period);
 
 protected:
+  size_t      m_w_sub_handle;
   std::string m_name;
 };
 

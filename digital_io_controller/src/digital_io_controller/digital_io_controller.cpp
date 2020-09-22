@@ -61,7 +61,7 @@ bool DigitalInputController::doInit ()
   GET_AND_RETURN(getControllerNh(), "published_topic",m_di_topic_name);
 
   m_num_di = m_di_names.size();
-  add_publisher<std_msgs::Int8MultiArray>("di", m_di_topic_name,1);
+  m_di_sub_handle = add_publisher<std_msgs::Int8MultiArray>(m_di_topic_name,1);
   CNR_RETURN_TRUE(*m_logger);
 }
 
@@ -76,7 +76,10 @@ bool DigitalInputController::doUpdate(const ros::Time& time, const ros::Duration
     msg->layout.dim.at(idx).label = m_di_names.at(idx);
     msg->data.at(idx)=m_hw->getHandle(m_di_names.at(idx)).getValue();
   }
-  publish("di", msg);
+  if(!publish(m_di_sub_handle, msg))
+  {
+    CNR_RETURN_FALSE(this->logger());
+  }
   CNR_RETURN_TRUE(*m_logger);
 }
 
@@ -88,7 +91,7 @@ bool DigitalOutputController::doInit ()
   GET_AND_RETURN(getControllerNh(), "subscribed_topic", m_do_topic_name);
   m_num_do = m_do_names.size();
   m_do.resize( m_do_names.size(), 0 );
-  add_subscriber<std_msgs::Int8MultiArray>("do", m_do_topic_name, 5,
+  add_subscriber<std_msgs::Int8MultiArray>(m_do_topic_name, 5,
                                     boost::bind(&DigitalOutputController::callback, this, _1) );
   CNR_RETURN_TRUE(*m_logger);
 }

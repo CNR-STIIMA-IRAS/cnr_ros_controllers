@@ -10,7 +10,7 @@ namespace control
 {
 
 class HomingController :
-    public cnr_controller_interface::JointCommandController<hardware_interface::JointStateInterface>
+    public cnr_controller_interface::JointCommandController<hardware_interface::JointCommandInterface>
 {
 public:
   bool doInit();

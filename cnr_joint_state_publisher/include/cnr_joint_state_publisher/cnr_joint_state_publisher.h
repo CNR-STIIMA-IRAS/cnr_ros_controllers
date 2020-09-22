@@ -25,6 +25,7 @@ protected:
   virtual bool doUpdate(const ros::Time&, const ros::Duration&);
   virtual bool doStopping(const ros::Time& time);
 
+  size_t m_pub_handle;
   sensor_msgs::JointStatePtr  m_msg;
 
 };

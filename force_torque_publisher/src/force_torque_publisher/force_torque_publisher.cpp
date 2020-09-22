@@ -21,7 +21,7 @@ bool ForceTorquePublisher::doInit ( )
     CNR_RETURN_FALSE(*m_logger, getControllerNamespace() + "/published_topic is not in the rosparam server. Abort. " );
   }
 
-  add_publisher<geometry_msgs::WrenchStamped>("wrench", published_topic,1);
+  m_w_sub_handle = add_publisher<geometry_msgs::WrenchStamped>(published_topic,1);
   CNR_RETURN_TRUE(*m_logger);
 }
 
@@ -39,7 +39,10 @@ bool ForceTorquePublisher::doUpdate ( const ros::Time& time, const ros::Duration
   msg->wrench.torque.z = m_hw->getHandle( m_name ).getTorque()[2];
 
   msg->header.stamp=ros::Time::now();
-  publish("wrench", msg);
+  if(!publish(m_w_sub_handle, msg))
+  {
+    CNR_RETURN_FALSE(this->logger());
+  }
   return true;
 }
 

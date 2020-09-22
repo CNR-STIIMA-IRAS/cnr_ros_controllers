@@ -25,6 +25,7 @@ namespace control
     std::vector<hardware_interface::DigitalStateHandle> m_jh;
     std::vector<std::string>                      m_di_names;
 
+    size_t                                        m_di_sub_handle;
     std::string                                   m_di_topic_name;
     std::size_t     m_num_di;
   };

@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-
 find_package(catkin REQUIRED COMPONENTS
   cnr_controller_interface
   controller_interface
@@ -22,7 +21,8 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES cnr_open_loop_position_controller
-  CATKIN_DEPENDS cnr_controller_interface controller_interface controller_manager hardware_interface pluginlib roscpp sensor_msgs subscription_notifier
+  CATKIN_DEPENDS cnr_controller_interface controller_interface controller_manager hardware_interface pluginlib roscpp
+  sensor_msgs subscription_notifier
   DEPENDS
   )
 include_directories(

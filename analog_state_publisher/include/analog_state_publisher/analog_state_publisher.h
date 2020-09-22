@@ -22,6 +22,7 @@ namespace control
   protected:
     std::vector<std::string> m_analog_names;
     std::string m_topic_name;
+    size_t m_pub_idx;
     
     std::size_t m_nax;
   };

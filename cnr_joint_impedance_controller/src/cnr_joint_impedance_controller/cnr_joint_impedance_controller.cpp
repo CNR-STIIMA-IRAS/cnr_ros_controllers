@@ -82,7 +82,7 @@ bool JointImpedanceController::doInit( )
     GET_AND_RETURN( getControllerNh(), "setpoint", joint_target);
 
     CNR_INFO(*m_logger, "Subscribing " << joint_target);
-    add_subscriber<sensor_msgs::JointState>( "joint_target_sub", joint_target, 1,
+    add_subscriber<sensor_msgs::JointState>(joint_target, 1,
             boost::bind(&cnr::control::JointImpedanceController::setTargetCallback,this,_1));
 
     if (!getControllerNh().getParam("use_wrench", m_use_wrench))
@@ -107,7 +107,7 @@ bool JointImpedanceController::doInit( )
       gravity << 0, 0, -9.806;
       m_chain_bs = rosdyn::createChain(urdf_model,m_kin->baseLink(),m_sensor_link,gravity);
       
-      add_subscriber<geometry_msgs::WrenchStamped>("wrench_sub", external_wrench_topic,1,
+      add_subscriber<geometry_msgs::WrenchStamped>(external_wrench_topic,1,
               boost::bind(&cnr::control::JointImpedanceController::setWrenchCallback,this, _1));
 
       ROS_INFO_STREAM("[ " << getControllerNamespace() << " ] DOF Chain from Baset to Tool  : " << m_kin->getChain()->getActiveJointsNumber() );
@@ -119,7 +119,7 @@ bool JointImpedanceController::doInit( )
       std::string external_torques  = "external_torques";
       GET_AND_RETURN( getControllerNh(), "external_torques_topic", external_torques );
       
-      add_subscriber<sensor_msgs::JointState>("external_torques_sub", external_torques,1,
+      add_subscriber<sensor_msgs::JointState>(external_torques,1,
               boost::bind(&cnr::control::JointImpedanceController::setEffortCallback,this,_1));
     }
 

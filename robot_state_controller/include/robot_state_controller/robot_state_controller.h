@@ -23,7 +23,9 @@ namespace robot_state_controller
 
   protected:
 
-    std::vector<std::string> m_frames;
+    std::vector<std::string>  m_frames;
+    std::vector<size_t>       m_base_pub_idx;
+    std::vector<size_t>       m_link_pub_idx;
     std::vector<unsigned int> m_frame_idxs;
 
   };

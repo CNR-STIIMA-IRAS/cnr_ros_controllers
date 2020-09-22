@@ -38,8 +38,11 @@ bool RobotStateController::doInit( )
 
   for (unsigned int idx=0;idx<m_frames.size();idx++)
   {
-    add_publisher<geometry_msgs::TwistStamped>( "base_"+m_frames.at(idx), "/"+m_frames.at(idx)+"/twist_in_link",1);
-    add_publisher<geometry_msgs::TwistStamped>( "link_"+m_frames.at(idx), "/"+m_frames.at(idx)+"/twist_in_tool",1);
+
+    size_t idx_base = add_publisher<geometry_msgs::TwistStamped>("/"+m_frames.at(idx)+"/twist_in_link",1);
+    m_base_pub_idx.push_back(idx_base);
+    size_t idx_link = add_publisher<geometry_msgs::TwistStamped>("/"+m_frames.at(idx)+"/twist_in_tool",1);
+    m_link_pub_idx.push_back(idx_link);
   }
   return true;
 }
@@ -75,7 +78,10 @@ bool RobotStateController::doUpdate ( const ros::Time& time, const ros::Duration
       msg->header.stamp=ros::Time::now();
       msg->header.frame_id=m_kin->baseLink();
       ll = __LINE__;
-      publish("base_"+m_frames.at(idx), msg);
+      if(!publish(m_base_pub_idx.at(idx), msg))
+      {
+        CNR_RETURN_FALSE(this->logger());
+      }
 
       ll = __LINE__;
       geometry_msgs::TwistStampedPtr msg_in_link=boost::make_shared<geometry_msgs::TwistStamped>();
@@ -93,7 +99,10 @@ bool RobotStateController::doUpdate ( const ros::Time& time, const ros::Duration
       msg_in_link->header.frame_id=m_frames.at(idx);
 
       ll = __LINE__;
-      publish("link_"+m_frames.at(idx), msg);
+      if(!publish(m_link_pub_idx.at(idx), msg))
+      {
+        CNR_RETURN_FALSE(this->logger());
+      }
     }
   }
   catch(...)

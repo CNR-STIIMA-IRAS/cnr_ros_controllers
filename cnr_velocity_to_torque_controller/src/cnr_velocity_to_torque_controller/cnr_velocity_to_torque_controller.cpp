@@ -19,7 +19,7 @@ bool VelocityToTorqueController::doInit( )
     ROS_FATAL("ERROR DURING INITIALIZATION CONTROLLER '%s'", getControllerNamespace().c_str());
     return false;
   }
-  add_subscriber<sensor_msgs::JointState>("setpoint",setpoint_topic_name,1,
+  add_subscriber<sensor_msgs::JointState>(setpoint_topic_name,1,
          boost::bind(&VelocityToTorqueController::callback, this, _1));
 
   m_use_target_torque = false;

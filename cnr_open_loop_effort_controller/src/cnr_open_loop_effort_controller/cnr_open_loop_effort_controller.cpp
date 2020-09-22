@@ -17,7 +17,7 @@ bool OpenLoopEffortController::doInit( )
   {
     CNR_RETURN_FALSE(*m_logger, getControllerNamespace() + "/'setpoint_topic_name' does not exist");
   }
-  add_subscriber<sensor_msgs::JointState>(SP_TOPIC_ID, m_setpoint_topic_name, 1,
+  add_subscriber<sensor_msgs::JointState>(m_setpoint_topic_name, 1,
                                              boost::bind(&OpenLoopEffortController::callback,this,_1));
 
   CNR_DEBUG(*m_logger, "Controller ' " + getControllerNamespace() + "' controls the following joint: " + cnr_controller_interface::to_string(jointNames()));

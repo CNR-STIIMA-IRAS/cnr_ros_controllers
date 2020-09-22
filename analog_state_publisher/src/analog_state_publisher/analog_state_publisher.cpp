@@ -43,7 +43,7 @@ namespace ros
         }
       }
       
-      add_publisher<std_msgs::Float64MultiArray>("msr", m_topic_name,1);
+      m_pub_idx = add_publisher<std_msgs::Float64MultiArray>(m_topic_name,1);
       return true;
     }
     
@@ -63,7 +63,11 @@ namespace ros
         msg->layout.dim.at(idx).label = m_analog_names.at(idx);
         msg->data.at(idx)=m_hw->getHandle(m_analog_names.at(idx)).getValue();
       }
-      publish("msr", msg);
+      if(!publish(m_pub_idx, msg))
+      {
+        CNR_RETURN_FALSE(this->logger());
+      }
+      CNR_RETURN_TRUE(this->logger());
     }
     
     bool AnalogStatePublisher::doStopping ( const ros::Time& time )
