@@ -74,7 +74,7 @@ void JointTeleopController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
   try
   {
-    for( size_t i = 0; i< msg->name.size( ); i++)
+    for( size_t i= 0; i< msg->name.size( ); i++)
     {
       for( size_t j=0; j< jointNames().size(); j++)
       {

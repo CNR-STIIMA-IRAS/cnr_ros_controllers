@@ -65,6 +65,7 @@ public:
 
   virtual bool doUpdate(const ros::Time& time, const ros::Duration& period)
   {
+    CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
     try
     {
       if(!m_configured)
@@ -84,7 +85,7 @@ public:
       this->setCommandVelocity(0,0);
       CNR_RETURN_FALSE_THROTTLE(this->logger(), 2.0, "Exception!");
     }
-    CNR_RETURN_TRUE(this->logger());
+    CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
   }
 
   virtual bool doStopping(const ros::Time& time)

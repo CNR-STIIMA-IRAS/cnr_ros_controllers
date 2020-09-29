@@ -97,9 +97,13 @@ void PositionToVelocityControllerMath::starting(const ros::Time& time, const dou
 
   Eigen::VectorXd init_vel(1);
   if (m_use_target_velocity)
+  {
     init_vel(0) = fb_vel - fb_vel;
+  }
   else
+  {
     init_vel(0) = fb_vel;
+  }
   Eigen::VectorXd init_error = m_target_pos_filter.getOutput() - m_pos_filter.getOutput();
 
   m_controller.setStateFromLastIO(init_error, init_vel);
@@ -164,24 +168,8 @@ bool PositionToVelocityControllerMath::update(const ros::Time& time,
     integral_controller_output = m_integral_controller.update(integral_controller_input);
 
     m_pos_cmd = target_filter_output;
-    m_vel_cmd = controller_output + integral_controller_output;
-    m_eff_cmd = 0;
-
-//        ROS_INFO_THROTTLE(0.1,"r=%f, y=%f, er=%f vel=%f, max_vel=%f",target_filter_output,filter_output,controller_input,m_vel_cmd, m_max_velocity);
-    if (m_use_target_velocity)
-    {
-      m_vel_cmd += *trg_vel;
-    }
-
-
-    if (m_use_target_torque)
-    {
-      m_eff_cmd = *trg_eff;
-    }
-    else
-    {
-      m_eff_cmd = 0;
-    }
+    m_vel_cmd = controller_output + integral_controller_output + ( m_use_target_velocity && trg_vel ? *trg_vel : 0 );
+    m_eff_cmd = m_use_target_torque && trg_eff ? *trg_eff : 0;
 
     if (m_vel_cmd > m_max_velocity)
     {
