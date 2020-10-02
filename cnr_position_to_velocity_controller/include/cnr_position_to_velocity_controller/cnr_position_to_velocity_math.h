@@ -19,8 +19,9 @@ public:
 
   PositionToVelocityControllerMath() {}
   bool init(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh);
-  bool update(const ros::Time& time, const ros::Duration& period, const double *trg_pos, const double *trg_vel, const double *trg_eff,
-              const double * last_sp_time, const double& fb_pos, const double& fb_vel);
+  bool update(const ros::Time& time, const ros::Duration& period,
+              const double* const trg_pos, const double* const trg_vel, const double* const trg_eff,
+              const double* const last_sp_time, const double& fb_pos, const double& fb_vel);
   void starting(const ros::Time& time, const double& fb_pos, const double& fb_vel);
   void stopping(const ros::Time& time);
 
@@ -71,7 +72,7 @@ protected:
 
   void callback(const sensor_msgs::JointStateConstPtr msg);
   bool extractJoint(const sensor_msgs::JointState msg, const std::string name, double& pos, double& vel, double& eff);
-  void stopThreads();
+
 };
 
 

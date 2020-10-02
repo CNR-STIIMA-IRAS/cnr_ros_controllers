@@ -120,10 +120,10 @@ void PositionToVelocityControllerMath::stopping(const ros::Time& time)
 
 bool PositionToVelocityControllerMath::update(const ros::Time& time,
                                               const ros::Duration& period,
-                                              const double * trg_pos,
-                                              const double * trg_vel,
-                                              const double * trg_eff,
-                                              const double * last_sp_time,
+                                              const double * const trg_pos,
+                                              const double * const trg_vel,
+                                              const double * const trg_eff,
+                                              const double * const last_sp_time,
                                               const double& fb_pos,
                                               const double& fb_vel)
 {
@@ -139,7 +139,7 @@ bool PositionToVelocityControllerMath::update(const ros::Time& time,
 
     filter_output = m_pos_filter.update(fb_pos);
 
-    if (trg_pos)
+    if(trg_pos)
     {
       double target_pos = *trg_pos;
       if (m_interpolate_setpoint && ((time.toSec() - *last_sp_time) <= m_maximum_interpolation_time))
@@ -147,7 +147,7 @@ bool PositionToVelocityControllerMath::update(const ros::Time& time,
         target_pos = m_last_target_pos + *trg_vel * (time.toSec() - *last_sp_time);
       }
       target_filter_output = m_target_pos_filter.update(target_pos);
-      m_last_target_pos = *trg_pos;
+      m_last_target_pos = target_filter_output;
     }
     else
     {

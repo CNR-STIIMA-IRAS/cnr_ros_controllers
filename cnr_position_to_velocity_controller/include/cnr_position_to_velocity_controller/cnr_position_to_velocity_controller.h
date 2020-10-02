@@ -76,7 +76,9 @@ public:
       }
       else
       {
-        ctrl.update(time, period, &m_target_pos, &m_target_vel, &m_target_eff, &m_last_sp_time, this->q(0), this->qd(0));
+        ctrl.update(time, period,
+                    &m_target_pos, &m_target_vel, &m_target_eff, &m_last_sp_time,
+                    this->q(0), this->qd(0));
       }
       this->setCommandVelocity(ctrl.getVelCmd(), 0);
     }
@@ -116,6 +118,7 @@ protected:
     else
     {
       CNR_ERROR(this->logger(), " target message dimension is wrong");
+      CNR_ERROR(this->logger(), " Joint Controlled name: " << this->jointName(0));
       CNR_ERROR(this->logger(), " msg received: " << *msg);
     }
     return;
@@ -123,29 +126,23 @@ protected:
 
   bool extractJoint(const sensor_msgs::JointState msg, const std::string name, double& pos, double& vel, double& eff)
   {
-    for(unsigned int iJoint = 0; iJoint < msg.name.size(); iJoint++)
+    if(msg.position.size()!=msg.name.size())
     {
-      if(!msg.name.at(iJoint).compare(name))
-      {
-        if(msg.position.size() > (iJoint))
-          pos = msg.position.at(iJoint);
-        else
-          return false;
-
-        if(msg.velocity.size() > (iJoint))
-          vel = msg.velocity.at(iJoint);
-        else
-          return false;
-
-        if(msg.effort.size() > (iJoint))
-          eff = msg.effort.at(iJoint);
-        else
-          return false;
-
-        return true;
-      }
+      return false;
     }
-    return false;
+
+    std::vector<std::string>::const_iterator it = std::find(msg.name.begin(), msg.name.end(), name);
+    if(it == msg.name.end())
+    {
+      return false;
+    }
+
+    size_t iJoint = std::distance(msg.name.begin(), it);
+    pos = msg.position.at(iJoint);
+    vel = msg.velocity.size() == msg.name.size() ? msg.velocity.at(iJoint) : 0 ;
+    eff = msg.effort.size() == msg.name.size() ? msg.effort.at(iJoint) : 0 ;
+
+    return true;
   }
 };
 
