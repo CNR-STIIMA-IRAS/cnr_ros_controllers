@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cnr_open_loop_effort_controller)
-add_compile_options(-std=c++11 -funroll-loops -Wall -Ofast)
+
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+add_compile_options(-funroll-loops -Wall -Ofast)
 #set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_BUILD_TYPE Debug)
 

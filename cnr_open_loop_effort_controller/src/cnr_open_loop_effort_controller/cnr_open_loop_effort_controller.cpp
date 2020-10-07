@@ -8,8 +8,7 @@ namespace cnr
 {
 namespace control
 {
-		
-		
+
 bool OpenLoopEffortController::doInit( )
 {
   CNR_TRACE_START(*m_logger);

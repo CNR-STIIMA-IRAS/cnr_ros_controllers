@@ -1,17 +1,13 @@
 cmake_minimum_required(VERSION 3.1)
 project(cnr_joint_impedance_controller)
 
-
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_BUILD_TYPE Release)
-
-
-
-add_definitions(-DFOURBYTHREE_MSGS)
 find_package(catkin REQUIRED COMPONENTS
+  cnr_impedance_regulator
   cnr_controller_interface
   controller_interface
   controller_manager

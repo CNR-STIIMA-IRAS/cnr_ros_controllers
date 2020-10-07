@@ -1,4 +1,8 @@
+#include <name_sorting/name_sorting.h>
 #include <cnr_joint_impedance_controller/cnr_joint_impedance_controller.h>
+#include <cnr_impedance_regulator/cnr_impedance_regulator_inputs.h>
+#include <cnr_impedance_regulator/cnr_impedance_regulator_outputs.h>
+#include <cnr_impedance_regulator/cnr_impedance_regulator_state.h>
 #include <pluginlib/class_list_macros.h>
 
 PLUGINLIB_EXPORT_CLASS(cnr::control::JointImpedanceController, controller_interface::ControllerBase)
@@ -58,14 +62,14 @@ bool JointImpedanceController::doInit( )
 #define GET_PARAM_VECTOR_AND_RETURN( P, X , N)\
   if (!getControllerNh().getParam( std::string(P).c_str(), X))\
   {\
-    ROS_FATAL_STREAM("[ " << getControllerNamespace() << "] Parameter '"<<  P <<"' does not exist");\
-    ROS_FATAL_STREAM("[ " << getControllerNamespace() << "] ERROR DURING INITIALIZATION. ABORT.");\
+    CNR_ERROR(m_logger, "[ " << getControllerNamespace() << "] Parameter '"<<  P <<"' does not exist");\
+    CNR_ERROR(m_logger, "[ " << getControllerNamespace() << "] ERROR DURING INITIALIZATION. ABORT.");\
     return false;\
   }\
   if( X.size() != N )\
   {\
-    ROS_FATAL_STREAM("[ " << getControllerNamespace() << "] The size '"<< X.size() <<"' of the param '" << P << "' does not match with the foreseen dimension '"<< N <<"'");\
-    ROS_FATAL_STREAM("[ " << getControllerNamespace() << "] ERROR DURING INITIALIZATION. ABORT.");\
+    CNR_ERROR(m_logger, "[ " << getControllerNamespace() << "] The size '"<< X.size() <<"' of the param '" << P << "' does not match with the foreseen dimension '"<< N <<"'");\
+    CNR_ERROR(m_logger, "[ " << getControllerNamespace() << "] ERROR DURING INITIALIZATION. ABORT.");\
     return false;\
   }
 {
@@ -95,24 +99,17 @@ bool JointImpedanceController::doInit( )
     {
       std::string external_wrench_topic;
       std::string robot_description_param;
-      urdf::Model urdf_model;
       
-      GET_AND_RETURN( getControllerNh(), "robot_description_param", robot_description_param );
       GET_AND_RETURN( getControllerNh(), "sensor_frame"           , m_sensor_link          );
       GET_AND_RETURN( getControllerNh(), "external_wrench_topic"  , external_wrench_topic   );
 
-      urdf_model.initParam( robot_description_param.c_str() );
-
-      Eigen::Vector3d gravity;
-      gravity << 0, 0, -9.806;
-      m_chain_bs = rosdyn::createChain(urdf_model,m_kin->baseLink(),m_sensor_link,gravity);
+      m_chain_bs = m_kin->getChain(m_kin->baseLink(),m_sensor_link);
       
       add_subscriber<geometry_msgs::WrenchStamped>(external_wrench_topic,1,
               boost::bind(&cnr::control::JointImpedanceController::setWrenchCallback,this, _1));
 
-      ROS_INFO_STREAM("[ " << getControllerNamespace() << " ] DOF Chain from Baset to Tool  : " << m_kin->getChain()->getActiveJointsNumber() );
-      ROS_INFO_STREAM("[ " << getControllerNamespace() << " ] DOF Chain from Baset to Sensor: " << m_chain_bs->getActiveJointsNumber() );
-
+      CNR_INFO(m_logger, "[ " << getControllerNamespace() << " ] DOF Chain from Baset to Tool  : " << m_kin->getChain()->getActiveJointsNumber() );
+      CNR_INFO(m_logger, "[ " << getControllerNamespace() << " ] DOF Chain from Baset to Sensor: " << m_chain_bs->getActiveJointsNumber() );
     }
     else
     {
@@ -124,59 +121,28 @@ bool JointImpedanceController::doInit( )
     }
 
 
-    m_jtarget.resize(nAx());
-    m_jDtarget.resize(nAx());
-    m_x0.resize(nAx());
-    m_Dx0.resize(nAx());
-    m_x.resize(nAx());
-    m_Dx.resize(nAx());
-    m_DDx.resize(nAx());
+    m_q_target.resize(nAx());
+    m_qd_target.resize(nAx());
     
-    m_Jinv.resize(nAx());
-    m_damping.resize(nAx());
-    m_damping_dafault.resize(nAx());
-    m_k.resize(nAx());
-    m_k_default.resize(nAx());
-    m_k_new.resize(nAx());
-    m_torque_deadband.resize(nAx());
-    m_torque.resize(nAx());
-    
-    m_jtarget.setZero();
-    m_jDtarget.setZero();
-    m_x0.setZero();
-    m_Dx0.setZero();
-    m_x.setZero();
-    m_Dx.setZero();
-    m_DDx.setZero();
-    m_torque.setZero();
-    
-
-    std::vector<double> inertia(nAx(),0), damping(nAx(),0), stiffness(nAx(),0), torque_deadband(nAx(),0), wrench_deadband(6,0);
-    GET_PARAM_VECTOR_AND_RETURN( "inertia"  , inertia  , nAx());
-    GET_PARAM_VECTOR_AND_RETURN( "stiffness", stiffness, nAx());
-
-    if (getControllerNh().hasParam("damping_ratio"))
+    cnr_impedance_regulator::ImpedanceRegulatorOptionsPtr opts(
+                                        new cnr_impedance_regulator::ImpedanceRegulatorOptions(nAx()));
+    opts->logger = m_logger;
+    opts->period = ros::Duration(m_sampling_period);
+    opts->robot_kin = m_kin;
+    if(!m_regulator.initialize(getRootNh(),getControllerNh(),opts))
     {
-      std::vector<double> damping_ratio;
-      GET_PARAM_VECTOR_AND_RETURN( "damping_ratio", damping_ratio, nAx());
-
-      damping.resize(nAx(),0);
-      for (unsigned int iAx=0; iAx<nAx(); iAx++)
-      {
-        if (stiffness.at(iAx)<=0)
-        {
-          ROS_ERROR("damping ratio can be specified only for positive stiffness values (stiffness of Joint is not positive)");
-          return false;
-        }
-        damping.at(iAx)=2*damping_ratio.at(iAx)*std::sqrt(stiffness.at(iAx)*inertia.at(iAx));
-      }
-    }
-    else
-    {
-      GET_PARAM_VECTOR_AND_RETURN("damping", damping, nAx());
+      CNR_RETURN_FALSE(m_logger, "Error in initialization of the impedance regulator");
     }
 
+    m_effort_db.resize(nAx());
+    m_effort.resize(nAx());
+    
+    m_q_target.setZero();
+    m_qd_target.setZero();
+    m_effort.setZero();
+    
 
+    std::vector<double> torque_deadband(nAx(),0), wrench_deadband(6,0);
     if (m_use_wrench)
     {
       GET_PARAM_VECTOR_AND_RETURN("wrench_deadband", wrench_deadband, 6);
@@ -188,49 +154,16 @@ bool JointImpedanceController::doInit( )
 
     for (unsigned int iAx=0;iAx<nAx();iAx++)
     {
-      if (inertia.at(iAx)<=0)
-      {
-        ROS_INFO("inertia value of Joint %d is not positive, disabling impedance control for this axis",iAx);
-        m_Jinv(iAx)=0.0;
-      }
-      else
-        m_Jinv(iAx)=1.0/inertia.at(iAx);
-      
-      if (damping.at(iAx)<=0)
-      {
-        ROS_INFO("damping value of Joint %d is not positive, setting equalt to 10/inertia",iAx);
-        m_damping(iAx)         = 10.0 * m_Jinv(iAx);
-        m_damping_dafault(iAx) = 10.0 * m_Jinv(iAx);
-      }
-      else
-      {
-        m_damping(iAx)          = damping.at(iAx);
-        m_damping_dafault(iAx)  = damping.at(iAx);
-      }
-      
-      
-      if (stiffness.at(iAx)<0)
-      {
-        ROS_INFO("maximum fitness value of Joint %d is negative, setting equal to 0",iAx);
-        m_k(iAx)=0.0;
-        m_k_default(iAx)=0.0;
-      }
-      else
-      {
-        m_k(iAx)=stiffness.at(iAx);
-        m_k_default(iAx)=stiffness.at(iAx);
-      }
-
       if (torque_deadband.at(iAx)<=0)
       {
         ROS_INFO("torque_deadband value of Joint %d is not positive, disabling impedance control for this axis",iAx);
-        m_torque_deadband(iAx)=0.0;
+        m_effort_db (iAx)=0.0;
       }
       else
-        m_torque_deadband(iAx)=torque_deadband.at(iAx);
+        m_effort_db (iAx)=torque_deadband.at(iAx);
     }
 
-    m_wrench_deadband = Eigen::Matrix<double,6,1>( wrench_deadband.data() );
+    m_wrench_db = Eigen::Matrix<double,6,1>( wrench_deadband.data() );
     
   }
   catch(const  std::exception& e)
@@ -249,13 +182,12 @@ bool JointImpedanceController::doInit( )
 bool JointImpedanceController::doStarting(const ros::Time& time)
 {
   CNR_TRACE_START(*m_logger);
-  m_x = q();
-  m_Dx = qd();
 
-  m_x0      = m_x;
-  m_Dx0     = m_Dx;
-  m_jtarget  = m_x;
-  m_jDtarget = m_Dx;
+  cnr_impedance_regulator::ImpedanceRegulatorStatePtr st0(new cnr_impedance_regulator::ImpedanceRegulatorState(m_kin));
+  st0->setRobotState(*m_state);
+  st0->setModelState(*m_state);
+  
+  m_regulator.starting(st0, time);
 
   CNR_RETURN_TRUE(*m_logger);
 }
@@ -273,20 +205,21 @@ bool JointImpedanceController::doUpdate(const ros::Time& time, const ros::Durati
 
   if (m_is_configured)
   {
-    m_DDx = m_Jinv.cwiseProduct( m_k.cwiseProduct(m_jtarget-m_x) + m_damping.cwiseProduct(m_jDtarget - m_Dx) + m_torque );
-    m_x  += m_Dx  * period.toSec() + m_DDx*std::pow(period.toSec(),2.0)*0.5;
-    m_Dx += m_DDx * period.toSec();
-    ROS_DEBUG_STREAM_THROTTLE(2, "x      : " << m_x.transpose() );
-    ROS_DEBUG_STREAM_THROTTLE(2, "Dx     : " << m_Dx.transpose() );
-    ROS_DEBUG_STREAM_THROTTLE(2, "Torque : " << m_torque.transpose() );
+    cnr_impedance_regulator::ImpedanceRegulatorInputPtr input;
+    cnr_impedance_regulator::ImpedanceRegulatorOutputPtr output;
+    input->set_x( m_q_target );
+    input->set_xd( m_qd_target );
+    input->set_effort( m_effort );
+    
+    m_regulator.update(nullptr, input, output );
 
-    setCommandPosition( m_x );
-    setCommandVelocity( m_Dx );
+    setCommandPosition( output->get_x() );
+    setCommandVelocity( output->get_xd() );
   }
   else
   {
-    setCommandPosition( m_x0 );
-    setCommandVelocity( m_Dx * 0.0 );
+    setCommandPosition(m_regulator.getState0()->getRobotState()->q());
+    setCommandVelocity(m_regulator.getState0()->getRobotState()->qd()*0.0);
   }
   CNR_RETURN_TRUE(*m_logger);
 }
@@ -298,21 +231,20 @@ void JointImpedanceController::setTargetCallback(const boost::shared_ptr<sensor_
     sensor_msgs::JointState tmp_msg = *msg;
     if (!name_sorting::permutationName(jointNames(),tmp_msg.name,tmp_msg.position,tmp_msg.velocity,tmp_msg.effort, "JOINT IMP CTRL - SET TARGET CALLBACK"))
     {
-      ROS_WARN("[ %s ] Target Callback - Error in the joint names",  getControllerNh().getNamespace().c_str());
+      CNR_WARN(m_logger, "Target Callback - Error in the joint names");
       m_target_ok = false;
       return;
     }
-    ROS_DEBUG_ONCE( "JOINT TARGET TARGET RECEIVED!");
     m_target_ok = true;
     for (unsigned int iAx=0;iAx<nAx();iAx++)
     {
-      m_jtarget (iAx)=tmp_msg.position.at(iAx);
-      m_jDtarget(iAx)=tmp_msg.velocity.at(iAx);
+      m_q_target (iAx)=tmp_msg.position.at(iAx);
+      m_qd_target(iAx)=tmp_msg.velocity.at(iAx);
     }
   }
   catch(...)
   {
-    ROS_WARN("[ %s ] something wrong in Target Callback",  getControllerNh().getNamespace().c_str());
+    CNR_WARN(m_logger, "something wrong in Target Callback");
     m_target_ok=false;
   }
 }
@@ -333,14 +265,14 @@ void JointImpedanceController::setEffortCallback(const boost::shared_ptr<sensor_
     m_effort_ok=true;
     for (unsigned int iAx=0;iAx<nAx();iAx++)
     {
-      m_torque(iAx) = ( tmp_msg.effort.at(iAx) >  m_torque_deadband(iAx) )  ?  tmp_msg.effort.at(iAx) - m_torque_deadband(iAx)
-                    : ( tmp_msg.effort.at(iAx) < -m_torque_deadband(iAx) )  ?  tmp_msg.effort.at(iAx) + m_torque_deadband(iAx)
+      m_effort(iAx) = (tmp_msg.effort.at(iAx) >  m_effort_db (iAx))  ?  tmp_msg.effort.at(iAx) - m_effort_db (iAx)
+                    : (tmp_msg.effort.at(iAx) < -m_effort_db (iAx))  ?  tmp_msg.effort.at(iAx) + m_effort_db (iAx)
                     : 0.0;
     }
   }
   catch(...)
   {
-    ROS_WARN("[ %s ] something wrong in Effort Callback",  getControllerNh().getNamespace().c_str());
+    CNR_WARN(m_logger, "something wrong in Effort Callback");
     m_effort_ok=false;
   }
 }
@@ -354,34 +286,43 @@ void JointImpedanceController::setWrenchCallback(const boost::shared_ptr<geometr
     ll = __LINE__;
     if (msg->header.frame_id.compare(m_sensor_link))
     {
-      ROS_INFO("[ %s ] sensor frame is %s, it should be %s", getControllerNamespace().c_str(),msg->header.frame_id.c_str(),m_sensor_link.c_str());
+      CNR_INFO(m_logger, "sensor frame is "<< msg->header.frame_id <<" it should be " << m_sensor_link);
       return;
     }
 
 
     Eigen::Vector6d wrench_of_sensor_in_sensor;
-    ll = __LINE__;
-    wrench_of_sensor_in_sensor(0) = ( msg->wrench.force.x  >  m_wrench_deadband(0) )  ?  msg->wrench.force.x  - m_wrench_deadband(0)
-                                  : ( msg->wrench.force.x  < -m_wrench_deadband(0) )  ?  msg->wrench.force.x  + m_wrench_deadband(0)
+    wrench_of_sensor_in_sensor(0) = (msg->wrench.force.x > m_wrench_db(0)) ? msg->wrench.force.x -m_wrench_db(0)
+                                  : (msg->wrench.force.x <-m_wrench_db(0)) ? msg->wrench.force.x +m_wrench_db(0)
+                                  : 0.0;                  
+    wrench_of_sensor_in_sensor(1) = (msg->wrench.force.y > m_wrench_db(1)) ? msg->wrench.force.y -m_wrench_db(1) 
+                                  : (msg->wrench.force.y <-m_wrench_db(1)) ? msg->wrench.force.y +m_wrench_db(1) 
+                                  : 0.0;                  
+    wrench_of_sensor_in_sensor(2) = (msg->wrench.force.z > m_wrench_db(2)) ? msg->wrench.force.z -m_wrench_db(2) 
+                                  : (msg->wrench.force.z <-m_wrench_db(2)) ? msg->wrench.force.z +m_wrench_db(2) 
                                   : 0.0;
-    wrench_of_sensor_in_sensor(1) = ( msg->wrench.force.y  >  m_wrench_deadband(1) )  ?  msg->wrench.force.y  - m_wrench_deadband(1) : ( msg->wrench.force.y  < -m_wrench_deadband(1) )  ?  msg->wrench.force.y  + m_wrench_deadband(1) : 0.0;
-    wrench_of_sensor_in_sensor(2) = ( msg->wrench.force.z  >  m_wrench_deadband(2) )  ?  msg->wrench.force.z  - m_wrench_deadband(2) : ( msg->wrench.force.z  < -m_wrench_deadband(2) )  ?  msg->wrench.force.z  + m_wrench_deadband(2) : 0.0;
-    wrench_of_sensor_in_sensor(3) = ( msg->wrench.torque.x >  m_wrench_deadband(3) )  ?  msg->wrench.torque.x - m_wrench_deadband(3) : ( msg->wrench.torque.x < -m_wrench_deadband(3) )  ?  msg->wrench.torque.x + m_wrench_deadband(3) : 0.0;
-    wrench_of_sensor_in_sensor(4) = ( msg->wrench.torque.y >  m_wrench_deadband(4) )  ?  msg->wrench.torque.y - m_wrench_deadband(4) : ( msg->wrench.torque.y < -m_wrench_deadband(4) )  ?  msg->wrench.torque.y + m_wrench_deadband(4) : 0.0;
-    wrench_of_sensor_in_sensor(5) = ( msg->wrench.torque.z >  m_wrench_deadband(5) )  ?  msg->wrench.torque.z - m_wrench_deadband(5) : ( msg->wrench.torque.z < -m_wrench_deadband(5) )  ?  msg->wrench.torque.z + m_wrench_deadband(5) : 0.0;
+    wrench_of_sensor_in_sensor(3) = (msg->wrench.torque.x> m_wrench_db(3)) ? msg->wrench.torque.x-m_wrench_db(3)
+                                  : (msg->wrench.torque.x<-m_wrench_db(3)) ? msg->wrench.torque.x+m_wrench_db(3)
+                                  : 0.0;
+    wrench_of_sensor_in_sensor(4) = (msg->wrench.torque.y> m_wrench_db(4)) ? msg->wrench.torque.y-m_wrench_db(4) 
+                                  : (msg->wrench.torque.y<-m_wrench_db(4)) ? msg->wrench.torque.y+m_wrench_db(4) 
+                                  : 0.0;
+    wrench_of_sensor_in_sensor(5) = (msg->wrench.torque.z> m_wrench_db(5)) ? msg->wrench.torque.z-m_wrench_db(5) 
+                                  : (msg->wrench.torque.z<-m_wrench_db(5)) ? msg->wrench.torque.z+m_wrench_db(5) 
+                                  : 0.0;
 
-    ll = __LINE__; Eigen::Affine3d T_base_tool              = m_kin->getChain()->getTransformation(m_x);
-    ll = __LINE__; Eigen::MatrixXd jacobian_of_tool_in_base = m_kin->getChain()->getJacobian(m_x);
-    ll = __LINE__; Eigen::Affine3d T_base_sensor            = m_chain_bs->getTransformation(m_x);
-    ll = __LINE__; Eigen::Affine3d T_tool_sensor            = T_base_tool.inverse()*T_base_sensor;
-    ll = __LINE__; Eigen::Vector6d wrench_of_tool_in_tool   = rosdyn::spatialDualTranformation(wrench_of_sensor_in_sensor,T_tool_sensor);
-    ll = __LINE__; Eigen::Vector6d wrench_of_tool_in_base   = rosdyn::spatialRotation(wrench_of_tool_in_tool,T_base_tool.linear());
-    ll = __LINE__; m_torque                                 = jacobian_of_tool_in_base.transpose()*wrench_of_tool_in_base;
-    ll = __LINE__; m_effort_ok = true;
+    Eigen::Affine3d T_base_tool              = m_kin->getChain()->getTransformation(this->q());
+    Eigen::MatrixXd jacobian_of_tool_in_base = m_kin->getChain()->getJacobian(this->q());
+    Eigen::Affine3d T_base_sensor            = m_chain_bs->getTransformation(this->q());
+    Eigen::Affine3d T_tool_sensor            = T_base_tool.inverse() * T_base_sensor;
+    Eigen::Vector6d wrench_of_tool_in_tool   = rosdyn::spatialDualTranformation(wrench_of_sensor_in_sensor,T_tool_sensor);
+    Eigen::Vector6d wrench_of_tool_in_base   = rosdyn::spatialRotation(wrench_of_tool_in_tool,T_base_tool.linear());
+    m_effort                                 = jacobian_of_tool_in_base.transpose()*wrench_of_tool_in_base;
+    m_effort_ok = true;
   }
   catch(...)
   {
-    ROS_WARN("[ %s ] something wrong in wrench callback",  getControllerNh().getNamespace().c_str());
+    CNR_WARN(m_logger, "something wrong in wrench callback");
     m_effort_ok=false;
   }
 }

@@ -1,7 +1,10 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.1)
 project(cnr_homing_controller)
 
-add_compile_options(-std=c++11)
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(catkin REQUIRED COMPONENTS
   cnr_controller_interface
@@ -11,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   roscpp
 )
+
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES cnr_homing_controller

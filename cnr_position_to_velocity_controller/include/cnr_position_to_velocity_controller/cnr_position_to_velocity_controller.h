@@ -13,9 +13,9 @@ namespace cnr
 namespace control
 {
 
-template<class T>
+template<class H, class T>
 class PositionToVelocityControllerBase:
-    public cnr_controller_interface::JointCommandController<T>
+    public cnr_controller_interface::JointCommandController<H, T>
 {
 public:
   virtual bool doInit()
@@ -146,11 +146,13 @@ protected:
   }
 };
 
-typedef PositionToVelocityControllerBase<hardware_interface::VelocityJointInterface> PositionToVelocityController;
+typedef PositionToVelocityControllerBase<hardware_interface::JointHandle, 
+                                         hardware_interface::VelocityJointInterface> PositionToVelocityController;
 
 
 class PositionToVelocityControllerFfw :
-    public PositionToVelocityControllerBase<hardware_interface::PosVelEffJointInterface>
+    public PositionToVelocityControllerBase<hardware_interface::PosVelEffJointHandle, 
+                                            hardware_interface::PosVelEffJointInterface>
 {
 public:
   bool doInit();

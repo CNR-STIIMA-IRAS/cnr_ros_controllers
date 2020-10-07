@@ -22,7 +22,8 @@ namespace control
 {
 
 class VelocityToTorqueController :
-    public cnr_controller_interface::JointCommandController<hardware_interface::EffortJointInterface>
+    public cnr_controller_interface::JointCommandController<hardware_interface::JointHandle, 
+                                                            hardware_interface::EffortJointInterface>
 {
 public:
   bool doInit( );

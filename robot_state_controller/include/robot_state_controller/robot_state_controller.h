@@ -15,7 +15,8 @@ namespace robot_state_controller
 {
 
   class RobotStateController:
-      public cnr_controller_interface::JointController<hardware_interface::JointStateInterface>
+      public cnr_controller_interface::JointController<hardware_interface::JointStateHandle, 
+                                                       hardware_interface::JointStateInterface>
   {
   public:
     virtual bool doInit( );

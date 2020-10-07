@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 
 find_package(catkin REQUIRED COMPONENTS
+  controller_interface
   cnr_controller_interface
   cnr_hardware_interface
   eigen_state_space_systems
@@ -23,7 +24,8 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES cnr_position_to_velocity_controller
-  CATKIN_DEPENDS cnr_controller_interface controller_manager cnr_hardware_interface eigen_state_space_systems subscription_notifier   pluginlib roscpp sensor_msgs std_msgs  urdf
+  CATKIN_DEPENDS cnr_controller_interface controller_manager cnr_hardware_interface eigen_state_space_systems 
+                 subscription_notifier pluginlib roscpp sensor_msgs std_msgs  urdf
   DEPENDS
 )
 

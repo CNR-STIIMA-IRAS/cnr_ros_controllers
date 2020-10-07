@@ -27,7 +27,8 @@ namespace control
  */
 
 class JointTeleopController:
-    public cnr_controller_interface::JointCommandController<hardware_interface::PosVelEffJointInterface>
+    public cnr_controller_interface::JointCommandController<hardware_interface::PosVelEffJointHandle, 
+                                                            hardware_interface::PosVelEffJointInterface>
 {
 
 public:

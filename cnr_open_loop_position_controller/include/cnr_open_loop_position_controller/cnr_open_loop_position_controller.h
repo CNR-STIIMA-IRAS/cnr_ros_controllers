@@ -22,7 +22,8 @@ namespace control
 
 
 class OpenLoopPositionController :
-    public cnr_controller_interface::JointCommandController<hardware_interface::PositionJointInterface>
+    public cnr_controller_interface::JointCommandController<hardware_interface::JointHandle, 
+                                                            hardware_interface::PositionJointInterface>
 {
 public:
   bool doInit();

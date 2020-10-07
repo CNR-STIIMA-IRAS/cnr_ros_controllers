@@ -13,7 +13,8 @@ namespace cnr
 namespace control
 {
 
-class JointStatePublisher: public cnr_controller_interface::JointController<hardware_interface::JointStateInterface>
+class JointStatePublisher: public cnr_controller_interface::JointController<hardware_interface::JointStateHandle, 
+                                                                           hardware_interface::JointStateInterface>
 {
 public:
 
