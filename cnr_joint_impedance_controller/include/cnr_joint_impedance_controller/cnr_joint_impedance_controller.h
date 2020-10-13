@@ -30,7 +30,8 @@ protected:
 
   bool m_is_configured;
   
-  
+  cnr_impedance_regulator::ImpedanceRegulatorReferencePtr m_regulator_input;
+  cnr_impedance_regulator::ImpedanceRegulatorControlCommandPtr m_regulator_output;
   cnr_impedance_regulator::ImpedanceRegulator m_regulator;
   
   bool m_target_ok;

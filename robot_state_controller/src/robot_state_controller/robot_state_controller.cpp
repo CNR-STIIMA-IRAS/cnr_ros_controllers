@@ -13,7 +13,7 @@ bool RobotStateController::doInit( )
     CNR_RETURN_FALSE(*m_logger, "Param 'frames' not defined");
   }
 
-  std::vector<std::string> link_names=m_kin->linkNames();
+  std::vector<std::string> link_names=m_rkin->linkNames();
 
   for (unsigned int idx=0;idx<m_frames.size();idx++)
   {
@@ -52,8 +52,8 @@ bool RobotStateController::doUpdate ( const ros::Time& time, const ros::Duration
   size_t ll = __LINE__;
   try
   {
-    std::vector<Eigen::Affine3d,Eigen::aligned_allocator<Eigen::Affine3d>> T_base_links=m_kin->getChain()->getTransformations(q());
-    std::vector<Eigen::Vector6d,Eigen::aligned_allocator<Eigen::Vector6d>> twists=m_kin->getChain()->getTwist(q(),qd());
+    std::vector<Eigen::Affine3d,Eigen::aligned_allocator<Eigen::Affine3d>> T_base_links=m_rkin->getChain()->getTransformations(q());
+    std::vector<Eigen::Vector6d,Eigen::aligned_allocator<Eigen::Vector6d>> twists=m_rkin->getChain()->getTwist(q(),qd());
 
     for (unsigned int idx=0;idx<m_frames.size();idx++)
     {
@@ -76,7 +76,7 @@ bool RobotStateController::doUpdate ( const ros::Time& time, const ros::Duration
 
       ll = __LINE__;
       msg->header.stamp=ros::Time::now();
-      msg->header.frame_id=m_kin->baseLink();
+      msg->header.frame_id=m_rkin->baseLink();
       ll = __LINE__;
       if(!publish(m_base_pub_idx.at(idx), msg))
       {

@@ -96,7 +96,7 @@ bool JointTeleopController::doUpdate(const ros::Time& time, const ros::Duration&
   {
     vel_sp = m_vel_sp * m_dump.dumpFactor();
     pos_sp = this->q() + vel_sp * period.toSec();
-    if(this->m_kin->saturatePosition(pos_sp, &report))
+    if(this->m_rkin->saturatePosition(pos_sp, &report))
     {
       CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
     }
@@ -138,14 +138,14 @@ void JointTeleopController::callback(const sensor_msgs::JointStateConstPtr& msg)
         }
       }
       
-      if(this->m_kin->saturateSpeed(m_vel_sp, this->qd(), this->q(), this->m_sampling_period, 1.0, true, &report ))
+      if(this->m_rkin->saturateSpeed(m_vel_sp, this->qd(), this->q(), this->m_sampling_period, 1.0, true, &report ))
       {
          CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
       }
       
       if(m_has_pos_sp)
       {
-        if(this->m_kin->saturatePosition(m_pos_sp, &report))
+        if(this->m_rkin->saturatePosition(m_pos_sp, &report))
         {
           CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
         }

@@ -73,7 +73,7 @@ bool JointImpedanceController::doInit( )
     return false;\
   }
 {
-  CNR_TRACE_START(*m_logger);
+  CNR_TRACE_START(m_logger);
 
   try
   { 
@@ -103,12 +103,12 @@ bool JointImpedanceController::doInit( )
       GET_AND_RETURN( getControllerNh(), "sensor_frame"           , m_sensor_link          );
       GET_AND_RETURN( getControllerNh(), "external_wrench_topic"  , external_wrench_topic   );
 
-      m_chain_bs = m_kin->getChain(m_kin->baseLink(),m_sensor_link);
+      m_chain_bs = m_rkin->getChain(m_rkin->baseLink(),m_sensor_link);
       
       add_subscriber<geometry_msgs::WrenchStamped>(external_wrench_topic,1,
               boost::bind(&cnr::control::JointImpedanceController::setWrenchCallback,this, _1));
 
-      CNR_INFO(m_logger, "[ " << getControllerNamespace() << " ] DOF Chain from Baset to Tool  : " << m_kin->getChain()->getActiveJointsNumber() );
+      CNR_INFO(m_logger, "[ " << getControllerNamespace() << " ] DOF Chain from Baset to Tool  : " << m_rkin->getChain()->getActiveJointsNumber() );
       CNR_INFO(m_logger, "[ " << getControllerNamespace() << " ] DOF Chain from Baset to Sensor: " << m_chain_bs->getActiveJointsNumber() );
     }
     else
@@ -124,11 +124,11 @@ bool JointImpedanceController::doInit( )
     m_q_target.resize(nAx());
     m_qd_target.resize(nAx());
     
-    cnr_impedance_regulator::ImpedanceRegulatorOptionsPtr opts(
-                                        new cnr_impedance_regulator::ImpedanceRegulatorOptions(nAx()));
+    cnr_impedance_regulator::ImpedanceRegulatorParamsPtr opts(
+                                        new cnr_impedance_regulator::ImpedanceRegulatorParams(nAx()));
     opts->logger = m_logger;
     opts->period = ros::Duration(m_sampling_period);
-    opts->robot_kin = m_kin;
+    opts->robot_kin = m_rkin;
     if(!m_regulator.initialize(getRootNh(),getControllerNh(),opts))
     {
       CNR_RETURN_FALSE(m_logger, "Error in initialization of the impedance regulator");
@@ -181,15 +181,17 @@ bool JointImpedanceController::doInit( )
 
 bool JointImpedanceController::doStarting(const ros::Time& time)
 {
-  CNR_TRACE_START(*m_logger);
+  CNR_TRACE_START(m_logger);
 
-  cnr_impedance_regulator::ImpedanceRegulatorStatePtr st0(new cnr_impedance_regulator::ImpedanceRegulatorState(m_kin));
-  st0->setRobotState(*m_state);
-  st0->setModelState(*m_state);
+  cnr_impedance_regulator::ImpedanceRegulatorStatePtr st0(new cnr_impedance_regulator::ImpedanceRegulatorState(m_rkin));
+  st0->setRobotState(*m_rstate);
+  st0->setModelState(*m_rstate);
   
-  m_regulator.starting(st0, time);
+  m_regulator.starting(st0, time); 
+  m_regulator_input.reset(new cnr_impedance_regulator::ImpedanceRegulatorReference(nAx()));
+  m_regulator_output.reset(new cnr_impedance_regulator::ImpedanceRegulatorControlCommand(nAx()));
 
-  CNR_RETURN_TRUE(*m_logger);
+  CNR_RETURN_TRUE(m_logger);
 }
 
 bool JointImpedanceController::doUpdate(const ros::Time& time, const ros::Duration& period)
@@ -205,23 +207,21 @@ bool JointImpedanceController::doUpdate(const ros::Time& time, const ros::Durati
 
   if (m_is_configured)
   {
-    cnr_impedance_regulator::ImpedanceRegulatorInputPtr input;
-    cnr_impedance_regulator::ImpedanceRegulatorOutputPtr output;
-    input->set_x( m_q_target );
-    input->set_xd( m_qd_target );
-    input->set_effort( m_effort );
+    m_regulator_input->set_x( m_q_target );
+    m_regulator_input->set_xd( m_qd_target );
+    m_regulator_input->set_effort( m_effort );
     
-    m_regulator.update(nullptr, input, output );
+    m_regulator.update(m_regulator_input, m_regulator_output);
 
-    setCommandPosition( output->get_x() );
-    setCommandVelocity( output->get_xd() );
+    setCommandPosition( m_regulator_output->get_x() );
+    setCommandVelocity( m_regulator_output->get_xd() );
   }
   else
   {
-    setCommandPosition(m_regulator.getState0()->getRobotState()->q());
-    setCommandVelocity(m_regulator.getState0()->getRobotState()->qd()*0.0);
+    setCommandPosition(m_regulator.x0()->getRobotState()->q());
+    setCommandVelocity(m_regulator.x0()->getRobotState()->qd()*0.0);
   }
-  CNR_RETURN_TRUE(*m_logger);
+  CNR_RETURN_TRUE(m_logger);
 }
 
 void JointImpedanceController::setTargetCallback(const boost::shared_ptr<sensor_msgs::JointState const>& msg)
@@ -311,8 +311,8 @@ void JointImpedanceController::setWrenchCallback(const boost::shared_ptr<geometr
                                   : (msg->wrench.torque.z<-m_wrench_db(5)) ? msg->wrench.torque.z+m_wrench_db(5) 
                                   : 0.0;
 
-    Eigen::Affine3d T_base_tool              = m_kin->getChain()->getTransformation(this->q());
-    Eigen::MatrixXd jacobian_of_tool_in_base = m_kin->getChain()->getJacobian(this->q());
+    Eigen::Affine3d T_base_tool              = m_rkin->getChain()->getTransformation(this->q());
+    Eigen::MatrixXd jacobian_of_tool_in_base = m_rkin->getChain()->getJacobian(this->q());
     Eigen::Affine3d T_base_sensor            = m_chain_bs->getTransformation(this->q());
     Eigen::Affine3d T_tool_sensor            = T_base_tool.inverse() * T_base_sensor;
     Eigen::Vector6d wrench_of_tool_in_tool   = rosdyn::spatialDualTranformation(wrench_of_sensor_in_sensor,T_tool_sensor);
