@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <ros/time.h>
-#include <cnr_controller_interface/internal/utils.h>
+#include <cnr_controller_interface/utils/utils.h>
 #include <cnr_open_loop_position_controller/cnr_open_loop_position_controller.h>
 #include <pluginlib/class_list_macros.h>
 
