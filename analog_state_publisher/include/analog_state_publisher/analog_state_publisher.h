@@ -15,9 +15,7 @@ namespace control
   {
   public:
     virtual bool doInit( );
-    virtual bool doStarting(const ros::Time& time);
     virtual bool doUpdate(const ros::Time& time, const ros::Duration& period);
-    virtual bool doStopping(const ros::Time& time);
     
   protected:
     std::vector<std::string> m_analog_names;
