@@ -48,20 +48,18 @@ bool JointStatePublisher::doStarting(const ros::Time& time)
 
 bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
-  CNR_TRACE_START_THROTTLE(*m_logger, 10.0);
+  CNR_TRACE_START_THROTTLE_DEFAULT(*m_logger,);
   try
   {
-    sensor_msgs::JointStatePtr msg(new sensor_msgs::JointState());
-
-    for (std::size_t idx = 0; idx<nAx(); idx++)
+    for(std::size_t iAx = 0; iAx<nAx(); iAx++)
     {
-      msg->name    .push_back(jointName(idx));
-      msg->position.push_back(q(idx));
-      msg->velocity.push_back(qd(idx));
-      msg->effort  .push_back(effort(idx));
+      m_msg->name    .at(iAx) = jointName(iAx);
+      m_msg->position.at(iAx) = q(iAx);
+      m_msg->velocity.at(iAx) = qd(iAx);
+      m_msg->effort  .at(iAx) = effort(iAx);
     }
-    msg->header.stamp = ros::Time::now();
-    if(!publish(m_pub_handle, *msg))
+    m_msg->header.stamp = ros::Time::now();
+    if(!publish(m_pub_handle, *m_msg))
     {
       CNR_RETURN_FALSE(this->logger());
     }
@@ -70,7 +68,7 @@ bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duratio
   {
     CNR_RETURN_FALSE(*m_logger, "Exception caught" + std::string(e.what()));
   }
-  CNR_RETURN_TRUE_THROTTLE(*m_logger, 10.0);
+  CNR_RETURN_TRUE_THROTTLE_DEFAULT(*m_logger);
 }
 
 bool JointStatePublisher::doStopping(const ros::Time& time)
