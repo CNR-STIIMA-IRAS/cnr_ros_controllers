@@ -25,7 +25,6 @@ JointTeleopController::JointTeleopController()
  */
 bool JointTeleopController::doInit()
 {
-
   //INIT PUB/SUB
   std::string setpoint_topic_name;
   setpoint_topic_name = getControllerNamespace() + "/target_joint_teleop";
@@ -44,7 +43,8 @@ bool JointTeleopController::doInit()
   m_pos_sp = this->q();
 
   m_has_pos_sp = false;
-  m_scaling_factor = 0 * this->qd();
+  m_scaling_factor.resize(this->nAx());
+  m_scaling_factor.setZero();
 
   CNR_RETURN_TRUE(*m_logger);
 }
@@ -81,6 +81,7 @@ bool JointTeleopController::doStopping(const ros::Time& time)
  */
 bool JointTeleopController::doUpdate(const ros::Time& time, const ros::Duration& period)
 {
+  CNR_TRACE_START_THROTTLE_DEFAULT(m_logger);
   std::stringstream report;
   std::lock_guard<std::mutex> lock(m_mtx);
   
@@ -94,18 +95,18 @@ bool JointTeleopController::doUpdate(const ros::Time& time, const ros::Duration&
   }
   else
   {
-    vel_sp = m_vel_sp * m_dump.dumpFactor();
-    pos_sp = this->q() + vel_sp * period.toSec();
+    vel_sp   = m_vel_sp * m_dump.dumpFactor();
+    m_pos_sp = m_pos_sp + vel_sp * period.toSec();
+    pos_sp   = m_pos_sp;
     if(this->m_rkin->saturatePosition(pos_sp, &report))
     {
       CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
     }
   }
-
   this->setCommandPosition( pos_sp );
   this->setCommandVelocity( vel_sp );
 
-  return true;
+  CNR_RETURN_TRUE_THROTTLE_DEFAULT(m_logger);
 }
 
 /**

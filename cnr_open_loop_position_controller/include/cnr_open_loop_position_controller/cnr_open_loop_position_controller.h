@@ -31,7 +31,6 @@ public:
   bool doStarting(const ros::Time& time);
   bool doStopping(const ros::Time& time);
 
-
 protected:
 
   std::string m_setpoint_topic_name;

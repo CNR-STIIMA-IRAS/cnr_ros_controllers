@@ -2,7 +2,7 @@
 #define cnr_joint_teleop_controller__20188101642
 
 #include <cmath>
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 #include <ros/ros.h>
 
 #include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
