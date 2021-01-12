@@ -11,12 +11,14 @@ namespace cnr
 namespace control
 {
 
-class JointStatePublisher: public cnr_controller_interface::JointController<hardware_interface::JointStateHandle, 
-                                                                           hardware_interface::JointStateInterface>
+template<int N,int MaxN=N>
+class JointStatePublisherN:
+  public cnr::control::JointController<N,MaxN,
+      hardware_interface::JointStateHandle, hardware_interface::JointStateInterface>
 {
 public:
 
-  ~JointStatePublisher();
+  ~JointStatePublisherN();
 
 protected:
   virtual bool doInit();
@@ -28,7 +30,17 @@ protected:
   sensor_msgs::JointStatePtr  m_msg;
 
 };
+
+
+using JointStatePublisher  = JointStatePublisherN<-1, cnr::control::max_num_axes>;
+using JointStatePublisher1 = JointStatePublisherN<1>;
+using JointStatePublisher3 = JointStatePublisherN<3>;
+using JointStatePublisher6 = JointStatePublisherN<6>;
+using JointStatePublisher7 = JointStatePublisherN<7>;
+
 }  // namespace control
 }  // namespace ros
+
+#include <cnr_joint_state_publisher/internal/cnr_joint_state_publisher_impl.h>
 
 #endif  // CNR_JOINT_STATE_PUBLISHER__NR_JOINT_STATE_PUBLISHER__H

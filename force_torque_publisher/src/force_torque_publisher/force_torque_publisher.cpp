@@ -7,25 +7,25 @@ namespace ros
 namespace control
 {
 
-bool ForceTorquePublisher::doInit ( )
+bool ForceTorquePublisher::doInit()
 {
-  CNR_TRACE_START(*m_logger);
+  CNR_TRACE_START(m_logger);
   if (!getControllerNh().getParam("name",m_name))
   {
-    CNR_RETURN_FALSE(*m_logger, getControllerNamespace() + "/name is not in the rosparam server. Abort. " );
+    CNR_RETURN_FALSE(m_logger, getControllerNamespace() + "/name is not in the rosparam server. Abort. " );
     return false;
   }
   std::string published_topic;
   if (!getControllerNh().getParam("published_topic",published_topic))
   {
-    CNR_RETURN_FALSE(*m_logger, getControllerNamespace() + "/published_topic is not in the rosparam server. Abort. " );
+    CNR_RETURN_FALSE(m_logger, getControllerNamespace() + "/published_topic is not in the rosparam server. Abort. " );
   }
 
   m_w_sub_handle = add_publisher<geometry_msgs::WrenchStamped>(published_topic,1);
-  CNR_RETURN_TRUE(*m_logger);
+  CNR_RETURN_TRUE(m_logger);
 }
 
-bool ForceTorquePublisher::doUpdate ( const ros::Time& time, const ros::Duration& period )
+bool ForceTorquePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   geometry_msgs::WrenchStampedPtr msg(new geometry_msgs::WrenchStamped());
 

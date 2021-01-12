@@ -12,7 +12,7 @@ namespace ros
 namespace control
 {
 
-class ForceTorquePublisher: public cnr_controller_interface::Controller<hardware_interface::ForceTorqueStateInterface>
+class ForceTorquePublisher: public cnr::control::Controller<hardware_interface::ForceTorqueStateInterface>
 {
 public:
   virtual bool doInit( );

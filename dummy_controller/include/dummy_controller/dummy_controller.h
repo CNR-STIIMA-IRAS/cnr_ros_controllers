@@ -10,7 +10,7 @@ namespace cnr
 namespace control
 {
   
-class DummyController: public cnr_controller_interface::Controller<hardware_interface::JointStateInterface>
+class DummyController: public cnr::control::Controller<hardware_interface::JointStateInterface>
 {
 public:
   virtual bool doInit();

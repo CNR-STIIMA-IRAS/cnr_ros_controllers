@@ -34,11 +34,27 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_library(${PROJECT_NAME} src/${PROJECT_NAME}/cnr_position_to_velocity_math.cpp src/${PROJECT_NAME}/cnr_position_to_velocity_controller.cpp)
+add_library(${PROJECT_NAME} src/${PROJECT_NAME}/cnr_position_to_velocity_controller.cpp)
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} Eigen3::Eigen)
 target_compile_options(${PROJECT_NAME} PUBLIC -Wall $<$<CONFIG:RELEASE>:-Ofast>)
 #target_compile_definitions(${PROJECT_NAME} PUBLIC -DEIGEN_DONT_VECTORIZE=1)
+
+if(${CMAKE_VERSION} VERSION_GREATER  "3.16.0") 
+  target_precompile_headers(${PROJECT_NAME} PUBLIC <hardware_interface/joint_command_interface.h>
+                                                   <hardware_interface/posvelacc_command_interface.h>
+                                                   <cnr_hardware_interface/posveleff_command_interface.h>
+                                                   <thread>
+                                                   <mutex>
+                                                   <memory>
+                                                   <Eigen/Core>
+                                                   <ros/node_handle.h>
+                                                   <pluginlib/class_list_macros.h>
+                                                   <eigen_state_space_systems/eigen_state_space_systems.h>
+                                                   <eigen_state_space_systems/eigen_controllers.h>
+                                                   <sensor_msgs/JointState.h>)
+endif()
+
 
 install(DIRECTORY include/${PROJECT_NAME}/
    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}

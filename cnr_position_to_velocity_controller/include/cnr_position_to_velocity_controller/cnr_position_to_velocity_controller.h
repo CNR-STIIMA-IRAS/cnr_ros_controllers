@@ -8,151 +8,67 @@
 #include <cnr_hardware_interface/posveleff_command_interface.h>
 #include <cnr_position_to_velocity_controller/cnr_position_to_velocity_math.h>
 
+//! alias
+namespace ect = eigen_control_toolbox;
+
 namespace cnr
 {
 namespace control
 {
 
-template<class H, class T>
-class PositionToVelocityControllerBase:
-    public cnr_controller_interface::JointCommandController<H, T>
+/**
+ * @brief The template is designed to integrate a state-based simple controller
+ * The template depends of the number of the axes, in order to fix the dimension of the object,
+ * without the necessity of dynamic heap allocation in runtime
+ * The setpoint(target) is super-imposed by a topic, i.e., the object subcribes a topic of type JoinState msg
+ * The name of the topic is specified by the parameter:
+ * /<robot_hardware_namespace>/<controller_namespace>/setpoint_topic_name
+ */
+template<int N,int MaxN, class H, class T>
+class PositionToVelocityControllerBaseN:
+    public cnr::control::JointCommandController<N,MaxN,H,T>
 {
 public:
-  virtual bool doInit()
-  {
-    CNR_TRACE_START(this->logger());
-    if(this->nAx()>1)
-    {
-      CNR_RETURN_FALSE(this->logger(), "The controller is designed to control only one joint.");
-    }
-
-    std::string setpoint_topic_name;
-    //std::string feedforward_topic_name;
-
-    if(!this->getControllerNh().getParam("setpoint_topic_name", setpoint_topic_name))
-    {
-      CNR_ERROR(this->logger(), this->getControllerNamespace() + "/'setpoint_topic_name' does not exist");
-      CNR_ERROR(this->logger(), "ERROR DURING INITIALIZATION CONTROLLER "<< this->getControllerNamespace());
-      CNR_RETURN_FALSE(this->logger());
-    }
-
-    this->template add_subscriber<sensor_msgs::JointState>(setpoint_topic_name, 1,
-                                          boost::bind(&PositionToVelocityControllerBase::callback,this,_1));
-
-    m_target_pos = this->q(0);
-    m_target_vel = 0;
-    m_target_eff = 0;
-
-    if(!ctrl.init(this->getRootNh(), this->getControllerNh()))
-    {
-      CNR_RETURN_FALSE(this->logger(), "Math ctrl of the PositionToVelocityController failed in initialization.");
-    }
-    m_configured = false;
-    this->setPriority(this->QD_PRIORITY);
-    CNR_RETURN_TRUE(this->logger());
-  }
-
-  virtual bool doStarting(const ros::Time& time)
-  {
-    CNR_TRACE_START(this->logger());
-    m_target_pos = this->q(0);
-    m_target_vel = 0;
-    m_target_eff = 0;
-    m_configured = false;
-    ctrl.starting(time, m_target_pos, m_target_vel);
-    CNR_RETURN_TRUE(this->logger());
-  }
-
-  virtual bool doUpdate(const ros::Time& time, const ros::Duration& period)
-  {
-    CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
-    try
-    {
-      if(!m_configured)
-      {
-        m_target_pos = this->q(0);
-        m_target_vel = 0;
-        ctrl.update(time, period, nullptr, nullptr, nullptr, nullptr, this->q(0), this->qd(0));
-      }
-      else
-      {
-        ctrl.update(time, period,
-                    &m_target_pos, &m_target_vel, &m_target_eff, &m_last_sp_time,
-                    this->q(0), this->qd(0));
-      }
-      this->setCommandVelocity(ctrl.getVelCmd(), 0);
-    }
-    catch (...)
-    {
-      this->setCommandVelocity(0,0);
-      CNR_RETURN_FALSE_THROTTLE(this->logger(), 2.0, "Exception!");
-    }
-    CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
-  }
-
-  virtual bool doStopping(const ros::Time& time)
-  {
-    CNR_TRACE_START(this->logger());
-    m_configured = false;
-    ctrl.stopping(time);
-    this->setCommandVelocity(0,0);
-    CNR_RETURN_TRUE(this->logger());
-  }
-
+  virtual bool doInit();
+  virtual bool doStarting(const ros::Time& time);
+  virtual bool doUpdate(const ros::Time& time, const ros::Duration& period);
+  virtual bool doStopping(const ros::Time& time);
 
 protected:
-  cnr::control::PositionToVelocityControllerMath ctrl;
-  double  m_target_pos;
-  double  m_target_vel;
-  double  m_target_eff;
-  bool    m_configured;
-  double  m_last_sp_time;
+  cnr::control::PositionToVelocityControllerMathN<N,MaxN> ctrl;
 
-  void callback(const sensor_msgs::JointStateConstPtr msg)
-  {
-    if(extractJoint(*msg, this->jointName(0), m_target_pos, m_target_vel, m_target_eff))
-    {
-      m_configured = true;
-      m_last_sp_time = msg->header.stamp.toSec();
-    }
-    else
-    {
-      CNR_ERROR(this->logger(), " target message dimension is wrong");
-      CNR_ERROR(this->logger(), " Joint Controlled name: " << this->jointName(0));
-      CNR_ERROR(this->logger(), " msg received: " << *msg);
-    }
-    return;
-  }
+  //! Position Target: it may be a double, if N==1, or a Matrix<double, N, 1> if N!=1
+  ect::Value<N,MaxN> m_target_pos;
+  //! Velocity Target: it may be a double, if N==1, or a Matrix<double, N, 1> if N!=1
+  ect::Value<N,MaxN> m_target_vel;
+  //! Effort Target: it may be a double, if N==1, or a Matrix<double, N, 1> if N!=1
+  ect::Value<N,MaxN> m_target_eff;
+  bool               m_configured;
+  double             m_last_sp_time;
 
-  bool extractJoint(const sensor_msgs::JointState msg, const std::string name, double& pos, double& vel, double& eff)
-  {
-    if(msg.position.size()!=msg.name.size())
-    {
-      return false;
-    }
-
-    std::vector<std::string>::const_iterator it = std::find(msg.name.begin(), msg.name.end(), name);
-    if(it == msg.name.end())
-    {
-      return false;
-    }
-
-    size_t iJoint = std::distance(msg.name.begin(), it);
-    pos = msg.position.at(iJoint);
-    vel = msg.velocity.size() == msg.name.size() ? msg.velocity.at(iJoint) : 0 ;
-    eff = msg.effort.size() == msg.name.size() ? msg.effort.at(iJoint) : 0 ;
-
-    return true;
-  }
+  void callback(const sensor_msgs::JointStateConstPtr msg);
+  bool extractJoint(const sensor_msgs::JointState msg, const std::vector<std::string>& name,
+     typename ect::Value<N,MaxN>& pos, typename ect::Value<N,MaxN>& vel, typename ect::Value<N,MaxN>& eff);
 };
 
-typedef PositionToVelocityControllerBase<hardware_interface::JointHandle, 
-                                         hardware_interface::VelocityJointInterface> PositionToVelocityController;
+//! alias, to make simpler
+template<int N, int MaxN=N>
+using PositionToVelocityControllerN = PositionToVelocityControllerBaseN<N, MaxN,
+                                          hardware_interface::JointHandle,hardware_interface::VelocityJointInterface>;
 
+//! List of the objects that are instatiated and located in the plugin
+using PositionToVelocityController  = PositionToVelocityControllerN<-1, cnr::control::max_num_axes>;
+using PositionToVelocityController1 = PositionToVelocityControllerN<1>;
+using PositionToVelocityController3 = PositionToVelocityControllerN<3>;
+using PositionToVelocityController6 = PositionToVelocityControllerN<6>;
+using PositionToVelocityController7 = PositionToVelocityControllerN<7>;
 
-class PositionToVelocityControllerFfw :
-    public PositionToVelocityControllerBase<hardware_interface::PosVelEffJointHandle, 
-                                            hardware_interface::PosVelEffJointInterface>
+template<int N, int MaxN=N>
+using PositionToVelocityControllerFfwBaseN = PositionToVelocityControllerBaseN<N, MaxN,
+                                 hardware_interface::PosVelEffJointHandle, hardware_interface::PosVelEffJointInterface>;
+
+template<int N, int MaxN=N>
+class PositionToVelocityControllerFfwN : public PositionToVelocityControllerFfwBaseN<N, MaxN>
 {
 public:
   bool doInit();
@@ -162,7 +78,15 @@ public:
 
 };
 
+using PositionToVelocityControllerFfw  = PositionToVelocityControllerFfwN<-1, cnr::control::max_num_axes>;
+using PositionToVelocityControllerFfw1 = PositionToVelocityControllerFfwN<1>;
+using PositionToVelocityControllerFfw3 = PositionToVelocityControllerFfwN<3>;
+using PositionToVelocityControllerFfw6 = PositionToVelocityControllerFfwN<6>;
+using PositionToVelocityControllerFfw7 = PositionToVelocityControllerFfwN<7>;
+
 }  // namespace control
 }  // namespace cnr
+
+#include <cnr_position_to_velocity_controller/internal/cnr_position_to_velocity_controller_impl.h>
 
 #endif  // CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER__H

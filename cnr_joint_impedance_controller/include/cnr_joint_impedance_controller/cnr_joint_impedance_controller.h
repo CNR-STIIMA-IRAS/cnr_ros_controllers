@@ -1,5 +1,5 @@
-#ifndef cnr_joint_impedance_sensor__20190123
-#define cnr_joint_impedance_sensor__20190123
+#ifndef cnr_joint_impedance_controller__cnr_joint_impedance_controller_h
+#define cnr_joint_impedance_controller__cnr_joint_impedance_controller_h
 
 #include <thread>
 #include <mutex>
@@ -18,10 +18,15 @@ namespace cnr
 namespace control
 {
 
-class JointImpedanceController :
-    public cnr_controller_interface::JointCommandController<hardware_interface::PosVelEffJointHandle, hardware_interface::PosVelEffJointInterface>
+template<int N, int MaxN=N>
+class JointImpedanceControllerN :
+    public JointCommandController<N, MaxN,
+        hardware_interface::PosVelEffJointHandle, hardware_interface::PosVelEffJointInterface>
 {
 public:
+
+  using Value = typename std::conditional<N==1, double, Eigen::Matrix<double,N,1,Eigen::ColMajor,MaxN> >::type;
+
   bool doInit();
   bool doUpdate(const ros::Time& time, const ros::Duration& period);
   bool doStarting(const ros::Time& time);
@@ -30,24 +35,24 @@ protected:
 
   bool m_is_configured;
   
-  cnr_impedance_regulator::ImpedanceRegulatorReferencePtr m_regulator_input;
-  cnr_impedance_regulator::ImpedanceRegulatorControlCommandPtr m_regulator_output;
-  cnr_impedance_regulator::ImpedanceRegulator m_regulator;
+  typename JointRegulatorReference<N,MaxN>::Ptr m_regulator_input;
+  typename JointRegulatorControlCommand<N,MaxN>::Ptr m_regulator_output;
+  ImpedanceRegulatorN<N,MaxN> m_regulator;
   
   bool m_target_ok;
   bool m_effort_ok;
   bool m_use_wrench;
   
-  cnr_impedance_regulator::ImpedanceRegulatorStatePtr m_state0;
+  typename ImpedanceRegulatorState<N,MaxN>::Ptr m_state0;
 
-  Eigen::VectorXd m_q_target;
-  Eigen::VectorXd m_qd_target;
+  Value m_q_target;
+  Value m_qd_target;
 
-  Eigen::VectorXd m_effort_db;
-  Eigen::VectorXd m_effort;
+  Value m_effort_db;
+  Value m_effort;
 
   Eigen::Matrix<double,6,1> m_wrench_db;
-  Eigen::VectorXd           m_wrench_of_t_in_b;
+  Value                     m_wrench_of_t_in_b;
 
   std::string      m_sensor_link;
   rosdyn::ChainPtr m_chain_bs;
@@ -56,13 +61,19 @@ protected:
   void setEffortCallback(const boost::shared_ptr<sensor_msgs::JointState const>& msg);
   void setWrenchCallback(const boost::shared_ptr<geometry_msgs::WrenchStamped const>& msg);
 
-  ~JointImpedanceController();
-
+  ~JointImpedanceControllerN();
 };
 
+using JointImpedanceController  = JointImpedanceControllerN<-1, cnr::control::max_num_axes>;
+using JointImpedanceController1 = JointImpedanceControllerN<1>;
+using JointImpedanceController3 = JointImpedanceControllerN<3>;
+using JointImpedanceController6 = JointImpedanceControllerN<6>;
+using JointImpedanceController7 = JointImpedanceControllerN<7>;
 
 }
 }
+
+#include <cnr_joint_impedance_controller/internal/cnr_joint_impedance_controller_impl.h>
 
 
 #endif

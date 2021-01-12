@@ -11,7 +11,7 @@ namespace ros
 namespace control
 {
   
-  class AnalogStatePublisher: public cnr_controller_interface::Controller<hardware_interface::AnalogStateInterface>
+  class AnalogStatePublisher: public cnr::control::Controller<hardware_interface::AnalogStateInterface>
   {
   public:
     virtual bool doInit( );

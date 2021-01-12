@@ -12,8 +12,10 @@ namespace cnr
 namespace control
 {
 
-class OpenLoopEffortController :
-    public cnr_controller_interface::JointCommandController<hardware_interface::JointHandle, hardware_interface::EffortJointInterface>
+template<int N,int MaxN=N>
+class OpenLoopEffortControllerN :
+    public cnr::control::JointCommandController<N,MaxN,
+                     hardware_interface::JointHandle, hardware_interface::EffortJointInterface>
 {
 public:
   bool doInit();
@@ -23,8 +25,9 @@ public:
 
 protected:
 
-  Eigen::VectorXd m_eff_cmd;
-  Eigen::VectorXd m_max_effort;
+  cnr::control::Vector  m_eff_cmd;
+  cnr::control::Vector  m_max_effort;
+
   std::string     m_setpoint_topic_name;
   bool            m_configured;
 
@@ -35,8 +38,17 @@ protected:
 
 };
 
+using OpenLoopEffortController  = OpenLoopEffortControllerN<-1, cnr::control::max_num_axes>;
+using OpenLoopEffortController1 = OpenLoopEffortControllerN<1>;
+using OpenLoopEffortController3 = OpenLoopEffortControllerN<3>;
+using OpenLoopEffortController6 = OpenLoopEffortControllerN<6>;
+using OpenLoopEffortController7 = OpenLoopEffortControllerN<7>;
+using OpenLoopEffortController8 = OpenLoopEffortControllerN<8>;
+
 
 }  // namespace control
 }  // namespace cnr
+
+#include <cnr_open_loop_effort_controller/internal/cnr_open_loop_effort_controller_impl.h>
 
 #endif  // CNR_OPEN_LOOP_EFFORT_CONTROLLER__CNR_OPEN_LOOP_EFFORT_CONTROLLER__H
