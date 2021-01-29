@@ -5,7 +5,7 @@
 #include <Eigen/Core>
 #include <ros/ros.h>
 
-#include <eigen_state_space_systems/eigen_controllers.h>
+#include <eigen_state_space_systems/controllers/controllers.h>
 #include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
 #include <cnr_hardware_interface/posveleff_command_interface.h>
 #include <cnr_hardware_interface/veleff_command_interface.h>

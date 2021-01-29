@@ -10,8 +10,8 @@
 #include <sensor_msgs/JointState.h>
 
 #include <subscription_notifier/subscription_notifier.h>
-#include <eigen_state_space_systems/eigen_state_space_systems.h>
-#include <eigen_state_space_systems/eigen_controllers.h>
+#include <eigen_state_space_systems/discrete_state_space_systems.h>
+#include <eigen_state_space_systems/controllers/controllers.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
 

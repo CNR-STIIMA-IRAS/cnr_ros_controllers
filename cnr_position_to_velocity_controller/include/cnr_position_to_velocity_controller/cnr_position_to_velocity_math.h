@@ -1,8 +1,8 @@
 #ifndef CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER_MATH_H
 #define CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER_MATH_H
 
-#include <eigen_state_space_systems/eigen_state_space_systems.h>
-#include <eigen_state_space_systems/eigen_controllers.h>
+#include <eigen_state_space_systems/discrete_state_space_systems.h>
+#include <eigen_state_space_systems/controllers/controllers.h>
 #include <thread>
 #include <mutex>
 #include <vector>
@@ -22,7 +22,7 @@ class PositionToVelocityControllerMathN
 {
 public:
   PositionToVelocityControllerMathN() = default;
-  bool init(ros::NodeHandle& ctrl_nh, const typename ect::Value<N,MaxN>& speed_limit);
+  int init(ros::NodeHandle& ctrl_nh, const typename ect::Value<N,MaxN>& speed_limit, std::string& what);
   bool update(const ros::Time& time,
               const ect::Value<N,MaxN>* const trg_pos,
               const ect::Value<N,MaxN>* const trg_vel,

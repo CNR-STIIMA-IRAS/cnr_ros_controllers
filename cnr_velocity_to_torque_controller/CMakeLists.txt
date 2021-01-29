@@ -50,8 +50,8 @@ if(${CMAKE_VERSION} VERSION_GREATER  "3.16.0")
     <sensor_msgs/JointState.h>
 
     <subscription_notifier/subscription_notifier.h>
-    <eigen_state_space_systems/eigen_state_space_systems.h>
-    <eigen_state_space_systems/eigen_controllers.h>
+    <eigen_state_space_systems/discrete_state_space_systems.h>
+    <eigen_state_space_systems/controllers/controllers.h>
     <hardware_interface/joint_command_interface.h>
     <cnr_controller_interface/cnr_joint_command_controller_interface.h>>)
 endif()

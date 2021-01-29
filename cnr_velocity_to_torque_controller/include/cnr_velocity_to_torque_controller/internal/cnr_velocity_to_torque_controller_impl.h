@@ -4,6 +4,7 @@
 #define cnr_velocity_to_torque_controller__cnr_velocity_to_torque_controller_impl__h
 
 #include <rosparam_utilities/rosparam_utilities.h>
+#include <eigen_state_space_systems/ros_params.h>
 #include <cnr_velocity_to_torque_controller/cnr_velocity_to_torque_controller.h>
 
 namespace cnr
@@ -32,10 +33,50 @@ inline bool VelocityToTorqueControllerN<N,MaxN>::doInit( )
   }
 
   std::string what;
-  m_filter.importMatricesFromParam(this->getControllerNh(), "vel_filter");
-  m_target_filter.importMatricesFromParam(this->getControllerNh(), "target_vel_filter");
-  m_controller.importMatricesFromParam(this->getControllerNh(), "controller", what);
-  m_integral_controller.importMatricesFromParam(this->getControllerNh(), "integral_controller", what);
+  std::string msg;
+  int ok = eigen_control_toolbox::setMatricesFromParam(m_filter,this->getControllerNh(), "vel_filter",msg);
+  if(ok==-1)
+  {
+    CNR_ERROR(this->logger(), this->getControllerNamespace() + "/vel_filter: " << what);
+    return false;
+  }
+  else if(ok==0)
+  {
+    CNR_WARN(this->logger(), this->getControllerNamespace() + "/vel_filter: " << what);
+  }
+
+  ok = eigen_control_toolbox::setMatricesFromParam(m_target_filter,this->getControllerNh(), "target_vel_filter",msg);
+  if(ok==-1)
+  {
+    CNR_ERROR(this->logger(), this->getControllerNamespace() + "/target_vel_filter: " << what);
+    return false;
+  }
+  else if(ok==0)
+  {
+    CNR_WARN(this->logger(), this->getControllerNamespace() + "/target_vel_filter: " << what);
+  }
+
+  ok = eigen_control_toolbox::setMatricesFromParam(m_controller,this->getControllerNh(), "controller",msg);
+  if(ok==-1)
+  {
+    CNR_ERROR(this->logger(), this->getControllerNamespace() + "/controller: " << what);
+    return false;
+  }
+  else if(ok==0)
+  {
+    CNR_WARN(this->logger(), this->getControllerNamespace() + "/controller: " << what);
+  }
+
+  ok = eigen_control_toolbox::setMatricesFromParam(m_integral_controller,this->getControllerNh(),"integral_controller",msg);
+  if(ok==-1)
+  {
+    CNR_ERROR(this->logger(), this->getControllerNamespace() + "/integral_controller: " << what);
+    return -1;
+  }
+  else if(ok==0)
+  {
+    CNR_WARN(this->logger(), this->getControllerNamespace() + "/integral_controller: " << what);
+  }
 
   eigen_utils::resize(m_antiwindup_gain , this->nAx(), this->nAx() );eigen_utils::setDiagonal(m_antiwindup_gain, 1);
   eigen_utils::resize(m_pos_deadband    , this->nAx() );eigen_utils::setZero(m_pos_deadband    );
@@ -131,7 +172,7 @@ inline bool VelocityToTorqueControllerN<N,MaxN>::doUpdate(const ros::Time& /*tim
       m_eff_cmd += m_target_eff;
     }
 
-    for(int i=0;i<this->nAx();i++)
+    for(int i=0;i<int(this->nAx());i++)
     {
       if (eigen_utils::at(m_eff_cmd,i) > eigen_utils::at(m_max_effort,i) )
       {

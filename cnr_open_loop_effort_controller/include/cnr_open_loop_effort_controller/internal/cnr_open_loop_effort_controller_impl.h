@@ -3,7 +3,7 @@
 #ifndef CNR_OPEN_LOOP_EFFORT_CONTROLLER__CNR_OPEN_LOOP_EFFORT_CONTROLLER_IMPL__H
 #define CNR_OPEN_LOOP_EFFORT_CONTROLLER__CNR_OPEN_LOOP_EFFORT_CONTROLLER_IMPL__H
 
-#include <eigen_state_space_systems/utils/operations.h>
+#include <eigen_matrix_utils/overloads.h>
 #include <cnr_open_loop_effort_controller/cnr_open_loop_effort_controller.h>
 
 namespace cnr

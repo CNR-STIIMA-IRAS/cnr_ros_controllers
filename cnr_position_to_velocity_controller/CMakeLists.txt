@@ -50,8 +50,8 @@ if(${CMAKE_VERSION} VERSION_GREATER  "3.16.0")
                                                    <Eigen/Core>
                                                    <ros/node_handle.h>
                                                    <pluginlib/class_list_macros.h>
-                                                   <eigen_state_space_systems/eigen_state_space_systems.h>
-                                                   <eigen_state_space_systems/eigen_controllers.h>
+                                                   <eigen_state_space_systems/discrete_state_space_systems.h>
+                                                   <eigen_state_space_systems/controllers/controllers.h>
                                                    <sensor_msgs/JointState.h>)
 endif()
 

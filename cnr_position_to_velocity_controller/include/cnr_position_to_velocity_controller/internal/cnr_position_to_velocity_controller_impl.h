@@ -41,9 +41,16 @@ inline bool PositionToVelocityControllerBaseN<N,MaxN,H,T>::doInit()
 
   typename ect::Value<N,MaxN> speed_limit;
   eu::copy(speed_limit, this->speedLimit());
-  if(!ctrl.init(this->getControllerNh(), speed_limit))
+  std::string what;
+  int ok = ctrl.init(this->getControllerNh(), speed_limit,what);
+  if(ok==-1)
   {
-    CNR_RETURN_FALSE(this->logger(), "Math ctrl of the PositionToVelocityController failed in initialization.");
+    CNR_RETURN_FALSE(this->logger(),
+      "Math ctrl of the PositionToVelocityController failed in initialization:\n\t" + what);
+  }
+  else if(ok==0)
+  {
+    CNR_WARN(this->logger(), what);
   }
   m_configured = false;
   this->setPriority(this->QD_PRIORITY);

@@ -5,8 +5,9 @@
 
 #include <ros/node_handle.h>
 #include <Eigen/Core>
+#include <eigen_state_space_systems/ros_params.h>
 #include <cnr_position_to_velocity_controller/cnr_position_to_velocity_math.h>
-#include <urdf/model.h>
+//#include <urdf/model.h>
 
 namespace cnr
 {
@@ -14,34 +15,68 @@ namespace control
 {
 
 template<int N,int MaxN>
-inline bool PositionToVelocityControllerMathN<N,MaxN>::init(ros::NodeHandle& nh,
-      const typename ect::Value<N,MaxN>& speed_limit)
+inline int PositionToVelocityControllerMathN<N, MaxN>::init(ros::NodeHandle& nh,
+      const typename ect::Value<N,MaxN>& speed_limit, std::string& what)
 {
+  what = "";
+
   m_use_target_velocity = false;
   if (!nh.getParam("use_target_velocity", m_use_target_velocity))
   {
-    ROS_DEBUG_STREAM(nh.getNamespace() + "/use_target_velocity does not exist, set FALSE");
+    what = nh.getNamespace() + "/use_target_velocity does not exist, set FALSE";
   }
 
   m_use_target_torque = false;
   if (!nh.getParam("use_target_torque", m_use_target_torque))
   {
-    ROS_DEBUG_STREAM(nh.getNamespace() + "/use_target_torque does not exist, set FALSE");
+    what += (what.size()>0? "\n" : "")
+         + nh.getNamespace() + "/use_target_torque does not exist, set FALSE";
   }
 
-  m_target_pos_filter.importMatricesFromParam(nh, "target_pos_filter");
-  m_pos_filter.importMatricesFromParam(nh, "pos_filter");
-
-  std::string what;
-  if(m_controller.importMatricesFromParam(nh, "controller",what)==-1)
+  std::string msg;
+  int ok = eigen_control_toolbox::setMatricesFromParam(m_target_pos_filter,nh, "target_pos_filter",msg);
+  if(ok==-1)
   {
-    ROS_ERROR_STREAM(what);
-    return false;
+    what += (what.size()>0? "\n" : "") + msg;
+    return -1;
   }
-  if(m_integral_controller.importMatricesFromParam(nh, "integral_controller",what)==-1)
+  else if(ok==0)
   {
-    ROS_ERROR_STREAM(what);
-    return false;
+    what += (what.size()>0? "\n" : "") + msg;
+  }
+
+  ok = eigen_control_toolbox::setMatricesFromParam(m_pos_filter,nh, "pos_filter",msg);
+  if(ok==-1)
+  {
+    what += (what.size()>0? "\n" : "") + msg;
+    return -1;
+  }
+  else if(ok==0)
+  {
+    what += (what.size()>0? "\n" : "") + msg;
+
+  }
+
+  ok = eigen_control_toolbox::setMatricesFromParam(m_controller,nh, "controller",msg);
+  if(ok==-1)
+  {
+    what += (what.size()>0? "\n" : "") + msg;
+    return -1;
+  }
+  else if(ok==0)
+  {
+    what += (what.size()>0? "\n" : "") + msg;
+  }
+
+  ok = eigen_control_toolbox::setMatricesFromParam(m_integral_controller,nh, "integral_controller",msg);
+  if(ok==-1)
+  {
+    what += (what.size()>0? "\n" : "") + msg;
+    return -1;
+  }
+  else if(ok==0)
+  {
+    what += (what.size()>0? "\n" : "") + msg;
   }
 
   if(!eigen_utils::resize(m_pos_minimum_error, eigen_utils::size(speed_limit))

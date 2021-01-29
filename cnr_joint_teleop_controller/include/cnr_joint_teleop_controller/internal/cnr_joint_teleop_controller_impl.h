@@ -3,7 +3,7 @@
 #ifndef cnr_joint_teleop_controller__cnr_joint_teleop_controller_impl_h
 #define cnr_joint_teleop_controller__cnr_joint_teleop_controller_impl_h
 
-#include <eigen_state_space_systems/utils/operations.h>
+#include <eigen_matrix_utils/overloads.h>
 #include <cnr_joint_teleop_controller/cnr_joint_teleop_controller.h>
 
 namespace eu = eigen_utils;
