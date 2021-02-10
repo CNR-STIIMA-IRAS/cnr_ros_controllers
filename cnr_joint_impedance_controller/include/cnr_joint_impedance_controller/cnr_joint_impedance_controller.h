@@ -54,8 +54,8 @@ protected:
   Eigen::Matrix<double,6,1> m_wrench_db;
   Value                     m_wrench_of_t_in_b;
 
-  std::string      m_sensor_link;
-  rosdyn::ChainPtr m_chain_bs;
+  std::string   m_sensor_link;
+  rosdyn::Chain m_chain_bs;
 
   void setTargetCallback(const boost::shared_ptr<sensor_msgs::JointState const>& msg);
   void setEffortCallback(const boost::shared_ptr<sensor_msgs::JointState const>& msg);

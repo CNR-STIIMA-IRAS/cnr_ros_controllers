@@ -105,7 +105,7 @@ inline bool JointTeleopControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*/, 
     vel_sp   = m_vel_sp * m_dump.dumpFactor();
     m_pos_sp = m_pos_sp + vel_sp * period.toSec();
     pos_sp   = m_pos_sp;
-    if(this->m_rkin->saturatePosition(pos_sp, &report))
+    if(rosdyn::saturatePosition(this->m_chain,pos_sp, &report))
     {
       CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
     }
@@ -133,7 +133,7 @@ inline void JointTeleopControllerN<N,MaxN>::callback(const sensor_msgs::JointSta
       eu::setZero(m_vel_sp);
       for( size_t iJoint=0; iJoint< this->jointNames().size(); iJoint++)
       {
-        auto it = std::find(msg->name.begin(), msg->name.end(), this->jointName(iJoint));
+        auto it = std::find(msg->name.begin(), msg->name.end(), this->m_chain.getJointName(iJoint));
         if(it!=msg->name.end())
         {
           size_t iMsg = std::distance(msg->name.begin(), it);
@@ -147,7 +147,7 @@ inline void JointTeleopControllerN<N,MaxN>::callback(const sensor_msgs::JointSta
         }
       }
       
-      if(this->m_rkin->saturateSpeed(m_vel_sp,
+      if(rosdyn::saturateSpeed(this->m_chain, m_vel_sp,
             this->m_rstate.qd(), this->m_rstate.q(), this->m_sampling_period, 1.0, true, &report ))
       {
          CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
@@ -155,7 +155,7 @@ inline void JointTeleopControllerN<N,MaxN>::callback(const sensor_msgs::JointSta
       
       if(m_has_pos_sp)
       {
-        if(this->m_rkin->saturatePosition(m_pos_sp, &report))
+        if(rosdyn::saturatePosition(this->m_chain,m_pos_sp, &report))
         {
           CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
         }

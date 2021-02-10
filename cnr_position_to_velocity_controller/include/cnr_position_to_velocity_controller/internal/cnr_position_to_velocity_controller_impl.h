@@ -40,7 +40,7 @@ inline bool PositionToVelocityControllerBaseN<N,MaxN,H,T>::doInit()
   eu::setZero(m_target_eff);
 
   typename ect::Value<N,MaxN> speed_limit;
-  eu::copy(speed_limit, this->speedLimit());
+  eu::copy(speed_limit, this->m_chain.getDQMax());
   std::string what;
   int ok = ctrl.init(this->getControllerNh(), speed_limit,what);
   if(ok==-1)
@@ -117,7 +117,7 @@ inline void PositionToVelocityControllerBaseN<N,MaxN,H,T>::callback(const sensor
   else
   {
     CNR_ERROR(this->logger(), " target message dimension is wrong");
-    CNR_ERROR(this->logger(), " Joint Controlled name: " << this->jointName(0));
+    CNR_ERROR(this->logger(), " Joint Controlled names: " << cnr::control::to_string(this->jointNames()));
     CNR_ERROR(this->logger(), " msg received: " << *msg);
   }
   return;

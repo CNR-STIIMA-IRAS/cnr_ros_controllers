@@ -55,9 +55,9 @@ inline bool JointStatePublisherN<N,MaxN>::doUpdate(const ros::Time& /*time*/, co
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   try
   {
-    for(std::size_t iAx = 0; iAx<this->nAx(); iAx++)
+    for(std::size_t iAx = 0; iAx<this->m_chain.getActiveJointsNumber(); iAx++)
     {
-      m_msg->name    .at(iAx) = this->jointName(iAx);
+      m_msg->name    .at(iAx) = this->m_chain.getJointName(iAx);
       m_msg->position.at(iAx) = this->m_rstate.q(iAx);
       m_msg->velocity.at(iAx) = this->m_rstate.qd(iAx);
       m_msg->effort  .at(iAx) = this->m_rstate.effort(iAx);

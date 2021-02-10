@@ -8,7 +8,6 @@ PLUGINLIB_EXPORT_CLASS(cnr::control::JointStatePublisher3, controller_interface:
 PLUGINLIB_EXPORT_CLASS(cnr::control::JointStatePublisher6, controller_interface::ControllerBase)
 PLUGINLIB_EXPORT_CLASS(cnr::control::JointStatePublisher7, controller_interface::ControllerBase)
 
-
 namespace  cnr
 {
 namespace control

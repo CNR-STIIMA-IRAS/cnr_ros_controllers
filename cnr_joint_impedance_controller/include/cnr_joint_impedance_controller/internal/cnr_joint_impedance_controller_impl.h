@@ -109,13 +109,22 @@ inline bool JointImpedanceControllerN<N,MaxN>::doInit( )
       GET_AND_RETURN(this->getControllerNh(), "sensor_frame"           , m_sensor_link          );
       GET_AND_RETURN(this->getControllerNh(), "external_wrench_topic"  , external_wrench_topic   );
 
-      m_chain_bs = this->m_rkin->getChain(this->m_rkin->baseLink(),m_sensor_link);
+
+      rosdyn::LinkPtr root_link(new rosdyn::Link());  //link primitivo da cui parte la catena cinematica (world ad esempio)
+      root_link->fromUrdf(this->m_urdf_model->root_link_);
+
+      std::string error;
+      if(!m_chain_bs.init(error,root_link,this->m_chain.getLinksName().front(), m_sensor_link))
+      {
+        CNR_ERROR(this->m_logger, "Failing in creating the Chain from the URDF model:\n\t" + error + "");
+        CNR_RETURN_FALSE(this->m_logger);
+      }
       
       this->template add_subscriber<geometry_msgs::WrenchStamped>(external_wrench_topic,1,
               boost::bind(&cnr::control::JointImpedanceControllerN<N,MaxN>::setWrenchCallback,this, _1));
 
-      CNR_INFO(this->logger(), "[ " <<this->getControllerNamespace() << " ] DOF Chain from Baset to Tool  : " << this->m_rkin->getChain()->getActiveJointsNumber() );
-      CNR_INFO(this->logger(), "[ " <<this->getControllerNamespace() << " ] DOF Chain from Baset to Sensor: " << m_chain_bs->getActiveJointsNumber() );
+      CNR_INFO(this->logger(), "[ " <<this->getControllerNamespace() << " ] DOF Chain from Baset to Tool  : " << this->m_chain.getActiveJointsNumber() );
+      CNR_INFO(this->logger(), "[ " <<this->getControllerNamespace() << " ] DOF Chain from Baset to Sensor: " << m_chain_bs.getActiveJointsNumber() );
     }
     else
     {
@@ -133,7 +142,7 @@ inline bool JointImpedanceControllerN<N,MaxN>::doInit( )
     ImpedanceRegulatorParamsPtr opts(new ImpedanceRegulatorParams(this->nAx()));
     opts->logger = this->logger();
     opts->period = ros::Duration(this->m_sampling_period);
-    opts->robot_kin = this->m_rkin;
+    opts->resources_names = this->m_chain.getActiveJointsName();
     if(!m_regulator.initialize(this->getRootNh(),this->getControllerNh(),opts))
     {
       CNR_RETURN_FALSE(this->logger(), "Error in initialization of the impedance regulator");
@@ -188,9 +197,9 @@ inline bool JointImpedanceControllerN<N,MaxN>::doStarting(const ros::Time& time)
 {
   CNR_TRACE_START(this->logger());
 
-  typename ImpedanceRegulatorState<N,MaxN>::Ptr st0(new ImpedanceRegulatorState<N,MaxN>(this->m_rkin));
-  st0->robotState() = this->m_rstate;
-  st0->msdState()   = this->m_rstate;
+  typename ImpedanceRegulatorState<N,MaxN>::Ptr st0(new ImpedanceRegulatorState<N,MaxN>(this->m_chain));
+  st0->robotState().copy(this->m_rstate, this->m_rstate.ONLY_JOINT);
+  st0->msdState() = this->m_rstate;
   
   m_regulator.starting(st0, time); 
   m_regulator_input.reset(new JointRegulatorReference<N,MaxN>());
@@ -327,9 +336,9 @@ inline void JointImpedanceControllerN<N,MaxN>::setWrenchCallback(const boost::sh
     Eigen::Affine3d T_base_tool              = this->m_rstate.toolPose();
     Eigen::Matrix<double,6,N> jacobian_of_tool_in_base = this->m_rstate.jacobian();
 
-    Eigen::VectorXd _q(this->m_rkin->nAx());
+    Eigen::VectorXd _q(this->m_chain.getActiveJointsNumber());
     eu::copy(_q,this->m_rstate.q());
-    Eigen::Affine3d T_base_sensor            = m_chain_bs->getTransformation(_q);
+    Eigen::Affine3d T_base_sensor            = m_chain_bs.getTransformation(_q);
     Eigen::Affine3d T_tool_sensor            = T_base_tool.inverse() * T_base_sensor;
     Eigen::Vector6d wrench_of_tool_in_tool   = rosdyn::spatialDualTranformation(wrench_of_sensor_in_sensor,T_tool_sensor);
     Eigen::Vector6d wrench_of_tool_in_base   = rosdyn::spatialRotation(wrench_of_tool_in_tool,T_base_tool.linear());
