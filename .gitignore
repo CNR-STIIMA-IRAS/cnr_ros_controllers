@@ -12,3 +12,4 @@ kdev4/
 *.vscode
 .vscode/
 *.autosave
+*.swp
