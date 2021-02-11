@@ -4,7 +4,7 @@
 #define cnr_velocity_to_torque_controller__cnr_velocity_to_torque_controller_impl__h
 
 #include <rosparam_utilities/rosparam_utilities.h>
-#include <eigen_state_space_systems/ros_params.h>
+#include <state_space_ros/ros_params.h>
 #include <cnr_velocity_to_torque_controller/cnr_velocity_to_torque_controller.h>
 
 namespace cnr
@@ -110,8 +110,8 @@ inline bool VelocityToTorqueControllerN<N,MaxN>::doStarting(const ros::Time& /*t
   CNR_TRACE_START(this->logger());
   m_configured = false;
 
-  auto fb_vel = this->m_rstate.q();
-  auto fb_eff = this->m_rstate.effort();
+  auto fb_vel = this->getPosition();
+  auto fb_eff = this->getEffort();
 
   m_target_vel = fb_vel;
   eigen_utils::setZero(m_target_eff);
@@ -149,11 +149,11 @@ inline bool VelocityToTorqueControllerN<N,MaxN>::doUpdate(const ros::Time& /*tim
   {
     if (!m_configured)
     {
-      m_target_vel = this->m_rstate.qd();
+      m_target_vel = this->getVelocity();
       eigen_utils::setZero(m_target_eff);
     }
 
-    auto filter_output = m_filter.update(this->m_rstate.qd());
+    auto filter_output = m_filter.update(this->getVelocity());
     auto target_filter_output = (m_configured)
                               ? m_target_filter.update(m_target_vel)
                               : m_target_filter.update(m_target_filter.y());

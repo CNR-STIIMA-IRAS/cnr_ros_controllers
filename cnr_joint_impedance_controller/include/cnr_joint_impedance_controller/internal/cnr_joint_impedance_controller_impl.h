@@ -198,8 +198,8 @@ inline bool JointImpedanceControllerN<N,MaxN>::doStarting(const ros::Time& time)
   CNR_TRACE_START(this->logger());
 
   typename ImpedanceRegulatorState<N,MaxN>::Ptr st0(new ImpedanceRegulatorState<N,MaxN>(this->m_chain));
-  st0->robotState().copy(this->m_rstate, this->m_rstate.ONLY_JOINT);
-  st0->msdState() = this->m_rstate;
+  st0->robotState().copy(this->chainState(), this->chainState().ONLY_JOINT);
+  st0->msdState() = this->chainState();
   
   m_regulator.starting(st0, time); 
   m_regulator_input.reset(new JointRegulatorReference<N,MaxN>());
@@ -333,11 +333,11 @@ inline void JointImpedanceControllerN<N,MaxN>::setWrenchCallback(const boost::sh
                                   : 0.0;
 
 
-    Eigen::Affine3d T_base_tool              = this->m_rstate.toolPose();
-    Eigen::Matrix<double,6,N> jacobian_of_tool_in_base = this->m_rstate.jacobian();
+    Eigen::Affine3d T_base_tool              = this->chainState().toolPose();
+    Eigen::Matrix<double,6,N> jacobian_of_tool_in_base = this->chainState().jacobian();
 
     Eigen::VectorXd _q(this->m_chain.getActiveJointsNumber());
-    eu::copy(_q,this->m_rstate.q());
+    eu::copy(_q,this->getPosition());
     Eigen::Affine3d T_base_sensor            = m_chain_bs.getTransformation(_q);
     Eigen::Affine3d T_tool_sensor            = T_base_tool.inverse() * T_base_sensor;
     Eigen::Vector6d wrench_of_tool_in_tool   = rosdyn::spatialDualTranformation(wrench_of_sensor_in_sensor,T_tool_sensor);

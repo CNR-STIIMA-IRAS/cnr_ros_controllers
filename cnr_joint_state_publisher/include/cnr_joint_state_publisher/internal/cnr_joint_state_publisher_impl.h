@@ -58,9 +58,9 @@ inline bool JointStatePublisherN<N,MaxN>::doUpdate(const ros::Time& /*time*/, co
     for(std::size_t iAx = 0; iAx<this->m_chain.getActiveJointsNumber(); iAx++)
     {
       m_msg->name    .at(iAx) = this->m_chain.getJointName(iAx);
-      m_msg->position.at(iAx) = this->m_rstate.q(iAx);
-      m_msg->velocity.at(iAx) = this->m_rstate.qd(iAx);
-      m_msg->effort  .at(iAx) = this->m_rstate.effort(iAx);
+      m_msg->position.at(iAx) = this->getPosition(iAx);
+      m_msg->velocity.at(iAx) = this->getVelocity(iAx);
+      m_msg->effort  .at(iAx) = this->getEffort(iAx);
     }
     m_msg->header.stamp = ros::Time::now();
     if(!this->publish(m_pub_handle, *m_msg))

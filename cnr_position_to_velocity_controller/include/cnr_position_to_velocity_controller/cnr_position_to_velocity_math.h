@@ -1,8 +1,7 @@
 #ifndef CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER_MATH_H
 #define CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER_MATH_H
 
-#include <eigen_state_space_systems/discrete_state_space_systems.h>
-#include <eigen_state_space_systems/controllers/controllers.h>
+#include <state_space_controllers/controllers.h>
 #include <thread>
 #include <mutex>
 #include <vector>

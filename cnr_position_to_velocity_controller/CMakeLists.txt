@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   controller_interface
   cnr_controller_interface
   cnr_hardware_interface
-  eigen_state_space_systems
+  state_space_controllers state_space_ros
   pluginlib
   roscpp
   sensor_msgs
@@ -27,9 +27,9 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES cnr_position_to_velocity_controller
-  CATKIN_DEPENDS cnr_controller_interface controller_manager cnr_hardware_interface eigen_state_space_systems 
+  CATKIN_DEPENDS cnr_controller_interface controller_manager cnr_hardware_interface state_space_controllers state_space_ros
                  subscription_notifier pluginlib roscpp sensor_msgs std_msgs  urdf
-  DEPENDS Eigen3
+  DEPENDS EIGEN3
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
@@ -50,8 +50,8 @@ if(${CMAKE_VERSION} VERSION_GREATER  "3.16.0")
                                                    <Eigen/Core>
                                                    <ros/node_handle.h>
                                                    <pluginlib/class_list_macros.h>
-                                                   <eigen_state_space_systems/discrete_state_space_systems.h>
-                                                   <eigen_state_space_systems/controllers/controllers.h>
+                                                   <state_space_systems/discrete_state_space_systems.h>
+                                                   <state_space_controllers/controllers.h>
                                                    <sensor_msgs/JointState.h>)
 endif()
 

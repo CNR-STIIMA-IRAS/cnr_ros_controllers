@@ -35,7 +35,7 @@ inline bool PositionToVelocityControllerBaseN<N,MaxN,H,T>::doInit()
   this->template add_subscriber<sensor_msgs::JointState>(setpoint_topic_name, 1,
               boost::bind(&PositionToVelocityControllerBaseN<N,MaxN,H,T>::callback,this,_1));
 
-  m_target_pos = this->m_rstate.q();
+  m_target_pos = this->getPosition();
   eu::setZero(m_target_vel);
   eu::setZero(m_target_eff);
 
@@ -61,7 +61,7 @@ template<int N,int MaxN, class H, class T>
 inline bool PositionToVelocityControllerBaseN<N,MaxN,H,T>::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
-  m_target_pos = this->m_rstate.q();
+  m_target_pos = this->getPosition();
   eu::setZero(m_target_vel);
   eu::setZero(m_target_eff);
   m_configured = false;
@@ -77,14 +77,14 @@ inline bool PositionToVelocityControllerBaseN<N,MaxN,H,T>::doUpdate(const ros::T
   {
     if(!m_configured)
     {
-      m_target_pos = this->m_rstate.q();
+      m_target_pos = this->getPosition();
       eu::setZero(m_target_vel);
-      ctrl.update(time, nullptr, nullptr, nullptr, nullptr, this->m_rstate.q(), this->m_rstate.qd());
+      ctrl.update(time, nullptr, nullptr, nullptr, nullptr, this->getPosition(), this->getVelocity());
     }
     else
     {
       ctrl.update(time, &m_target_pos, &m_target_vel, &m_target_eff, &m_last_sp_time,
-                  this->m_rstate.q(), this->m_rstate.qd());
+                  this->getPosition(), this->getVelocity());
     }
     this->setCommandVelocity(ctrl.getVelCmd());
   }

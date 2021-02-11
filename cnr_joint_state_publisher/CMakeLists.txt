@@ -12,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   cnr_controller_interface
   controller_interface
   controller_manager
-  eigen_state_space_systems
   hardware_interface
   pluginlib
   roscpp
@@ -31,7 +30,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES cnr_joint_state_publisher
   CATKIN_DEPENDS cnr_controller_interface controller_interface controller_manager
-                  eigen_state_space_systems hardware_interface pluginlib roscpp sensor_msgs
+                  hardware_interface pluginlib roscpp sensor_msgs
                     std_msgs subscription_notifier
   DEPENDS 
 )

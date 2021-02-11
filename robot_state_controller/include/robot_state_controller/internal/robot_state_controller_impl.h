@@ -64,8 +64,8 @@ inline bool RobotStateControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*/, c
   {
     static Eigen::VectorXd _q(this->nAx());
     static Eigen::VectorXd _qd(this->nAx());
-    _q = Eigen::Map<const Eigen::VectorXd>(this->m_rstate.handle_to_q(), this->nAx());
-    _qd = Eigen::Map<const Eigen::VectorXd>(this->m_rstate.handle_to_q(), this->nAx());
+    _q = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_q(), this->nAx());
+    _qd = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_q(), this->nAx());
     auto T_base_links = this->m_chain.getTransformations(_q);
     auto twists       = this->m_chain.getTwist(_q,_qd);
 

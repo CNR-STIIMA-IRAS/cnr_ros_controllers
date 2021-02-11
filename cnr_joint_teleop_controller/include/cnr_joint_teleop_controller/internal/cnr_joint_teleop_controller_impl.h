@@ -43,8 +43,8 @@ inline bool JointTeleopControllerN<N,MaxN>::doInit()
     m_dump.dump_time = 50 * this->m_sampling_period;
   }
 
-  m_vel_sp = 0 * this->m_rstate.qd();
-  m_pos_sp = this->m_rstate.q();
+  m_vel_sp = 0 * this->getVelocity();
+  m_pos_sp = this->getPosition();
 
   m_has_pos_sp = false;
   eu::resize(m_scaling_factor,this->nAx());
@@ -61,9 +61,9 @@ template<int N,int MaxN>
 inline bool JointTeleopControllerN<N,MaxN>::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger(),"Starting Controller");
-  m_pos_sp = this->m_rstate.q();
-  m_vel_sp = 0 * this->m_rstate.qd();
-  m_dist_to_pos_sp =  0 * this->m_rstate.qd();
+  m_pos_sp = this->getPosition();
+  m_vel_sp = 0 * this->getVelocity();
+  m_dist_to_pos_sp =  0 * this->getVelocity();
   m_vel_sp_last = m_vel_sp;
   CNR_RETURN_TRUE(this->logger());
 }
@@ -96,8 +96,8 @@ inline bool JointTeleopControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*/, 
   ect::Value<N,MaxN> pos_sp = m_pos_sp;
   if(m_has_pos_sp)
   {
-    auto dist_to_sp_perc = eu::norm(m_pos_sp - this->m_rstate.q()) / eu::norm(m_dist_to_pos_sp);
-    auto dir_to_sp      = eu::normalized(m_pos_sp - this->m_rstate.q());
+    auto dist_to_sp_perc = eu::norm(m_pos_sp - this->getPosition()) / eu::norm(m_dist_to_pos_sp);
+    auto dir_to_sp      = eu::normalized(m_pos_sp - this->getPosition());
     vel_sp = eu::norm(m_vel_sp) * dist_to_sp_perc * dir_to_sp;
   }
   else
@@ -148,7 +148,7 @@ inline void JointTeleopControllerN<N,MaxN>::callback(const sensor_msgs::JointSta
       }
       
       if(rosdyn::saturateSpeed(this->m_chain, m_vel_sp,
-            this->m_rstate.qd(), this->m_rstate.q(), this->m_sampling_period, 1.0, true, &report ))
+            this->getVelocity(), this->getPosition(), this->m_sampling_period, 1.0, true, &report ))
       {
          CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
       }
@@ -159,7 +159,7 @@ inline void JointTeleopControllerN<N,MaxN>::callback(const sensor_msgs::JointSta
         {
           CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
         }
-        m_dist_to_pos_sp = m_pos_sp - this->m_rstate.q();
+        m_dist_to_pos_sp = m_pos_sp - this->getPosition();
         m_vel_sp = eu::dot(m_vel_sp, eu::normalized(m_dist_to_pos_sp) ) * eu::normalized(m_dist_to_pos_sp);
       }
       m_dump.tick();

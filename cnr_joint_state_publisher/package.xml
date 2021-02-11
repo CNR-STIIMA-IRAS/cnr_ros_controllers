@@ -20,7 +20,6 @@
   <build_depend>cnr_controller_interface</build_depend>
   <build_depend>controller_interface</build_depend>
   <build_depend>controller_manager</build_depend>
-  <build_depend>eigen_state_space_systems</build_depend>
   <build_depend>hardware_interface</build_depend>
   <build_depend>pluginlib</build_depend>
   <build_depend>roscpp</build_depend>
@@ -30,7 +29,6 @@
   <build_export_depend>cnr_controller_interface</build_export_depend>
   <build_export_depend>controller_interface</build_export_depend>
   <build_export_depend>controller_manager</build_export_depend>
-  <build_export_depend>eigen_state_space_systems</build_export_depend>
   <build_export_depend>hardware_interface</build_export_depend>
   <build_export_depend>pluginlib</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
@@ -40,7 +38,6 @@
   <exec_depend>cnr_controller_interface</exec_depend>
   <exec_depend>controller_interface</exec_depend>
   <exec_depend>controller_manager</exec_depend>
-  <exec_depend>eigen_state_space_systems</exec_depend>
   <exec_depend>hardware_interface</exec_depend>
   <exec_depend>pluginlib</exec_depend>
   <exec_depend>roscpp</exec_depend>

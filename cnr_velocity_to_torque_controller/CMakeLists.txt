@@ -19,7 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   sensor_msgs
-  eigen_state_space_systems
+  state_space_controllers
+  state_space_ros
 )
 
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
@@ -28,8 +29,8 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES cnr_velocity_to_torque_controller
   CATKIN_DEPENDS cnr_controller_interface controller_interface controller_manager hardware_interface
-  eigen_state_space_systems  subscription_notifier pluginlib roscpp sensor_msgs std_msgs
-  DEPENDS Eigen3
+       state_space_controllers state_space_ros  subscription_notifier pluginlib roscpp sensor_msgs std_msgs
+  DEPENDS EIGEN3
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
@@ -50,19 +51,11 @@ if(${CMAKE_VERSION} VERSION_GREATER  "3.16.0")
     <sensor_msgs/JointState.h>
 
     <subscription_notifier/subscription_notifier.h>
-    <eigen_state_space_systems/discrete_state_space_systems.h>
-    <eigen_state_space_systems/controllers/controllers.h>
+    <state_space_ros/ros_params.h>
+    <state_space_controllers/controllers.h>
     <hardware_interface/joint_command_interface.h>
     <cnr_controller_interface/cnr_joint_command_controller_interface.h>>)
 endif()
-
-# include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
-# include <hardware_interface/joint_command_interface.h>
-
-# include <subscription_notifier/subscription_notifier.h>
-# include <eigen_state_space_systems/eigen_state_space_systems.h>
-# include <eigen_state_space_systems/eigen_controllers.h>
-# include <ros/callback_queue.h>
 
 install(DIRECTORY include/${PROJECT_NAME}/
    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}

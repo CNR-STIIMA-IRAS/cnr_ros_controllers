@@ -5,7 +5,7 @@
 
 #include <ros/node_handle.h>
 #include <Eigen/Core>
-#include <eigen_state_space_systems/ros_params.h>
+#include <state_space_ros/ros_params.h>
 #include <cnr_position_to_velocity_controller/cnr_position_to_velocity_math.h>
 //#include <urdf/model.h>
 
