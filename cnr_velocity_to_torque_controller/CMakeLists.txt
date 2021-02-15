@@ -38,8 +38,8 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} src/${PROJECT_NAME}/cnr_velocity_to_torque_controller.cpp )
 add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} Eigen3::Eigen)
-target_compile_options(${PROJECT_NAME} PUBLIC -Wall $<$<CONFIG:RELEASE>:-Ofast>)
-#target_compile_definitions(${PROJECT_NAME} PUBLIC -DEIGEN_DONT_VECTORIZE=1)
+target_compile_options(${PROJECT_NAME} PUBLIC -Wall -faligned-new
+        $<$<CONFIG:Release>:-Ofast -funroll-loops -ffast-math -march=native -mavx -mfma>)
 
 if(${CMAKE_VERSION} VERSION_GREATER  "3.16.0") 
   target_precompile_headers(${PROJECT_NAME} PUBLIC #include <thread>

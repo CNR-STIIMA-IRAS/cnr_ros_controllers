@@ -3,13 +3,14 @@
 
 #include <cmath>
 #include <Eigen/Core>
-#include <ros/ros.h>
+#include <ros/time.h>
+#include <sensor_msgs/JointState.h>
 
 #include <state_space_controllers/controllers.h>
 #include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
 #include <cnr_hardware_interface/posveleff_command_interface.h>
 #include <cnr_hardware_interface/veleff_command_interface.h>
-#include <sensor_msgs/JointState.h>
+
 
 namespace ect = eigen_control_toolbox;
 
@@ -69,9 +70,6 @@ protected:
       last_msg_time = ros::WallTime::now();
     }
   } m_dump;
-
-
-
 };
 
 using JointTeleopController  = JointTeleopControllerN<-1, cnr::control::max_num_axes>;

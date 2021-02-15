@@ -40,7 +40,7 @@ inline bool JointTeleopControllerN<N,MaxN>::doInit()
 
   if(!this->getControllerNh().getParam("dump_time", m_dump.dump_time))
   {
-    m_dump.dump_time = 50 * this->m_sampling_period;
+    m_dump.dump_time = 100 * this->m_sampling_period;
   }
 
   m_vel_sp = 0 * this->getVelocity();
