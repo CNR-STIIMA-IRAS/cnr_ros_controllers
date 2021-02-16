@@ -15,8 +15,11 @@ namespace cnr
 namespace control
 {
 
-template<int N, int MaxN>
-inline bool OpenLoopPositionControllerN<N,MaxN>::doInit()
+//!
+//! \brief OpenLoopPositionController::doInit
+//! \return
+//!
+inline bool OpenLoopPositionController::doInit()
 {
   CNR_TRACE_START(this->m_logger);
   if(!this->getControllerNh().getParam("setpoint_topic_name", m_setpoint_topic_name))
@@ -24,7 +27,7 @@ inline bool OpenLoopPositionControllerN<N,MaxN>::doInit()
     CNR_RETURN_FALSE(this->m_logger,"The param '"+this->getControllerNamespace()+"/setpoint_topic_name' does not exist");
   }
   this->template add_subscriber<sensor_msgs::JointState>(m_setpoint_topic_name, 1,
-        boost::bind(&OpenLoopPositionControllerN<N,MaxN>::callback, this, _1) );
+        boost::bind(&OpenLoopPositionController::callback, this, _1) );
 
   this->setPriority(this->Q_PRIORITY);
 
@@ -35,32 +38,45 @@ inline bool OpenLoopPositionControllerN<N,MaxN>::doInit()
   CNR_RETURN_TRUE(this->m_logger);
 }
 
-template<int N, int MaxN>
-inline bool OpenLoopPositionControllerN<N,MaxN>::doStarting(const ros::Time& /*time*/)
+//!
+//! \brief OpenLoopPositionController::doStarting
+//! \return
+//!
+inline bool OpenLoopPositionController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->m_logger);
   m_configured = false;
   CNR_RETURN_TRUE(this->m_logger);
 }
 
-template<int N, int MaxN>
-inline bool OpenLoopPositionControllerN<N,MaxN>::doStopping(const ros::Time& /*time*/)
+//!
+//! \brief OpenLoopPositionController::doStopping
+//! \return
+//!
+inline bool OpenLoopPositionController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->m_logger);
   m_configured = false;
   CNR_RETURN_TRUE(this->m_logger);
 }
 
-template<int N, int MaxN>
-inline bool OpenLoopPositionControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+//!
+//! \brief OpenLoopPositionController::doUpdate
+//! \return
+//!
+inline bool OpenLoopPositionController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->m_logger);
 
   CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->m_logger);
 }
 
-template<int N,int MaxN>
-inline bool OpenLoopPositionControllerN<N,MaxN>::extractJoint(const sensor_msgs::JointState& msg)
+//!
+//! \brief OpenLoopPositionController::extractJoint
+//! \param msg
+//! \return
+//!
+inline bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointState& msg)
 {
   size_t cnt = 0;
   auto target = this->getCommandPosition();
@@ -92,8 +108,8 @@ inline bool OpenLoopPositionControllerN<N,MaxN>::extractJoint(const sensor_msgs:
 }
 
 
-template<int N, int MaxN>
-inline void OpenLoopPositionControllerN<N,MaxN>::callback(const sensor_msgs::JointStateConstPtr& msg)
+//!
+inline void OpenLoopPositionController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
   CNR_TRACE_START_THROTTLE(this->m_logger, 1.0);
   if(extractJoint(*msg))

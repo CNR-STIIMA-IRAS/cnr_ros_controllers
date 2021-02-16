@@ -51,7 +51,6 @@ std::shared_ptr<cnr_hardware_interface::FakeRobotHW> robot_hw;
 std::shared_ptr<cnr::control::JointStatePublisher> ctrl;
 
 std::shared_ptr<cnr::control::JointStatePublisher > jc_ctrl_x;
-std::shared_ptr<cnr::control::JointStatePublisher6 > jc_ctrl_6;
 
 // Declare a test
 TEST(TestSuite, Constructor)
@@ -67,14 +66,6 @@ TEST(TestSuite, JCXConstructor)
 //  EXPECT_FALSE(jc_ctrl_x->init(robot_hw->get<hardware_interface::JointStateInterface>(), *root_nh, *robot_nh));
   EXPECT_TRUE(jc_ctrl_x->init(robot_hw->get<hardware_interface::JointStateInterface>(), *robot_nh, *ctrl_nh));
 }
-
-TEST(TestSuite, JC6Constructor)
-{
-  EXPECT_NO_FATAL_FAILURE(jc_ctrl_6.reset(new cnr::control::JointStatePublisher6()));
-//  EXPECT_FALSE(jc_ctrl_6->init(robot_hw->get<hardware_interface::JointStateInterface>(), *root_nh, *robot_nh));
-  EXPECT_TRUE(jc_ctrl_6->init(robot_hw->get<hardware_interface::JointStateInterface>(), *robot_nh, *ctrl_nh));
-}
-
 
 TEST(TestSuite, Desctructor)
 {

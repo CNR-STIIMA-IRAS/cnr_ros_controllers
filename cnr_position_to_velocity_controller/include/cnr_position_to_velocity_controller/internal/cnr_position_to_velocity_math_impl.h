@@ -14,9 +14,9 @@ namespace cnr
 namespace control
 {
 
-template<int N,int MaxN>
-inline int PositionToVelocityControllerMathN<N, MaxN>::init(ros::NodeHandle& nh,
-      const typename ect::Value<N,MaxN>& speed_limit, std::string& what)
+//!
+inline int PositionToVelocityControllerMath::init(
+    ros::NodeHandle& nh,const rosdyn::VectorXd& speed_limit,std::string& what)
 {
   what = "";
 
@@ -135,11 +135,10 @@ inline int PositionToVelocityControllerMathN<N, MaxN>::init(ros::NodeHandle& nh,
 
 }
 
-template<int N,int MaxN>
-inline void PositionToVelocityControllerMathN<N,MaxN>::starting(const ect::Value<N,MaxN>& fb_pos,
-    const ect::Value<N,MaxN>& fb_vel)
+//!
+inline void PositionToVelocityControllerMath::starting(const rosdyn::VectorXd& fb_pos, const rosdyn::VectorXd& fb_vel)
 {
-  ect::Value<N,MaxN> init_pos;
+  rosdyn::VectorXd init_pos;
   init_pos = fb_pos;
   m_last_target_pos = fb_pos;
   m_pos_filter.setStateFromLastIO(init_pos, init_pos);
@@ -147,7 +146,7 @@ inline void PositionToVelocityControllerMathN<N,MaxN>::starting(const ect::Value
   init_pos = fb_pos;
   m_target_pos_filter.setStateFromLastIO(init_pos, init_pos);
 
-  ect::Value<N,MaxN> init_vel;
+  rosdyn::VectorXd init_vel;
   if (m_use_target_velocity)
   {
     init_vel = fb_vel - fb_vel;
@@ -156,47 +155,47 @@ inline void PositionToVelocityControllerMathN<N,MaxN>::starting(const ect::Value
   {
     init_vel = fb_vel;
   }
-  ect::Value<N,MaxN> init_error=m_target_pos_filter.y() - m_pos_filter.y();
+  rosdyn::VectorXd init_error=m_target_pos_filter.y() - m_pos_filter.y();
 
   m_controller.setStateFromLastIO(init_error, init_vel);
   m_integral_controller.setStateFromLastIO(init_error, init_vel); // TODO fix INITIALIZATION of two controllers
   eigen_utils::setZero(m_antiwindup);
 }
 
-template<int N,int MaxN>
-inline void PositionToVelocityControllerMathN<N,MaxN>::stopping()
+//!
+inline void PositionToVelocityControllerMath::stopping()
 {
   eigen_utils::setZero(m_vel_cmd);
   eigen_utils::setZero(m_eff_cmd);
 }
 
-template<int N,int MaxN>
-inline bool PositionToVelocityControllerMathN<N,MaxN>::update(const ros::Time& time,
-      const ect::Value<N,MaxN>* const trg_pos,
-      const ect::Value<N,MaxN>* const trg_vel,
-      const ect::Value<N,MaxN>* const trg_eff,
+//!
+inline bool PositionToVelocityControllerMath::update(const ros::Time& time,
+      const rosdyn::VectorXd* const trg_pos,
+      const rosdyn::VectorXd* const trg_vel,
+      const rosdyn::VectorXd* const trg_eff,
       const double* const last_sp_time,
-      const ect::Value<N,MaxN>& fb_pos,
-      const ect::Value<N,MaxN>& /*fb_vel*/)
+      const rosdyn::VectorXd& fb_pos,
+      const rosdyn::VectorXd& /*fb_vel*/)
 {
   try
   {
-    ect::Value<N,MaxN> zero_val;
+    rosdyn::VectorXd zero_val;
     eigen_utils::resize(zero_val, eigen_utils::rows(*trg_pos));
     eigen_utils::setZero(zero_val);
 
-    ect::Value<N,MaxN> filter_output             = zero_val;
-    ect::Value<N,MaxN> target_filter_output      = zero_val;
-    ect::Value<N,MaxN> controller_input          = zero_val;
-    ect::Value<N,MaxN> controller_output         = zero_val;
-    ect::Value<N,MaxN> integral_controller_input = zero_val;
-    ect::Value<N,MaxN> integral_controller_output= zero_val;
+    rosdyn::VectorXd filter_output             = zero_val;
+    rosdyn::VectorXd target_filter_output      = zero_val;
+    rosdyn::VectorXd controller_input          = zero_val;
+    rosdyn::VectorXd controller_output         = zero_val;
+    rosdyn::VectorXd integral_controller_input = zero_val;
+    rosdyn::VectorXd integral_controller_output= zero_val;
 
     filter_output = m_pos_filter.update(fb_pos);
 
     if(trg_pos)
     {
-      ect::Value<N,MaxN> target_pos = (*trg_pos);
+      rosdyn::VectorXd target_pos = (*trg_pos);
       if (m_interpolate_setpoint && ((time.toSec() - *last_sp_time) <= m_maximum_interpolation_time))
       {
         target_pos = m_last_target_pos + (*trg_vel) * (time.toSec() - *last_sp_time);

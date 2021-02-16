@@ -18,14 +18,11 @@ namespace cnr
 namespace control
 {
 
-template<int N, int MaxN=N>
-class JointImpedanceControllerN :
-    public JointCommandController<N, MaxN,
-        hardware_interface::PosVelEffJointHandle, hardware_interface::PosVelEffJointInterface>
+class JointImpedanceController :
+    public JointCommandController<hardware_interface::PosVelEffJointHandle, hardware_interface::PosVelEffJointInterface>
 {
 public:
-
-  using Value = typename std::conditional<N==1, double, Eigen::Matrix<double,N,1,Eigen::ColMajor,MaxN> >::type;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   bool doInit();
   bool doUpdate(const ros::Time& time, const ros::Duration& period);
@@ -34,25 +31,27 @@ public:
 protected:
 
   bool m_is_configured;
+  rosdyn::Link m_root_link;  //link primitivo da cui parte la catena cinematica (world ad esempio)
+
   
-  typename JointRegulatorReference<N,MaxN>::Ptr m_regulator_input;
-  typename JointRegulatorControlCommand<N,MaxN>::Ptr m_regulator_output;
-  ImpedanceRegulatorN<N,MaxN> m_regulator;
+  typename JointRegulatorReference::Ptr m_regulator_input;
+  typename JointRegulatorControlCommand::Ptr m_regulator_output;
+  ImpedanceRegulator m_regulator;
   
   bool m_target_ok;
   bool m_effort_ok;
   bool m_use_wrench;
   
-  typename ImpedanceRegulatorState<N,MaxN>::Ptr m_state0;
+  typename ImpedanceRegulatorState::Ptr m_state0;
 
-  Value m_q_target;
-  Value m_qd_target;
+  rosdyn::VectorXd m_q_target;
+  rosdyn::VectorXd m_qd_target;
 
-  Value m_effort_db;
-  Value m_effort;
+  rosdyn::VectorXd m_effort_db;
+  rosdyn::VectorXd m_effort;
 
-  Eigen::Matrix<double,6,1> m_wrench_db;
-  Value                     m_wrench_of_t_in_b;
+  Eigen::Vector6d m_wrench_db;
+  rosdyn::VectorXd          m_wrench_of_t_in_b;
 
   std::string   m_sensor_link;
   rosdyn::Chain m_chain_bs;
@@ -61,14 +60,8 @@ protected:
   void setEffortCallback(const boost::shared_ptr<sensor_msgs::JointState const>& msg);
   void setWrenchCallback(const boost::shared_ptr<geometry_msgs::WrenchStamped const>& msg);
 
-  ~JointImpedanceControllerN();
+  ~JointImpedanceController();
 };
-
-using JointImpedanceController  = JointImpedanceControllerN<-1, cnr::control::max_num_axes>;
-using JointImpedanceController1 = JointImpedanceControllerN<1>;
-using JointImpedanceController3 = JointImpedanceControllerN<3>;
-using JointImpedanceController6 = JointImpedanceControllerN<6>;
-using JointImpedanceController7 = JointImpedanceControllerN<7>;
 
 }
 }

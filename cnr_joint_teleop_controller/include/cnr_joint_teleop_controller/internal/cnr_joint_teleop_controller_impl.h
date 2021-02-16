@@ -15,26 +15,24 @@ namespace control
 
 
 /**
- * @brief JointTeleopControllerN<N,MaxN>::JointTeleopController
+ * @brief JointTeleopController::JointTeleopController
  */
-template<int N,int MaxN>
-inline JointTeleopControllerN<N,MaxN>::JointTeleopControllerN()
+inline JointTeleopController::JointTeleopController()
 {
 }
 
 /**
- * @brief JointTeleopControllerN<N,MaxN>::doInit
+ * @brief JointTeleopController::doInit
  * @return
  */
-template<int N,int MaxN>
-inline bool JointTeleopControllerN<N,MaxN>::doInit()
+inline bool JointTeleopController::doInit()
 {
   //INIT PUB/SUB
   std::string setpoint_topic_name;
   setpoint_topic_name = this->getControllerNamespace() + "/target_joint_teleop";
 
   this->template add_subscriber<sensor_msgs::JointState>(
-        setpoint_topic_name,5,boost::bind(&JointTeleopControllerN<N,MaxN>::callback,this,_1), false);
+        setpoint_topic_name,5,boost::bind(&JointTeleopController::callback,this,_1), false);
 
   this->setPriority(this->QD_PRIORITY);
 
@@ -54,11 +52,10 @@ inline bool JointTeleopControllerN<N,MaxN>::doInit()
 }
 
 /**
- * @brief JointTeleopControllerN<N,MaxN>::doStarting
+ * @brief JointTeleopController::doStarting
  * @param time
  */
-template<int N,int MaxN>
-inline bool JointTeleopControllerN<N,MaxN>::doStarting(const ros::Time& /*time*/)
+inline bool JointTeleopController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger(),"Starting Controller");
   m_pos_sp = this->getPosition();
@@ -69,31 +66,29 @@ inline bool JointTeleopControllerN<N,MaxN>::doStarting(const ros::Time& /*time*/
 }
 
 /**
- * @brief JointTeleopControllerN<N,MaxN>::stopping
+ * @brief JointTeleopController::stopping
  * @param time
  */
-template<int N,int MaxN>
-inline bool JointTeleopControllerN<N,MaxN>::doStopping(const ros::Time& /*time*/)
+inline bool JointTeleopController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger(),"Stopping Controller");
   CNR_RETURN_TRUE(this->logger());
 }
 
 /**
- * @brief JointTeleopControllerN<N,MaxN>::doUpdate
+ * @brief JointTeleopController::doUpdate
  * @param time
  * @param period
  * @return
  */
-template<int N,int MaxN>
-inline bool JointTeleopControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*/, const ros::Duration& period)
+inline bool JointTeleopController::doUpdate(const ros::Time& /*time*/, const ros::Duration& period)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   std::stringstream report;
   std::lock_guard<std::mutex> lock(m_mtx);
   
-  ect::Value<N,MaxN> vel_sp = m_vel_sp;
-  ect::Value<N,MaxN> pos_sp = m_pos_sp;
+  rosdyn::VectorXd vel_sp = m_vel_sp;
+  rosdyn::VectorXd pos_sp = m_pos_sp;
   if(m_has_pos_sp)
   {
     auto dist_to_sp_perc = eu::norm(m_pos_sp - this->getPosition()) / eu::norm(m_dist_to_pos_sp);
@@ -117,11 +112,10 @@ inline bool JointTeleopControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*/, 
 }
 
 /**
- * @brief JointTeleopControllerN<N,MaxN>::callback
+ * @brief JointTeleopController::callback
  * @param msg
  */
-template<int N,int MaxN>
-inline void JointTeleopControllerN<N,MaxN>::callback(const sensor_msgs::JointStateConstPtr& msg)
+inline void JointTeleopController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
   if(msg->velocity.size() == msg->name.size())
   {

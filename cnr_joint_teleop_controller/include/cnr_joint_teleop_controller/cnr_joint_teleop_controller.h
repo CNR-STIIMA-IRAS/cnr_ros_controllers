@@ -23,15 +23,12 @@ namespace control
 /**
  * @brief The JointTeleopController class
  */
-
-template<int N,int MaxN=N>
-class JointTeleopControllerN:
-    public cnr::control::JointCommandController<N, MaxN,
-               hardware_interface::PosVelEffJointHandle, hardware_interface::PosVelEffJointInterface>
+class JointTeleopController:
+    public cnr::control::JointCommandController<
+                  hardware_interface::PosVelEffJointHandle, hardware_interface::PosVelEffJointInterface>
 {
-
 public:
-  JointTeleopControllerN();
+  JointTeleopController();
   bool doInit();
   bool doUpdate(const ros::Time& time, const ros::Duration& period);
   bool doStarting(const ros::Time& time);
@@ -40,14 +37,14 @@ public:
 
 protected:
 
-  std::mutex      m_mtx;
-  bool            m_has_pos_sp;
-  ect::Value<N,MaxN> m_vel_sp;
-  ect::Value<N,MaxN> m_pos_sp;
-  ect::Value<N,MaxN> m_dpos_sp;
-  ect::Value<N,MaxN> m_vel_sp_last;
-  ect::Value<N,MaxN> m_dist_to_pos_sp;
-  ect::Value<N,MaxN> m_scaling_factor;
+  std::mutex m_mtx;
+  bool       m_has_pos_sp;
+  rosdyn::VectorXd m_vel_sp;
+  rosdyn::VectorXd m_pos_sp;
+  rosdyn::VectorXd m_dpos_sp;
+  rosdyn::VectorXd m_vel_sp_last;
+  rosdyn::VectorXd m_dist_to_pos_sp;
+  rosdyn::VectorXd m_scaling_factor;
 
   struct DumpFilter
   {
@@ -72,11 +69,7 @@ protected:
   } m_dump;
 };
 
-using JointTeleopController  = JointTeleopControllerN<-1, cnr::control::max_num_axes>;
-using JointTeleopController1 = JointTeleopControllerN<1>;
-using JointTeleopController3 = JointTeleopControllerN<3>;
-using JointTeleopController6 = JointTeleopControllerN<6>;
-using JointTeleopController7 = JointTeleopControllerN<7>;
+
 }
 }
 

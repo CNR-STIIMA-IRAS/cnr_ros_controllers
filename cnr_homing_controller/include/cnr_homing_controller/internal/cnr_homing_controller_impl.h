@@ -10,8 +10,8 @@ namespace cnr
 namespace control
 {
 
-template<int N, int MaxN>
-inline bool HomingControllerN<N,MaxN>::doInit()
+//!
+inline bool HomingController::doInit()
 {
   CNR_TRACE_START(this->logger());
   if(this->nAx() > 1)
@@ -22,24 +22,24 @@ inline bool HomingControllerN<N,MaxN>::doInit()
   CNR_RETURN_TRUE(this->logger());
 }
 
-template<int N, int MaxN>
-inline bool HomingControllerN<N,MaxN>::doStarting(const ros::Time& /*time*/)
+//!
+inline bool HomingController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   CNR_INFO(this->logger(), "Start homing of joint " << cnr::control::to_string(this->m_chain.getActiveJointsName()));
   CNR_RETURN_TRUE(this->logger());
 }
 
-template<int N, int MaxN>
-inline bool HomingControllerN<N,MaxN>::doStopping(const ros::Time& /*time*/)
+//!
+inline bool HomingController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   CNR_INFO(this->logger(), "Stop homing of joint " << cnr::control::to_string(this->m_chain.getActiveJointsName()));
   CNR_RETURN_TRUE(this->logger());
 }
 
-template<int N, int MaxN>
-inline bool HomingControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+//!
+inline bool HomingController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_RETURN_TRUE(this->logger());
 }

@@ -14,8 +14,8 @@ namespace cnr
 namespace control
 {
 
-template<int N,int MaxN>
-inline bool RobotStateControllerN<N,MaxN>::doInit( )
+//!
+inline bool RobotStateController::doInit( )
 {
 
   if (!this->getControllerNh().getParam("frames",m_frames))
@@ -56,8 +56,8 @@ inline bool RobotStateControllerN<N,MaxN>::doInit( )
   return true;
 }
 
-template<int N,int MaxN>
-inline bool RobotStateControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+//!
+inline bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   size_t ll = __LINE__;
   try

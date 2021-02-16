@@ -3,6 +3,7 @@
 #ifndef cnr_joint_impedance_controller__cnr_joint_impedance_controller_impl_h
 #define cnr_joint_impedance_controller__cnr_joint_impedance_controller_impl_h
 
+#include <rosdyn_core/primitives.h>
 #include <name_sorting/name_sorting.h>
 #include <cnr_joint_impedance_controller/cnr_joint_impedance_controller.h>
 #include <cnr_regulator_interface/cnr_regulator_references.h>
@@ -57,14 +58,14 @@ namespace cnr
 namespace control
 {
 
-template<int N, int MaxN>
-inline JointImpedanceControllerN<N,MaxN>::~JointImpedanceControllerN()
+//!
+inline JointImpedanceController::~JointImpedanceController()
 {
 
 }
 
-template<int N, int MaxN>
-inline bool JointImpedanceControllerN<N,MaxN>::doInit( )
+//!
+inline bool JointImpedanceController::doInit( )
 #define GET_PARAM_VECTOR_AND_RETURN( P, X , N)\
   if(!this->getControllerNh().getParam( std::string(P).c_str(), X))\
   {\
@@ -93,7 +94,7 @@ inline bool JointImpedanceControllerN<N,MaxN>::doInit( )
 
     CNR_INFO(*this->logger(), "Subscribing " << joint_target);
     this->template add_subscriber<sensor_msgs::JointState>(joint_target, 1,
-            boost::bind(&cnr::control::JointImpedanceControllerN<N,MaxN>::setTargetCallback,this,_1));
+            boost::bind(&cnr::control::JointImpedanceController::setTargetCallback,this,_1));
 
     if(!this->getControllerNh().getParam("use_wrench", m_use_wrench))
     {
@@ -109,19 +110,17 @@ inline bool JointImpedanceControllerN<N,MaxN>::doInit( )
       GET_AND_RETURN(this->getControllerNh(), "sensor_frame"           , m_sensor_link          );
       GET_AND_RETURN(this->getControllerNh(), "external_wrench_topic"  , external_wrench_topic   );
 
-
-      rosdyn::LinkPtr root_link(new rosdyn::Link());  //link primitivo da cui parte la catena cinematica (world ad esempio)
-      root_link->fromUrdf(this->m_urdf_model->root_link_);
+      m_root_link.fromUrdf(this->m_urdf_model->root_link_.get());
 
       std::string error;
-      if(!m_chain_bs.init(error,root_link,this->m_chain.getLinksName().front(), m_sensor_link))
+      if(!m_chain_bs.init(error,&m_root_link,this->m_chain.getLinksName().front(), m_sensor_link))
       {
         CNR_ERROR(this->m_logger, "Failing in creating the Chain from the URDF model:\n\t" + error + "");
         CNR_RETURN_FALSE(this->m_logger);
       }
       
       this->template add_subscriber<geometry_msgs::WrenchStamped>(external_wrench_topic,1,
-              boost::bind(&cnr::control::JointImpedanceControllerN<N,MaxN>::setWrenchCallback,this, _1));
+              boost::bind(&cnr::control::JointImpedanceController::setWrenchCallback,this, _1));
 
       CNR_INFO(this->logger(), "[ " <<this->getControllerNamespace() << " ] DOF Chain from Baset to Tool  : " << this->m_chain.getActiveJointsNumber() );
       CNR_INFO(this->logger(), "[ " <<this->getControllerNamespace() << " ] DOF Chain from Baset to Sensor: " << m_chain_bs.getActiveJointsNumber() );
@@ -132,7 +131,7 @@ inline bool JointImpedanceControllerN<N,MaxN>::doInit( )
       GET_AND_RETURN(this->getControllerNh(), "external_torques_topic", external_torques );
       
       this->template add_subscriber<sensor_msgs::JointState>(external_torques,1,
-              boost::bind(&cnr::control::JointImpedanceControllerN<N,MaxN>::setEffortCallback,this,_1));
+              boost::bind(&cnr::control::JointImpedanceController::setEffortCallback,this,_1));
     }
 
 
@@ -192,26 +191,26 @@ inline bool JointImpedanceControllerN<N,MaxN>::doInit( )
 #undef GET_PARAM_VECTOR_AND_RETURN
 }
 
-template<int N, int MaxN>
-inline bool JointImpedanceControllerN<N,MaxN>::doStarting(const ros::Time& time)
+//!
+inline bool JointImpedanceController::doStarting(const ros::Time& time)
 {
   CNR_TRACE_START(this->logger());
 
-  typename ImpedanceRegulatorState<N,MaxN>::Ptr st0(new ImpedanceRegulatorState<N,MaxN>(this->m_chain));
+  typename ImpedanceRegulatorState::Ptr st0(new ImpedanceRegulatorState(this->m_chain));
   st0->robotState().copy(this->chainState(), this->chainState().ONLY_JOINT);
   st0->msdState() = this->chainState();
   
   m_regulator.starting(st0, time); 
-  m_regulator_input.reset(new JointRegulatorReference<N,MaxN>());
+  m_regulator_input.reset(new JointRegulatorReference());
   m_regulator_input->set_dimension(this->nAx());
-  m_regulator_output.reset(new JointRegulatorControlCommand<N,MaxN>());
+  m_regulator_output.reset(new JointRegulatorControlCommand());
   m_regulator_output->set_dimension(this->nAx());
 
   CNR_RETURN_TRUE(this->logger());
 }
 
-template<int N, int MaxN>
-inline bool JointImpedanceControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+//!
+inline bool JointImpedanceController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   // ==================================================================
   bool is_configured = m_is_configured;
@@ -241,8 +240,8 @@ inline bool JointImpedanceControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*
   CNR_RETURN_TRUE(this->logger());
 }
 
-template<int N, int MaxN>
-inline void JointImpedanceControllerN<N,MaxN>::setTargetCallback(const boost::shared_ptr<sensor_msgs::JointState const>& msg)
+//!
+inline void JointImpedanceController::setTargetCallback(const boost::shared_ptr<sensor_msgs::JointState const>& msg)
 {
   try 
   {
@@ -270,8 +269,8 @@ inline void JointImpedanceControllerN<N,MaxN>::setTargetCallback(const boost::sh
 }
 
 
-template<int N, int MaxN>
-inline void JointImpedanceControllerN<N,MaxN>::setEffortCallback(const boost::shared_ptr<sensor_msgs::JointState const>& msg)
+//!
+inline void JointImpedanceController::setEffortCallback(const boost::shared_ptr<sensor_msgs::JointState const>& msg)
 {
 
   try
@@ -300,8 +299,8 @@ inline void JointImpedanceControllerN<N,MaxN>::setEffortCallback(const boost::sh
   }
 }
 
-template<int N, int MaxN>
-inline void JointImpedanceControllerN<N,MaxN>::setWrenchCallback(const boost::shared_ptr<geometry_msgs::WrenchStamped const>& msg)
+//!
+inline void JointImpedanceController::setWrenchCallback(const boost::shared_ptr<geometry_msgs::WrenchStamped const>& msg)
 {
   try
   {
@@ -334,9 +333,9 @@ inline void JointImpedanceControllerN<N,MaxN>::setWrenchCallback(const boost::sh
 
 
     Eigen::Affine3d T_base_tool              = this->chainState().toolPose();
-    Eigen::Matrix<double,6,N> jacobian_of_tool_in_base = this->chainState().jacobian();
+    rosdyn::Matrix6Xd jacobian_of_tool_in_base = this->chainState().jacobian();
 
-    Eigen::VectorXd _q(this->m_chain.getActiveJointsNumber());
+    rosdyn::VectorXd _q(this->m_chain.getActiveJointsNumber());
     eu::copy(_q,this->getPosition());
     Eigen::Affine3d T_base_sensor            = m_chain_bs.getTransformation(_q);
     Eigen::Affine3d T_tool_sensor            = T_base_tool.inverse() * T_base_sensor;

@@ -1,12 +1,12 @@
 #ifndef CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER_MATH_H
 #define CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER_MATH_H
 
-#include <state_space_controllers/controllers.h>
 #include <thread>
 #include <mutex>
 #include <vector>
 #include <string>
-#include <ros/ros.h>
+#include <state_space_controllers/controllers.h>
+#include <rosdyn_core/primitives.h>
 #include <sensor_msgs/JointState.h>
 
 namespace ect = eigen_control_toolbox;
@@ -16,55 +16,59 @@ namespace cnr
 namespace control
 {
 
-template<int N, int MaxN>
-class PositionToVelocityControllerMathN
+typedef ect::Controller<-1,rosdyn::max_num_axes> ControllerX;
+using DiscreteStateSpaceX = ect::DiscreteStateSpace<-1,-1,-1,
+                                  rosdyn::max_num_axes,rosdyn::max_num_axes,rosdyn::max_num_axes>;
+
+
+class PositionToVelocityControllerMath
 {
 public:
-  PositionToVelocityControllerMathN() = default;
-  int init(ros::NodeHandle& ctrl_nh, const typename ect::Value<N,MaxN>& speed_limit, std::string& what);
+  PositionToVelocityControllerMath() = default;
+  int init(ros::NodeHandle& ctrl_nh, const rosdyn::VectorXd& speed_limit, std::string& what);
   bool update(const ros::Time& time,
-              const ect::Value<N,MaxN>* const trg_pos,
-              const ect::Value<N,MaxN>* const trg_vel,
-              const ect::Value<N,MaxN>* const trg_eff,
+              const rosdyn::VectorXd* const trg_pos,
+              const rosdyn::VectorXd* const trg_vel,
+              const rosdyn::VectorXd* const trg_eff,
               const double* const last_sp_time,
-              const ect::Value<N,MaxN>& fb_pos,
-              const ect::Value<N,MaxN>& fb_vel);
-  void starting(const ect::Value<N,MaxN>& fb_pos, const ect::Value<N,MaxN>& fb_vel);
+              const rosdyn::VectorXd& fb_pos,
+              const rosdyn::VectorXd& fb_vel);
+  void starting(const rosdyn::VectorXd& fb_pos, const rosdyn::VectorXd& fb_vel);
   void stopping();
 
-  const ect::Value<N,MaxN>& getPosCmd() const
+  const rosdyn::VectorXd& getPosCmd() const
   {
     return m_pos_cmd;
   }
-  const ect::Value<N,MaxN>& getVelCmd() const
+  const rosdyn::VectorXd& getVelCmd() const
   {
     return m_vel_cmd;
   }
-  const ect::Value<N,MaxN>& getEffCmd() const
+  const rosdyn::VectorXd& getEffCmd() const
   {
     return m_eff_cmd;
   }
 
 protected:
 
-  ect::Controller<N,MaxN> m_controller;
-  ect::Controller<N,MaxN> m_integral_controller;
-  ect::DiscreteStateSpace<N,N,N,MaxN,MaxN,MaxN> m_pos_filter;
-  ect::DiscreteStateSpace<N,N,N,MaxN,MaxN,MaxN> m_target_pos_filter;
+  ControllerX         m_controller;
+  ControllerX         m_integral_controller;
+  DiscreteStateSpaceX m_pos_filter;
+  DiscreteStateSpaceX m_target_pos_filter;
 
   bool m_use_feedback;
   bool m_interpolate_setpoint;
   double m_maximum_interpolation_time;
-  ect::Value<N,MaxN> m_last_target_pos;
-  ect::Value<N,MaxN> m_pos_minimum_error;
-  ect::Value<N,MaxN> m_pos_maximum_error;
-  ect::Value<N,MaxN> m_pos_deadband;
-  ect::MatrixN<N,MaxN> m_antiwindup_gain;
-  ect::Value<N,MaxN> m_pos_cmd;
-  ect::Value<N,MaxN> m_vel_cmd;
-  ect::Value<N,MaxN> m_eff_cmd;
-  ect::Value<N,MaxN> m_antiwindup;
-  ect::Value<N,MaxN> m_max_velocity;
+  rosdyn::VectorXd m_last_target_pos;
+  rosdyn::VectorXd m_pos_minimum_error;
+  rosdyn::VectorXd m_pos_maximum_error;
+  rosdyn::VectorXd m_pos_deadband;
+  rosdyn::MatrixXd m_antiwindup_gain;
+  rosdyn::VectorXd m_pos_cmd;
+  rosdyn::VectorXd m_vel_cmd;
+  rosdyn::VectorXd m_eff_cmd;
+  rosdyn::VectorXd m_antiwindup;
+  rosdyn::VectorXd m_max_velocity;
 
   bool m_use_target_torque;
   bool m_use_target_velocity;

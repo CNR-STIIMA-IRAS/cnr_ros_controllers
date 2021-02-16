@@ -12,8 +12,8 @@ namespace cnr
 namespace control
 {
 
-template<int N,int MaxN>
-inline bool VelocityToTorqueControllerN<N,MaxN>::doInit( )
+//!
+inline bool VelocityToTorqueController::doInit( )
 {
   CNR_TRACE_START(this->logger());
   std::string setpoint_topic_name;
@@ -24,7 +24,7 @@ inline bool VelocityToTorqueControllerN<N,MaxN>::doInit( )
     CNR_RETURN_FALSE(this->logger());
   }
   this->template add_subscriber<sensor_msgs::JointState>(setpoint_topic_name,1,
-                                    boost::bind(&VelocityToTorqueControllerN<N,MaxN>::callback, this, _1));
+                                    boost::bind(&VelocityToTorqueController::callback, this, _1));
 
   m_use_target_torque = false;
   if(!this->getControllerNh().getParam("use_target_torque", m_use_target_torque))
@@ -104,8 +104,8 @@ inline bool VelocityToTorqueControllerN<N,MaxN>::doInit( )
   return true;
 }
 
-template<int N,int MaxN>
-inline bool VelocityToTorqueControllerN<N,MaxN>::doStarting(const ros::Time& /*time*/)
+//!
+inline bool VelocityToTorqueController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   m_configured = false;
@@ -132,8 +132,8 @@ inline bool VelocityToTorqueControllerN<N,MaxN>::doStarting(const ros::Time& /*t
   CNR_RETURN_TRUE(this->logger());
 }
 
-template<int N,int MaxN>
-inline bool VelocityToTorqueControllerN<N,MaxN>::doStopping(const ros::Time& /*time*/)
+//!
+inline bool VelocityToTorqueController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   m_configured = false;
@@ -141,8 +141,8 @@ inline bool VelocityToTorqueControllerN<N,MaxN>::doStopping(const ros::Time& /*t
   CNR_RETURN_TRUE(this->logger());
 }
 
-template<int N,int MaxN>
-inline bool VelocityToTorqueControllerN<N,MaxN>::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+//!
+inline bool VelocityToTorqueController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   try
@@ -201,10 +201,10 @@ inline bool VelocityToTorqueControllerN<N,MaxN>::doUpdate(const ros::Time& /*tim
 }
 
 
-template<int N,int MaxN>
-inline bool VelocityToTorqueControllerN<N,MaxN>::extractJoint(
+//!
+inline bool VelocityToTorqueController::extractJoint(
     const sensor_msgs::JointState& msg, const std::vector<std::string>& names,
-    ect::Value<N,MaxN>& vel, ect::Value<N,MaxN>& eff)
+    rosdyn::VectorXd& vel, rosdyn::VectorXd& eff)
 {
   if(msg.velocity.size()!=msg.name.size())
   {
@@ -227,8 +227,8 @@ inline bool VelocityToTorqueControllerN<N,MaxN>::extractJoint(
   return true;
 }
 
-template<int N,int MaxN>
-inline void VelocityToTorqueControllerN<N,MaxN>::callback(const sensor_msgs::JointStateConstPtr& msg)
+//!
+inline void VelocityToTorqueController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
   if (extractJoint(*msg, this->jointNames(), m_target_vel, m_target_eff))
   {

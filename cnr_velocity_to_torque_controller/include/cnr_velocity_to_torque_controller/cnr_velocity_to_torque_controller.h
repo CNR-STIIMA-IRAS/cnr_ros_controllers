@@ -21,10 +21,14 @@ namespace cnr
 namespace control
 {
 
-template<int N,int MaxN=N>
-class VelocityToTorqueControllerN :
-    public cnr::control::JointCommandController<N, MaxN,
-                  hardware_interface::JointHandle, hardware_interface::EffortJointInterface>
+typedef ect::Controller<-1,rosdyn::max_num_axes> ControllerX;
+using DiscreteStateSpaceX = ect::DiscreteStateSpace<-1,-1,-1,
+                                  rosdyn::max_num_axes,rosdyn::max_num_axes,rosdyn::max_num_axes>;
+
+
+//!
+class VelocityToTorqueController : public
+    cnr::control::JointCommandController< hardware_interface::JointHandle, hardware_interface::EffortJointInterface>
 {
 public:
   bool doInit( );
@@ -37,33 +41,27 @@ protected:
   bool m_well_init;
   bool m_use_feedback;
 
-  ect::Controller<N,MaxN> m_controller;
-  ect::Controller<N,MaxN> m_integral_controller;
-  ect::DiscreteStateSpace<N,N,N,MaxN,MaxN,MaxN> m_filter;
-  ect::DiscreteStateSpace<N,N,N,MaxN,MaxN,MaxN> m_target_filter;
+  ControllerX m_controller;
+  ControllerX m_integral_controller;
+  DiscreteStateSpaceX m_filter;
+  DiscreteStateSpaceX m_target_filter;
 
-  ect::MatrixN<N,MaxN> m_antiwindup_gain;
-  ect::Value<N,MaxN> m_pos_deadband;
-  ect::Value<N,MaxN> m_vel_cmd;
-  ect::Value<N,MaxN> m_eff_cmd;
-  ect::Value<N,MaxN> m_antiwindup;
-  ect::Value<N,MaxN> m_max_effort;
-  ect::Value<N,MaxN> m_target_vel;
-  ect::Value<N,MaxN> m_target_eff;
+  rosdyn::MatrixXd m_antiwindup_gain;
+  rosdyn::VectorXd m_pos_deadband;
+  rosdyn::VectorXd m_vel_cmd;
+  rosdyn::VectorXd m_eff_cmd;
+  rosdyn::VectorXd m_antiwindup;
+  rosdyn::VectorXd m_max_effort;
+  rosdyn::VectorXd m_target_vel;
+  rosdyn::VectorXd m_target_eff;
 
   bool m_configured;
   bool m_use_target_torque;
 
   void callback(const sensor_msgs::JointStateConstPtr &msg);
   bool extractJoint(const sensor_msgs::JointState& msg, const std::vector<std::string>& name,
-                      ect::Value<N,MaxN>& vel, ect::Value<N,MaxN>& eff);
+                      rosdyn::VectorXd& vel, rosdyn::VectorXd& eff);
 };
-
-using VelocityToTorqueController  = VelocityToTorqueControllerN<-1, cnr::control::max_num_axes>;
-using VelocityToTorqueController1 = VelocityToTorqueControllerN<1>;
-using VelocityToTorqueController3 = VelocityToTorqueControllerN<3>;
-using VelocityToTorqueController6 = VelocityToTorqueControllerN<6>;
-using VelocityToTorqueController7 = VelocityToTorqueControllerN<7>;
 
 } // namespace control
 } // namespace cnr

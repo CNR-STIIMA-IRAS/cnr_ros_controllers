@@ -10,8 +10,8 @@ namespace cnr
 namespace control
 {
 
-template<int N, int MaxN>
-inline JointStatePublisherN<N,MaxN>::~JointStatePublisherN()
+//!
+inline JointStatePublisher::~JointStatePublisher()
 {
   CNR_TRACE_START(this->logger());
   if (!this->isStopped())
@@ -20,8 +20,8 @@ inline JointStatePublisherN<N,MaxN>::~JointStatePublisherN()
   }
 }
 
-template<int N, int MaxN>
-inline bool JointStatePublisherN<N,MaxN>::doInit()
+//!
+inline bool JointStatePublisher::doInit()
 {
   CNR_TRACE_START(this->logger());
   if (this->nAx()==0)
@@ -42,15 +42,15 @@ inline bool JointStatePublisherN<N,MaxN>::doInit()
   CNR_RETURN_TRUE(this->logger());
 }
 
-template<int N, int MaxN>
-inline bool JointStatePublisherN<N,MaxN>::doStarting(const ros::Time& time)
+//!
+inline bool JointStatePublisher::doStarting(const ros::Time& time)
 {
   CNR_TRACE_START(this->logger());
   CNR_RETURN_TRUE(this->logger());
 }
 
-template<int N, int MaxN>
-inline bool JointStatePublisherN<N,MaxN>::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+//!
+inline bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   try
@@ -75,8 +75,8 @@ inline bool JointStatePublisherN<N,MaxN>::doUpdate(const ros::Time& /*time*/, co
   CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
 }
 
-template<int N, int MaxN>
-inline bool JointStatePublisherN<N,MaxN>::doStopping(const ros::Time& /*time*/)
+//!
+inline bool JointStatePublisher::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   this->getPublisher(m_pub_handle)->shutdown();

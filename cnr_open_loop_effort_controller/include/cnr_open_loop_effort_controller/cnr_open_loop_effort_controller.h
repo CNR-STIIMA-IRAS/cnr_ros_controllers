@@ -12,10 +12,9 @@ namespace cnr
 namespace control
 {
 
-template<int N,int MaxN=N>
-class OpenLoopEffortControllerN :
-    public cnr::control::JointCommandController<N,MaxN,
-                     hardware_interface::JointHandle, hardware_interface::EffortJointInterface>
+//!
+class OpenLoopEffortController :
+  public cnr::control::JointCommandController<hardware_interface::JointHandle,hardware_interface::EffortJointInterface>
 {
 public:
   bool doInit();
@@ -25,11 +24,11 @@ public:
 
 protected:
 
-  cnr::control::Vector  m_eff_cmd;
-  cnr::control::Vector  m_max_effort;
+  rosdyn::VectorXd  m_eff_cmd;
+  rosdyn::VectorXd  m_max_effort;
 
-  std::string     m_setpoint_topic_name;
-  bool            m_configured;
+  std::string m_setpoint_topic_name;
+  bool        m_configured;
 
   void callback(const boost::shared_ptr<const sensor_msgs::JointState> & msg);
   bool extractJoint(const sensor_msgs::JointState& msg);
@@ -37,14 +36,6 @@ protected:
   const std::string SP_TOPIC_ID = "sp";
 
 };
-
-using OpenLoopEffortController  = OpenLoopEffortControllerN<-1, cnr::control::max_num_axes>;
-using OpenLoopEffortController1 = OpenLoopEffortControllerN<1>;
-using OpenLoopEffortController3 = OpenLoopEffortControllerN<3>;
-using OpenLoopEffortController6 = OpenLoopEffortControllerN<6>;
-using OpenLoopEffortController7 = OpenLoopEffortControllerN<7>;
-using OpenLoopEffortController8 = OpenLoopEffortControllerN<8>;
-
 
 }  // namespace control
 }  // namespace cnr

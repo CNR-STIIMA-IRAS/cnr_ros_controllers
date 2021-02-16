@@ -24,9 +24,9 @@ namespace control
  * The name of the topic is specified by the parameter:
  * /<robot_hardware_namespace>/<controller_namespace>/setpoint_topic_name
  */
-template<int N,int MaxN, class H, class T>
-class PositionToVelocityControllerBaseN:
-    public cnr::control::JointCommandController<N,MaxN,H,T>
+template<class H, class T>
+class PositionToVelocityControllerBase:
+    public cnr::control::JointCommandController<H,T>
 {
 public:
   virtual bool doInit();
@@ -35,40 +35,28 @@ public:
   virtual bool doStopping(const ros::Time& time);
 
 protected:
-  cnr::control::PositionToVelocityControllerMathN<N,MaxN> ctrl;
+  cnr::control::PositionToVelocityControllerMath ctrl;
 
-  //! Position Target: it may be a double, if N==1, or a Matrix<double, N, 1> if N!=1
-  ect::Value<N,MaxN> m_target_pos;
-  //! Velocity Target: it may be a double, if N==1, or a Matrix<double, N, 1> if N!=1
-  ect::Value<N,MaxN> m_target_vel;
-  //! Effort Target: it may be a double, if N==1, or a Matrix<double, N, 1> if N!=1
-  ect::Value<N,MaxN> m_target_eff;
-  bool               m_configured;
-  double             m_last_sp_time;
+  rosdyn::VectorXd m_target_pos;
+  rosdyn::VectorXd m_target_vel;
+  rosdyn::VectorXd m_target_eff;
+  bool             m_configured;
+  double           m_last_sp_time;
 
   void callback(const sensor_msgs::JointStateConstPtr msg);
   bool extractJoint(const sensor_msgs::JointState msg, const std::vector<std::string>& name,
-     typename ect::Value<N,MaxN>& pos, typename ect::Value<N,MaxN>& vel, typename ect::Value<N,MaxN>& eff);
+                        rosdyn::VectorXd& pos, rosdyn::VectorXd& vel, rosdyn::VectorXd& eff);
 };
 
 //! alias, to make simpler
-template<int N, int MaxN=N>
-using PositionToVelocityControllerN = PositionToVelocityControllerBaseN<N, MaxN,
+using PositionToVelocityController = PositionToVelocityControllerBase<
                                           hardware_interface::JointHandle,hardware_interface::VelocityJointInterface>;
 
-//! List of the objects that are instatiated and located in the plugin
-using PositionToVelocityController  = PositionToVelocityControllerN<-1, cnr::control::max_num_axes>;
-using PositionToVelocityController1 = PositionToVelocityControllerN<1>;
-using PositionToVelocityController3 = PositionToVelocityControllerN<3>;
-using PositionToVelocityController6 = PositionToVelocityControllerN<6>;
-using PositionToVelocityController7 = PositionToVelocityControllerN<7>;
 
-template<int N, int MaxN=N>
-using PositionToVelocityControllerFfwBaseN = PositionToVelocityControllerBaseN<N, MaxN,
+using PositionToVelocityControllerFfwBase = PositionToVelocityControllerBase<
                                  hardware_interface::PosVelEffJointHandle, hardware_interface::PosVelEffJointInterface>;
 
-template<int N, int MaxN=N>
-class PositionToVelocityControllerFfwN : public PositionToVelocityControllerFfwBaseN<N, MaxN>
+class PositionToVelocityControllerFfw : public PositionToVelocityControllerFfwBase
 {
 public:
   bool doInit();
@@ -77,12 +65,6 @@ public:
   bool doStopping(const ros::Time& time);
 
 };
-
-using PositionToVelocityControllerFfw  = PositionToVelocityControllerFfwN<-1, cnr::control::max_num_axes>;
-using PositionToVelocityControllerFfw1 = PositionToVelocityControllerFfwN<1>;
-using PositionToVelocityControllerFfw3 = PositionToVelocityControllerFfwN<3>;
-using PositionToVelocityControllerFfw6 = PositionToVelocityControllerFfwN<6>;
-using PositionToVelocityControllerFfw7 = PositionToVelocityControllerFfwN<7>;
 
 }  // namespace control
 }  // namespace cnr

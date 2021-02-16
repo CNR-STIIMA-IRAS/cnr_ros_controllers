@@ -20,9 +20,11 @@ namespace cnr
 namespace control
 {
 
-template<int N, int MaxN=N>
-class OpenLoopPositionControllerN :
-    public cnr::control::JointCommandController<N, MaxN, hardware_interface::JointHandle,
+/**
+ * @brief The OpenLoopPositionController class
+ */
+class OpenLoopPositionController :
+  public cnr::control::JointCommandController<hardware_interface::JointHandle,
                                                             hardware_interface::PositionJointInterface>
 {
 public:
@@ -41,13 +43,6 @@ protected:
 
   const std::string   SP_TOPIC_ID = "sp";
 };
-
-using OpenLoopPositionController  = OpenLoopPositionControllerN<-1, cnr::control::max_num_axes>;
-using OpenLoopPositionController1 = OpenLoopPositionControllerN<1>;
-using OpenLoopPositionController3 = OpenLoopPositionControllerN<3>;
-using OpenLoopPositionController6 = OpenLoopPositionControllerN<6>;
-using OpenLoopPositionController7 = OpenLoopPositionControllerN<7>;
-using OpenLoopPositionController8 = OpenLoopPositionControllerN<8>;
 
 }  // namespace control
 }  // namespace cnr
