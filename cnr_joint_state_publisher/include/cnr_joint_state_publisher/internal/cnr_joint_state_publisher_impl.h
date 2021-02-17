@@ -11,6 +11,8 @@ namespace control
 {
 
 //!
+//! \brief JointStatePublisher::~JointStatePublisher
+//!
 inline JointStatePublisher::~JointStatePublisher()
 {
   CNR_TRACE_START(this->logger());
@@ -20,6 +22,9 @@ inline JointStatePublisher::~JointStatePublisher()
   }
 }
 
+//!
+//! \brief JointStatePublisher::doInit
+//! \return
 //!
 inline bool JointStatePublisher::doInit()
 {
@@ -36,19 +41,32 @@ inline bool JointStatePublisher::doInit()
   m_msg->effort.resize(this->nAx(), 0);
   m_msg->name = this->jointNames();
 
+  if(!this->getPublisher(m_pub_handle))
+  {
+    CNR_FATAL(this->logger(), "Failed in creating the publisher 'joint_states '");
+    CNR_RETURN_TRUE(this->logger());
+  }
+
   CNR_TRACE(this->logger(), "Published Topic '" + this->getPublisher(m_pub_handle)->getTopic()
                      + "', axis names: " + cnr::control::to_string(this->jointNames())
             + " n. axes: " + std::to_string(this->nAx()));
+
   CNR_RETURN_TRUE(this->logger());
 }
 
 //!
-inline bool JointStatePublisher::doStarting(const ros::Time& time)
+//! \brief JointStatePublisher::doStarting
+//! \return
+//!
+inline bool JointStatePublisher::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   CNR_RETURN_TRUE(this->logger());
 }
 
+//!
+//! \brief JointStatePublisher::doUpdate
+//! \return
 //!
 inline bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
@@ -76,10 +94,14 @@ inline bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::
 }
 
 //!
+//! \brief JointStatePublisher::doStopping
+//! \return
+//!
 inline bool JointStatePublisher::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
-  this->getPublisher(m_pub_handle)->shutdown();
+  if(this->getPublisher(m_pub_handle))
+    this->getPublisher(m_pub_handle)->shutdown();
   CNR_RETURN_TRUE(this->logger());
 }
 
