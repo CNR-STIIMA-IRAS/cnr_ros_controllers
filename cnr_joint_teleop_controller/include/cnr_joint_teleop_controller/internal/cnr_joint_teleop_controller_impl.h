@@ -3,10 +3,12 @@
 #ifndef cnr_joint_teleop_controller__cnr_joint_teleop_controller_impl_h
 #define cnr_joint_teleop_controller__cnr_joint_teleop_controller_impl_h
 
+#include <state_space_filters/filtered_values.h>
 #include <eigen_matrix_utils/overloads.h>
 #include <cnr_joint_teleop_controller/cnr_joint_teleop_controller.h>
 
 namespace eu = eigen_utils;
+namespace ect = eigen_control_toolbox;
 
 namespace cnr
 {
@@ -41,7 +43,18 @@ inline bool JointTeleopController::doInit()
     m_dump.dump_time = 100 * this->m_sampling_period;
   }
 
-  m_vel_sp = 0 * this->getVelocity();
+  ect::FilteredVectorXd::Value dead_band;
+  ect::FilteredVectorXd::Value saturation;
+  ect::FilteredVectorXd::Value init_value;
+
+  dead_band = 0.0 * m_chain.getDQMax();
+  saturation = m_chain.getDQMax();
+  init_value = dead_band;
+  if(!m_vel_fitler_sp.activateFilter ( dead_band, saturation, (10.0 / 2.0 / M_PI), this->m_sampling_period, init_value ))
+  {
+    CNR_RETURN_FALSE(this->logger());
+  }
+  m_vel_sp = m_vel_fitler_sp.getValue();
   m_pos_sp = this->getPosition();
 
   m_has_pos_sp = false;
@@ -85,20 +98,26 @@ inline bool JointTeleopController::doUpdate(const ros::Time& /*time*/, const ros
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   std::stringstream report;
+
   std::lock_guard<std::mutex> lock(m_mtx);
-  
   rosdyn::VectorXd vel_sp = m_vel_sp;
   rosdyn::VectorXd pos_sp = m_pos_sp;
   if(m_has_pos_sp)
   {
     auto dist_to_sp_perc = eu::norm(m_pos_sp - this->getPosition()) / eu::norm(m_dist_to_pos_sp);
     auto dir_to_sp      = eu::normalized(m_pos_sp - this->getPosition());
-    vel_sp = eu::norm(m_vel_sp) * dist_to_sp_perc * dir_to_sp;
+    vel_sp = eu::norm(vel_sp) * dist_to_sp_perc * dir_to_sp;
   }
   else
   {
-    vel_sp   = m_vel_sp * m_dump.dumpFactor();
-    m_pos_sp = m_pos_sp + vel_sp * period.toSec();
+//    if(rosdyn::saturateSpeed(this->m_chain, vel_sp,
+//          this->getVelocity(), this->getPosition(), this->m_sampling_period, 1.0, true, &report ))
+//    {
+//       CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
+//    }
+    m_vel_fitler_sp.update(vel_sp);
+    //vel_sp   = m_vel_sp; //* m_dump.dumpFactor();
+    m_pos_sp = m_pos_sp + m_vel_fitler_sp.getValue()* period.toSec();
     pos_sp   = m_pos_sp;
     if(rosdyn::saturatePosition(this->m_chain,pos_sp, &report))
     {
@@ -122,7 +141,7 @@ inline void JointTeleopController::callback(const sensor_msgs::JointStateConstPt
     std::stringstream report;
     try
     {
-      std::lock_guard<std::mutex> lock(m_mtx);
+      const std::lock_guard<std::mutex> lock(m_mtx);
       m_has_pos_sp = false;
       eu::setZero(m_vel_sp);
       for( size_t iJoint=0; iJoint< this->jointNames().size(); iJoint++)
@@ -140,13 +159,7 @@ inline void JointTeleopController::callback(const sensor_msgs::JointStateConstPt
           }
         }
       }
-      
-      if(rosdyn::saturateSpeed(this->m_chain, m_vel_sp,
-            this->getVelocity(), this->getPosition(), this->m_sampling_period, 1.0, true, &report ))
-      {
-         CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
-      }
-      
+            
       if(m_has_pos_sp)
       {
         if(rosdyn::saturatePosition(this->m_chain,m_pos_sp, &report))
@@ -154,7 +167,7 @@ inline void JointTeleopController::callback(const sensor_msgs::JointStateConstPt
           CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
         }
         m_dist_to_pos_sp = m_pos_sp - this->getPosition();
-        m_vel_sp = eu::dot(m_vel_sp, eu::normalized(m_dist_to_pos_sp) ) * eu::normalized(m_dist_to_pos_sp);
+        m_vel_sp = eu::dot(m_vel_sp, eu::normalized(m_dist_to_pos_sp) )*eu::normalized(m_dist_to_pos_sp);
       }
       m_dump.tick();
     }
