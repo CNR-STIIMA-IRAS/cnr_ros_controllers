@@ -12,7 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(catkin REQUIRED COMPONENTS
   urdf
   cnr_controller_interface
-  state_space_controllers
+  state_space_filters
   cnr_hardware_interface
   pluginlib
   sensor_msgs
@@ -33,7 +33,7 @@ endif()
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES cnr_joint_teleop_controller
- CATKIN_DEPENDS urdf cnr_controller_interface state_space_controllers cnr_hardware_interface pluginlib sensor_msgs std_msgs name_sorting joint_limits_interface
+ CATKIN_DEPENDS urdf cnr_controller_interface state_space_filters cnr_hardware_interface pluginlib sensor_msgs std_msgs name_sorting joint_limits_interface
  DEPENDS EIGEN3
 )
 
