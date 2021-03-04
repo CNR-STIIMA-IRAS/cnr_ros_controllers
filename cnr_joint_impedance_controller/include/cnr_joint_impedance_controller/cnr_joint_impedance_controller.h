@@ -31,7 +31,7 @@ public:
 protected:
 
   bool m_is_configured;
-  rosdyn::Link m_root_link;  //link primitivo da cui parte la catena cinematica (world ad esempio)
+  rosdyn::LinkPtr m_root_link;  //link primitivo da cui parte la catena cinematica (world ad esempio)
 
   
   typename JointRegulatorReference::Ptr m_regulator_input;

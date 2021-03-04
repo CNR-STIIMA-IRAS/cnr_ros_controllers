@@ -110,10 +110,11 @@ inline bool JointImpedanceController::doInit( )
       GET_AND_RETURN(this->getControllerNh(), "sensor_frame"           , m_sensor_link          );
       GET_AND_RETURN(this->getControllerNh(), "external_wrench_topic"  , external_wrench_topic   );
 
-      m_root_link.fromUrdf(this->m_urdf_model->root_link_.get());
+      NEW_HEAP(m_root_link, rosdyn::Link());
+      m_root_link->fromUrdf(GET(this->m_urdf_model->root_link_));
 
       std::string error;
-      if(!m_chain_bs.init(error,&m_root_link,this->m_chain.getLinksName().front(), m_sensor_link))
+      if(!m_chain_bs.init(error,m_root_link,this->m_chain.getLinksName().front(), m_sensor_link))
       {
         CNR_ERROR(this->m_logger, "Failing in creating the Chain from the URDF model:\n\t" + error + "");
         CNR_RETURN_FALSE(this->m_logger);

@@ -46,7 +46,6 @@ std::shared_ptr<ros::NodeHandle> robot_nh;
 std::shared_ptr<ros::NodeHandle> ctrl_nh;
 std::shared_ptr<cnr_hardware_interface::FakeRobotHW> robot_hw;
 std::shared_ptr<cnr::control::HomingController> ctrl;
-std::shared_ptr<cnr::control::HomingController6> ctrl6;
 
 TEST(TestSuite, Constructor)
 {
@@ -55,19 +54,11 @@ TEST(TestSuite, Constructor)
   EXPECT_TRUE(ctrl->init(robot_hw->get<hardware_interface::PositionJointInterface>(), *robot_nh, *ctrl_nh));
 }
 
-//TEST(TestSuite, Constructor6)
-//{
-//  EXPECT_NO_FATAL_FAILURE(ctrl6.reset(new cnr::control::HomingController6()));
-//  EXPECT_FALSE(ctrl6->init(robot_hw->get<hardware_interface::JointCommandInterface>(), *root_nh, *robot_nh));
-//  EXPECT_TRUE(ctrl6->init(robot_hw->get<hardware_interface::JointCommandInterface>(), *robot_nh, *ctrl_nh));
-//}
-
 TEST(TestSuite, Desctructor)
 {
   EXPECT_NO_FATAL_FAILURE(ctrl.reset());
   EXPECT_NO_FATAL_FAILURE(robot_hw.reset());
 }
-
 
 // Run all the tests that were declared with TEST()
 int main(int argc, char **argv)
