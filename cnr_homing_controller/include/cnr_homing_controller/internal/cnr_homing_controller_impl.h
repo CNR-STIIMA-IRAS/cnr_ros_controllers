@@ -14,9 +14,9 @@ namespace control
 inline bool HomingController::doInit()
 {
   CNR_TRACE_START(this->logger());
-  if(this->nAx() > 1)
-    CNR_RETURN_FALSE(this->logger(),
-     "Homing controller is designed for just 1 joint, while "+std::to_string(this->nAx())+" joints configured. Abort.");
+//  if(this->nAx() > 1)
+//    CNR_RETURN_FALSE(this->logger(),
+//     "Homing controller is designed for just 1 joint, while "+std::to_string(this->nAx())+" joints configured. Abort.");
   CNR_INFO(this->logger(), "Init homing of joint " << cnr::control::to_string(this->m_chain.getActiveJointsName()));
   this->setPriority(this->Q_PRIORITY);
   CNR_RETURN_TRUE(this->logger());
@@ -41,7 +41,7 @@ inline bool HomingController::doStopping(const ros::Time& /*time*/)
 //!
 inline bool HomingController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
-  CNR_RETURN_TRUE(this->logger());
+  CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
 }
 
 }

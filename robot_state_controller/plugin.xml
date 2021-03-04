@@ -1,5 +1,6 @@
 <library path="lib/librobot_state_controller">
-  <class name="cnr/control/RobotStateController" type="robot_state_controller::RobotStateController" base_class_type="controller_interface::ControllerBase">
+  <class name="cnr/control/RobotStateController" type="cnr::control::RobotStateController"
+    base_class_type="controller_interface::ControllerBase">
     <description>
       Robot state publisher controller
     </description>
