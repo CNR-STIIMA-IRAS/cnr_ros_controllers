@@ -45,6 +45,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doInit()
   int ok = ctrl.init(this->getControllerNh(), speed_limit,what);
   if(ok==-1)
   {
+    CNR_ERROR(this->logger(), "Math ctrl of the PositionToVelocityController failed in initialization!\n" << what);
     CNR_RETURN_FALSE(this->logger(),
       "Math ctrl of the PositionToVelocityController failed in initialization:\n\t" + what);
   }

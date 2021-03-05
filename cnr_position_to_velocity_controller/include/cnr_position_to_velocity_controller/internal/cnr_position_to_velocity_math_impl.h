@@ -23,13 +23,13 @@ inline int PositionToVelocityControllerMath::init(
   m_use_target_velocity = false;
   if (!nh.getParam("use_target_velocity", m_use_target_velocity))
   {
-    what = nh.getNamespace() + "/use_target_velocity does not exist, set FALSE";
+    what = "?" + nh.getNamespace() + "/use_target_velocity does not exist, set FALSE";
   }
 
   m_use_target_torque = false;
   if (!nh.getParam("use_target_torque", m_use_target_torque))
   {
-    what += (what.size()>0? "\n" : "")
+    what += (what.size()>0? "\n[?] " : "[?] ")
          + nh.getNamespace() + "/use_target_torque does not exist, set FALSE";
   }
 
@@ -37,46 +37,45 @@ inline int PositionToVelocityControllerMath::init(
   int ok = eigen_control_toolbox::setMatricesFromParam(m_target_pos_filter,nh, "target_pos_filter",msg);
   if(ok==-1)
   {
-    what += (what.size()>0? "\n" : "") + msg;
+    what += (what.size()>0? "\n[!] " : "[!] ") + msg;
     return -1;
   }
   else if(ok==0)
   {
-    what += (what.size()>0? "\n" : "") + msg;
+    what += (what.size()>0? "\n[!] " : "[!] ") + msg;
   }
 
   ok = eigen_control_toolbox::setMatricesFromParam(m_pos_filter,nh, "pos_filter",msg);
   if(ok==-1)
   {
-    what += (what.size()>0? "\n" : "") + msg;
+    what += (what.size()>0? "\n[!] " : "[!] ") + msg;
     return -1;
   }
   else if(ok==0)
   {
-    what += (what.size()>0? "\n" : "") + msg;
-
+    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
   }
 
   ok = eigen_control_toolbox::setMatricesFromParam(m_controller,nh, "controller",msg);
   if(ok==-1)
   {
-    what += (what.size()>0? "\n" : "") + msg;
+    what += (what.size()>0? "\n[!] " : "[!] ") + msg;
     return -1;
   }
   else if(ok==0)
   {
-    what += (what.size()>0? "\n" : "") + msg;
+    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
   }
 
   ok = eigen_control_toolbox::setMatricesFromParam(m_integral_controller,nh, "integral_controller",msg);
   if(ok==-1)
   {
-    what += (what.size()>0? "\n" : "") + msg;
+    what += (what.size()>0? "\n[!] " : "[!] ") + msg;
     return -1;
   }
   else if(ok==0)
   {
-    what += (what.size()>0? "\n" : "") + msg;
+    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
   }
 
   if(!eigen_utils::resize(m_pos_minimum_error, eigen_utils::size(speed_limit))
@@ -90,7 +89,8 @@ inline int PositionToVelocityControllerMath::init(
   || !eigen_utils::resize(m_antiwindup       , eigen_utils::size(speed_limit))
   || !eigen_utils::resize(m_max_velocity     , eigen_utils::size(speed_limit)))
   {
-    return false;
+    what += (what.size()>0? "\n[!] " : "[!] ") + std::string("Error in resize a vector");
+    return -1;
   }
 
   eigen_utils::setZero(m_pos_minimum_error);
@@ -104,34 +104,34 @@ inline int PositionToVelocityControllerMath::init(
   eigen_utils::setZero(m_antiwindup            );
   eigen_utils::setZero(m_max_velocity          );
 
-  if(!rosparam_utilities::getParam(nh,"position_minimum_error", m_pos_minimum_error, what, &m_pos_minimum_error))
+  if(!rosparam_utilities::getParam(nh,"position_minimum_error", m_pos_minimum_error, msg, &m_pos_minimum_error))
   {
-    ROS_WARN("%s", what.c_str());
+    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
   }
 
-  if(!rosparam_utilities::getParam(nh,"position_maximum_error", m_pos_maximum_error, what, &m_pos_maximum_error))
+  if(!rosparam_utilities::getParam(nh,"position_maximum_error", m_pos_maximum_error, msg, &m_pos_maximum_error))
   {
-    ROS_WARN("%s", what.c_str());
+    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
   }
 
   if (!nh.getParam("interpolate_setpoint", m_interpolate_setpoint))
   {
-    ROS_WARN("interpolate_setpoint specified, set false");
+    what += (what.size()>0? "\n[?] " : "[?] ") + std::string("interpolate_setpoint specified, set false");
     m_interpolate_setpoint = false;
   }
   else if (!nh.getParam("maximum_interpolation_time", m_maximum_interpolation_time))
   {
-    ROS_WARN("maximum_interpolation_time specified, set 10 ms");
+    what += (what.size()>0? "\n[?] " : "[?] ") + std::string("Maximum_interpolation_time specified, set 10 ms");
     m_maximum_interpolation_time = 0.01;
   }
 
-  if(!rosparam_utilities::getParam(nh,"antiwindup_ratio", m_antiwindup_gain, what, &m_antiwindup_gain))
+  if(!rosparam_utilities::getParam(nh,"antiwindup_ratio", m_antiwindup_gain, msg, &m_antiwindup_gain))
   {
-    ROS_WARN("%s", what.c_str());
+    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
   }
 
   m_max_velocity = speed_limit;
-  return true;
+  return 1;
 
 }
 
