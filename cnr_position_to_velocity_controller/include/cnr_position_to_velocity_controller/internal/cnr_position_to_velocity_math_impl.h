@@ -34,15 +34,11 @@ inline int PositionToVelocityControllerMath::init(
   }
 
   std::string msg;
-  int ok = eigen_control_toolbox::setMatricesFromParam(m_target_pos_filter,nh, "target_pos_filter",msg);
-  if(ok==-1)
+  bool ok = eigen_control_toolbox::setMatricesFromParam(m_target_pos_filter,nh, "target_pos_filter",msg);
+  what += (msg.size() >0 ? (what.size()>0? "\n" : "") + msg : "");
+  if(!ok)
   {
-    what += (what.size()>0? "\n[!] " : "[!] ") + msg;
     return -1;
-  }
-  else if(ok==0)
-  {
-    what += (what.size()>0? "\n[!] " : "[!] ") + msg;
   }
 
   ok = eigen_control_toolbox::setMatricesFromParam(m_pos_filter,nh, "pos_filter",msg);
