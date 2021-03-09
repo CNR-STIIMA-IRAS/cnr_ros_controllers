@@ -25,7 +25,7 @@ class PositionToVelocityControllerMath
 {
 public:
   PositionToVelocityControllerMath() = default;
-  int init(ros::NodeHandle& ctrl_nh, const rosdyn::VectorXd& speed_limit, std::string& what);
+  bool init(ros::NodeHandle& ctrl_nh, const rosdyn::VectorXd& speed_limit, std::string& what);
   bool update(const ros::Time& time,
               const rosdyn::VectorXd* const trg_pos,
               const rosdyn::VectorXd* const trg_vel,
@@ -33,7 +33,7 @@ public:
               const double* const last_sp_time,
               const rosdyn::VectorXd& fb_pos,
               const rosdyn::VectorXd& fb_vel);
-  void starting(const rosdyn::VectorXd& fb_pos, const rosdyn::VectorXd& fb_vel);
+  bool starting(const rosdyn::VectorXd& fb_pos, const rosdyn::VectorXd& fb_vel, std::string& what);
   void stopping();
 
   const rosdyn::VectorXd& getPosCmd() const
