@@ -5,135 +5,145 @@
 
 #include <ros/node_handle.h>
 #include <Eigen/Core>
+#include <rosparam_utilities/rosparam_utilities.h>
 #include <state_space_ros/ros_params.h>
 #include <cnr_position_to_velocity_controller/cnr_position_to_velocity_math.h>
 //#include <urdf/model.h>
+
+namespace ect = eigen_control_toolbox;
+namespace eu  = eigen_utils;
+namespace ru  = rosparam_utilities;
 
 namespace cnr
 {
 namespace control
 {
 
+bool append_string(std::string& what, bool ok, const std::string& msg)
+{
+  std::string ch   =  ok ? "[?]" : "[!]";
+  std::string msg_ = msg.size()>0 ? ch + " " + msg : "";
+
+  what += msg_.size()>0 ? 
+	  ( (what.size()>0 ? "\n" : "") + msg_ ) : "";
+  return ok;
+}
+
 //!
-inline int PositionToVelocityControllerMath::init(
+inline bool PositionToVelocityControllerMath::init(
     ros::NodeHandle& nh,const rosdyn::VectorXd& speed_limit,std::string& what)
 {
   what = "";
 
-  m_use_target_velocity = false;
-  if (!nh.getParam("use_target_velocity", m_use_target_velocity))
-  {
-    what = "?" + nh.getNamespace() + "/use_target_velocity does not exist, set FALSE";
-  }
-
-  m_use_target_torque = false;
-  if (!nh.getParam("use_target_torque", m_use_target_torque))
-  {
-    what += (what.size()>0? "\n[?] " : "[?] ")
-         + nh.getNamespace() + "/use_target_torque does not exist, set FALSE";
-  }
-
-  std::string msg;
-  bool ok = eigen_control_toolbox::setMatricesFromParam(m_target_pos_filter,nh, "target_pos_filter",msg);
-  what += (msg.size() >0 ? (what.size()>0? "\n" : "") + msg : "");
-  if(!ok)
-  {
-    return -1;
-  }
-
-  ok = eigen_control_toolbox::setMatricesFromParam(m_pos_filter,nh, "pos_filter",msg);
-  if(ok==-1)
-  {
-    what += (what.size()>0? "\n[!] " : "[!] ") + msg;
-    return -1;
-  }
-  else if(ok==0)
-  {
-    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
-  }
-
-  ok = eigen_control_toolbox::setMatricesFromParam(m_controller,nh, "controller",msg);
-  if(ok==-1)
-  {
-    what += (what.size()>0? "\n[!] " : "[!] ") + msg;
-    return -1;
-  }
-  else if(ok==0)
-  {
-    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
-  }
-
-  ok = eigen_control_toolbox::setMatricesFromParam(m_integral_controller,nh, "integral_controller",msg);
-  if(ok==-1)
-  {
-    what += (what.size()>0? "\n[!] " : "[!] ") + msg;
-    return -1;
-  }
-  else if(ok==0)
-  {
-    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
-  }
-
-  if(!eigen_utils::resize(m_pos_minimum_error, eigen_utils::size(speed_limit))
-  || !eigen_utils::resize(m_pos_maximum_error, eigen_utils::size(speed_limit))
-  || !eigen_utils::resize(m_last_target_pos  , eigen_utils::size(speed_limit))
-  || !eigen_utils::resize(m_pos_deadband     , eigen_utils::size(speed_limit))
-  || !eigen_utils::resize(m_antiwindup_gain  , eigen_utils::size(speed_limit), eigen_utils::size(speed_limit))
-  || !eigen_utils::resize(m_pos_cmd          , eigen_utils::size(speed_limit))
-  || !eigen_utils::resize(m_vel_cmd          , eigen_utils::size(speed_limit))
-  || !eigen_utils::resize(m_eff_cmd          , eigen_utils::size(speed_limit))
-  || !eigen_utils::resize(m_antiwindup       , eigen_utils::size(speed_limit))
-  || !eigen_utils::resize(m_max_velocity     , eigen_utils::size(speed_limit)))
+  //======================= CHECK IF ELEMENT ARE RESIZABLE (STATIC vs DYN ALLOCATION, and check malloc)
+  if(!eu::resize(m_pos_minimum_error, eu::size(speed_limit))
+  || !eu::resize(m_pos_maximum_error, eu::size(speed_limit))
+  || !eu::resize(m_last_target_pos  , eu::size(speed_limit))
+  || !eu::resize(m_pos_deadband     , eu::size(speed_limit))
+  || !eu::resize(m_antiwindup_gain  , eu::size(speed_limit), eu::size(speed_limit))
+  || !eu::resize(m_pos_cmd          , eu::size(speed_limit))
+  || !eu::resize(m_vel_cmd          , eu::size(speed_limit))
+  || !eu::resize(m_eff_cmd          , eu::size(speed_limit))
+  || !eu::resize(m_antiwindup       , eu::size(speed_limit))
+  || !eu::resize(m_max_velocity     , eu::size(speed_limit)))
   {
     what += (what.size()>0? "\n[!] " : "[!] ") + std::string("Error in resize a vector");
-    return -1;
+    std::cout << what << std::endl;
+    return false;
   }
+  //=================================
 
-  eigen_utils::setZero(m_pos_minimum_error);
-  eigen_utils::setConstant(m_pos_maximum_error,0.1);
-  eigen_utils::setZero(m_last_target_pos       );
-  eigen_utils::setZero(m_pos_deadband          );
-  eigen_utils::setDiagonal(m_antiwindup_gain, 1.0);
-  eigen_utils::setZero(m_pos_cmd               );
-  eigen_utils::setZero(m_vel_cmd               );
-  eigen_utils::setZero(m_eff_cmd               );
-  eigen_utils::setZero(m_antiwindup            );
-  eigen_utils::setZero(m_max_velocity          );
+  //================================= default values
+  eu::setZero(m_pos_minimum_error);
+  eu::setConstant(m_pos_maximum_error,0.1);
+  eu::setZero(m_last_target_pos       );
+  eu::setZero(m_pos_deadband          );
+  eu::setDiagonal(m_antiwindup_gain, 1.0);
+  eu::setZero(m_pos_cmd               );
+  eu::setZero(m_vel_cmd               );
+  eu::setZero(m_eff_cmd               );
+  eu::setZero(m_antiwindup            );
+  eu::setZero(m_max_velocity          );
+  m_interpolate_setpoint = false;
+  m_maximum_interpolation_time = 0.01;
+  m_use_target_velocity = false;
+  m_use_target_torque = false;
+  //================================= default values
 
-  if(!rosparam_utilities::getParam(nh,"position_minimum_error", m_pos_minimum_error, msg, &m_pos_minimum_error))
+  // PARAM
+  bool ok = true;
+  std::string msg;
+  ok &= append_string( what,ru::getParam(nh,"position_minimum_error"    , m_pos_minimum_error         , msg, &m_pos_minimum_error   ), msg);
+  ok &= append_string( what,ru::getParam(nh,"position_minimum_error"    , m_pos_minimum_error         , msg, &m_pos_minimum_error   ), msg);
+  ok &= append_string( what,ru::getParam(nh,"position_maximum_error"    , m_pos_maximum_error         , msg, &m_pos_maximum_error   ), msg);
+  ok &= append_string( what,ru::getParam(nh,"interpolate_setpoint"      , m_interpolate_setpoint      , msg, &m_interpolate_setpoint), msg) ;
+  ok &= append_string( what,ru::getParam(nh,"maximum_interpolation_time", m_maximum_interpolation_time, msg, &m_maximum_interpolation_time), msg);
+  ok &= append_string( what,ru::getParam(nh,"antiwindup_ratio"          , m_antiwindup_gain           , msg, &m_antiwindup_gain), msg);
+  ok &= append_string( what,ru::getParam(nh,"use_target_velocity"       , m_use_target_velocity       , msg, &m_use_target_velocity), msg);
+  ok &= append_string( what,ru::getParam(nh,"use_target_torque"         , m_use_target_torque         , msg, &m_use_target_torque), msg );
+  ok &= append_string( what,ect::setMatricesFromParam(m_target_pos_filter  ,nh, "target_pos_filter"   , msg), msg );
+  ok &= append_string( what,ect::setMatricesFromParam(m_pos_filter         ,nh, "pos_filter"          , msg), msg );
+  ok &= append_string( what,ect::setMatricesFromParam(m_controller         ,nh, "controller"          , msg), msg );
+  ok &= append_string( what,ect::setMatricesFromParam(m_integral_controller,nh, "integral_controller" , msg), msg );
+
+
+  if(!ok)
   {
-    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
+    return false;
   }
+  //=============
 
-  if(!rosparam_utilities::getParam(nh,"position_maximum_error", m_pos_maximum_error, msg, &m_pos_maximum_error))
+  std::vector<std::pair<int, std::string>> checks2 =
   {
-    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
-  }
+    { m_target_pos_filter.uDim() == eu::size(speed_limit), "Wrong Target Pos Filter input dimension"},
+    { m_target_pos_filter.yDim() == eu::size(speed_limit), "Wrong Target Pos Filter output dimension"},
+    { m_pos_filter.uDim() == eu::size(speed_limit) ? 1 : -1, "Wrong Pos Filter input dimension"},
+    { m_pos_filter.yDim() == eu::size(speed_limit) ? 1 : -1, "Wrong Pos Filter output dimension"},
+    { m_controller.uDim() == eu::size(speed_limit) ? 1 : -1, "Wrong Controller input dimension"},
+    { m_controller.yDim() == eu::size(speed_limit) ? 1 : -1, "Wrong Controller output dimension"},
+    { m_integral_controller.uDim() == eu::size(speed_limit) ? 1 : -1, "Wrong Integral Controller input dimension"},
+    { m_integral_controller.yDim() == eu::size(speed_limit) ? 1 : -1, "Wrong Integral Controller output dimension"},
+  };
 
-  if (!nh.getParam("interpolate_setpoint", m_interpolate_setpoint))
+  for(size_t i=0;i<checks2.size();i++)
   {
-    what += (what.size()>0? "\n[?] " : "[?] ") + std::string("interpolate_setpoint specified, set false");
-    m_interpolate_setpoint = false;
+    ok &= checks2.at(i).first;
+    std::string ch = (checks2.at(i).first == -1) ? "[!]" : "[?]";
+    what += checks2.at(i).first==1 ? "" : ( (what.size()>0? "\n" : "" ) + ch + " " + checks2.at(i).second );
   }
-  else if (!nh.getParam("maximum_interpolation_time", m_maximum_interpolation_time))
+  if(!ok)
   {
-    what += (what.size()>0? "\n[?] " : "[?] ") + std::string("Maximum_interpolation_time specified, set 10 ms");
-    m_maximum_interpolation_time = 0.01;
-  }
-
-  if(!rosparam_utilities::getParam(nh,"antiwindup_ratio", m_antiwindup_gain, msg, &m_antiwindup_gain))
-  {
-    what += (what.size()>0? "\n[?] " : "[?] ") + msg;
+    return false;
   }
 
   m_max_velocity = speed_limit;
-  return 1;
+
+  return true;
 
 }
 
 //!
-inline void PositionToVelocityControllerMath::starting(const rosdyn::VectorXd& fb_pos, const rosdyn::VectorXd& fb_vel)
+inline bool PositionToVelocityControllerMath::starting(const rosdyn::VectorXd& fb_pos, const rosdyn::VectorXd& fb_vel, std::string& what)
 {
+  if(fb_pos.rows()!=m_last_target_pos.rows() || fb_vel.rows()!=m_last_target_pos.rows())
+  {
+    what = "The input args has incorrect dimension. fb pos: " + std::to_string(fb_pos.rows())+", fb vel: "+std::to_string(fb_vel.rows());
+    what += " last pos: (" + std::to_string(m_last_target_pos.rows())+"x"+std::to_string(m_last_target_pos.cols())+")";
+    return false;
+  }
+  if(m_pos_filter.uDim()!=fb_pos.rows() || m_target_pos_filter.uDim()!=fb_pos.rows())
+  {
+    what = "The input args has incorrect dimension. fb pos: " + std::to_string(fb_pos.rows())+", fb vel: "+std::to_string(fb_vel.rows());
+    what += " pos filter: " + std::to_string(m_pos_filter.uDim()) + "  target pos filter: "+std::to_string( m_target_pos_filter.uDim())+")";
+    return false;
+  }
+  if(m_pos_filter.yDim()!=fb_pos.rows() || m_target_pos_filter.yDim()!=fb_pos.rows())
+  {
+    what = "The input args has incorrect dimension. fb pos: " + std::to_string(fb_pos.rows())+", fb vel: "+std::to_string(fb_vel.rows());
+    what += " pos filter: " + std::to_string(m_pos_filter.yDim()) + "  target pos filter: "+std::to_string( m_target_pos_filter.yDim())+")";
+    return false;
+  }
+  
   rosdyn::VectorXd init_pos;
   init_pos = fb_pos;
   m_last_target_pos = fb_pos;
@@ -155,14 +165,15 @@ inline void PositionToVelocityControllerMath::starting(const rosdyn::VectorXd& f
 
   m_controller.setStateFromLastIO(init_error, init_vel);
   m_integral_controller.setStateFromLastIO(init_error, init_vel); // TODO fix INITIALIZATION of two controllers
-  eigen_utils::setZero(m_antiwindup);
+  eu::setZero(m_antiwindup);
+  return true;
 }
 
 //!
 inline void PositionToVelocityControllerMath::stopping()
 {
-  eigen_utils::setZero(m_vel_cmd);
-  eigen_utils::setZero(m_eff_cmd);
+  eu::setZero(m_vel_cmd);
+  eu::setZero(m_eff_cmd);
 }
 
 //!
@@ -177,8 +188,8 @@ inline bool PositionToVelocityControllerMath::update(const ros::Time& time,
   try
   {
     rosdyn::VectorXd zero_val;
-    eigen_utils::resize(zero_val, eigen_utils::rows(*trg_pos));
-    eigen_utils::setZero(zero_val);
+    eu::resize(zero_val, eu::rows(fb_pos));
+    eu::setZero(zero_val);
 
     rosdyn::VectorXd filter_output             = zero_val;
     rosdyn::VectorXd target_filter_output      = zero_val;
@@ -206,10 +217,10 @@ inline bool PositionToVelocityControllerMath::update(const ros::Time& time,
 
     controller_input = target_filter_output - filter_output; //controller error
 
-    if(eigen_utils::norm(controller_input) > eigen_utils::norm(m_pos_maximum_error))
+    if(eu::norm(controller_input) > eu::norm(m_pos_maximum_error))
     {
       ROS_ERROR("Exceeded the position_maximum_error!");
-      eigen_utils::setZero(m_vel_cmd);
+      eu::setZero(m_vel_cmd);
       return false;
     }
     integral_controller_input = target_filter_output - filter_output + m_antiwindup_gain * m_antiwindup; //integral controller error
@@ -221,28 +232,28 @@ inline bool PositionToVelocityControllerMath::update(const ros::Time& time,
     m_vel_cmd = controller_output + integral_controller_output + ( m_use_target_velocity && trg_vel ? *trg_vel : zero_val );
     m_eff_cmd = m_use_target_torque && trg_eff ? *trg_eff : zero_val;
 
-    for(int i=0; i<eigen_utils::size(m_pos_cmd);i++)
+    for(int i=0; i<eu::size(m_pos_cmd);i++)
     {
-      if(eigen_utils::at(m_vel_cmd,i) > eigen_utils::at(m_max_velocity,i))
+      if(eu::at(m_vel_cmd,i) > eu::at(m_max_velocity,i))
       {
-        eigen_utils::at(m_antiwindup,i) = eigen_utils::at(m_max_velocity,i) - eigen_utils::at(m_vel_cmd,i);
-        eigen_utils::at(m_vel_cmd,i) = eigen_utils::at(m_max_velocity,i);
+        eu::at(m_antiwindup,i) = eu::at(m_max_velocity,i) - eu::at(m_vel_cmd,i);
+        eu::at(m_vel_cmd,i) = eu::at(m_max_velocity,i);
       }
-      else if (eigen_utils::at(m_vel_cmd,i) < -eigen_utils::at(m_max_velocity,i))
+      else if (eu::at(m_vel_cmd,i) < -eu::at(m_max_velocity,i))
       {
-        eigen_utils::at(m_antiwindup,i) = -eigen_utils::at(m_max_velocity,i) - eigen_utils::at(m_vel_cmd,i);
-        eigen_utils::at(m_vel_cmd,i) = -eigen_utils::at(m_max_velocity,i);
+        eu::at(m_antiwindup,i) = -eu::at(m_max_velocity,i) - eu::at(m_vel_cmd,i);
+        eu::at(m_vel_cmd,i) = -eu::at(m_max_velocity,i);
       }
       else
       {
-        eigen_utils::at(m_antiwindup,i) = 0;
+        eu::at(m_antiwindup,i) = 0;
       }
     }
 
   }
   catch (...)
   {
-    eigen_utils::setZero(m_vel_cmd);
+    eu::setZero(m_vel_cmd);
     return false;
   }
   return true;

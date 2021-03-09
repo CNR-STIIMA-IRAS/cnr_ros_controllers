@@ -35,6 +35,10 @@ inline bool PositionToVelocityControllerBase<H,T>::doInit()
   this->template add_subscriber<sensor_msgs::JointState>(setpoint_topic_name, 1,
               boost::bind(&PositionToVelocityControllerBase<H,T>::callback,this,_1));
 
+  eu::resize(m_target_pos, this->nAx());
+  eu::resize(m_target_vel, this->nAx());
+  eu::resize(m_target_eff, this->nAx());
+
   m_target_pos = this->getPosition();
   eu::setZero(m_target_vel);
   eu::setZero(m_target_eff);
@@ -42,17 +46,14 @@ inline bool PositionToVelocityControllerBase<H,T>::doInit()
   rosdyn::VectorXd speed_limit;
   eu::copy(speed_limit, this->m_chain.getDQMax());
   std::string what;
-  int ok = ctrl.init(this->getControllerNh(), speed_limit,what);
-  if(ok==-1)
+  if(!ctrl.init(this->getControllerNh(), speed_limit,what))
   {
     CNR_ERROR(this->logger(), "Math ctrl of the PositionToVelocityController failed in initialization!\n" << what);
     CNR_RETURN_FALSE(this->logger(),
       "Math ctrl of the PositionToVelocityController failed in initialization:\n\t" + what);
   }
-  else if(ok==0)
-  {
-    CNR_WARN(this->logger(), what);
-  }
+  CNR_WARN_COND(this->logger(), what.size()>0, what);
+
   m_configured = false;
   this->setPriority(this->QD_PRIORITY);
   CNR_RETURN_TRUE(this->logger());
@@ -66,7 +67,13 @@ inline bool PositionToVelocityControllerBase<H,T>::doStarting(const ros::Time& /
   eu::setZero(m_target_vel);
   eu::setZero(m_target_eff);
   m_configured = false;
-  ctrl.starting(m_target_pos, m_target_vel);
+  std::string what;
+  if(!ctrl.starting(m_target_pos, m_target_vel,what))
+  {
+     CNR_ERROR(this->logger(),"Error in configuring the filters and controllers:");
+     CNR_ERROR(this->logger(), what);
+     CNR_RETURN_FALSE(this->logger());
+  }
   CNR_RETURN_TRUE(this->logger());
 }
 
@@ -80,7 +87,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doUpdate(const ros::Time& tim
     {
       m_target_pos = this->getPosition();
       eu::setZero(m_target_vel);
-      ctrl.update(time, nullptr, nullptr, nullptr, nullptr, this->getPosition(), this->getVelocity());
+      ctrl.update(time, &m_target_pos, nullptr, nullptr, nullptr, this->getPosition(), this->getVelocity());
     }
     else
     {

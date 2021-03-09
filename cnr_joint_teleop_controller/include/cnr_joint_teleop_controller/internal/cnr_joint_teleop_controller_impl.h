@@ -54,7 +54,7 @@ inline bool JointTeleopController::doInit()
   {
     CNR_RETURN_FALSE(this->logger());
   }
-  m_vel_sp = m_vel_fitler_sp.value();
+  m_vel_sp = m_vel_fitler_sp.getUpdatedValue();
   m_pos_sp = this->getPosition();
 
   m_has_pos_sp = false;
@@ -110,19 +110,14 @@ inline bool JointTeleopController::doUpdate(const ros::Time& /*time*/, const ros
   }
   else
   {
-//    if(rosdyn::saturateSpeed(this->m_chain, vel_sp,
-//          this->getVelocity(), this->getPosition(), this->m_sampling_period, 1.0, true, &report ))
-//    {
-//       CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
-//    }
     m_vel_fitler_sp.update(vel_sp);
-    //vel_sp   = m_vel_sp; //* m_dump.dumpFactor();
-    m_pos_sp = m_pos_sp + m_vel_fitler_sp.value()* period.toSec();
+    m_pos_sp = m_pos_sp + m_vel_fitler_sp.getUpdatedValue()* period.toSec();
     pos_sp   = m_pos_sp;
     if(rosdyn::saturatePosition(this->m_chain,pos_sp, &report))
     {
       CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
     }
+    m_pos_sp  = pos_sp;
   }
   this->setCommandPosition( pos_sp );
   this->setCommandVelocity( vel_sp );
