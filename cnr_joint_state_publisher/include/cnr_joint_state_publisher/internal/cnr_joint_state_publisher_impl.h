@@ -75,7 +75,7 @@ inline bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::
   {
     for(std::size_t iAx = 0; iAx<this->m_chain.getActiveJointsNumber(); iAx++)
     {
-      m_msg->name    .at(iAx) = this->m_chain.getJointName(iAx);
+      m_msg->name    .at(iAx) = this->m_chain.getActiveJointName(iAx);
       m_msg->position.at(iAx) = this->getPosition(iAx);
       m_msg->velocity.at(iAx) = this->getVelocity(iAx);
       m_msg->effort  .at(iAx) = this->getEffort(iAx);

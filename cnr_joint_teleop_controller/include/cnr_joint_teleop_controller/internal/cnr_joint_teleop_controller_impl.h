@@ -141,7 +141,7 @@ inline void JointTeleopController::callback(const sensor_msgs::JointStateConstPt
       eu::setZero(m_vel_sp);
       for( size_t iJoint=0; iJoint< this->jointNames().size(); iJoint++)
       {
-        auto it = std::find(msg->name.begin(), msg->name.end(), this->m_chain.getJointName(iJoint));
+        auto it = std::find(msg->name.begin(), msg->name.end(), this->m_chain.getActiveJointName(iJoint));
         if(it!=msg->name.end())
         {
           size_t iMsg = std::distance(msg->name.begin(), it);
