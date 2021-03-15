@@ -51,7 +51,7 @@ if(${CMAKE_VERSION} VERSION_GREATER  "3.16.0")
     <hardware_interface/joint_command_interface.h>
     <cnr_hardware_interface/veleff_command_interface.h>
     <cnr_hardware_interface/posveleff_command_interface.h>
-    <rosdyn_utilities/chain_state.h>
+    <rosdyn_chain_state/chain_state.h>
   )
 endif()
 

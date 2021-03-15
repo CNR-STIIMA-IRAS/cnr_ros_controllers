@@ -38,7 +38,7 @@ inline std::string to_string( const bool& val )
 #define GET_AND_RETURN( nh, param, value )\
   if (!nh.getParam(param,value) )\
   {\
-    ROS_ERROR("The param '%s/%s' is not defined", nh.getNamespace().c_str(), std::string( param ).c_str() );\
+    CNR_ERROR(this->logger(), "The param '"<< nh.getNamespace() << "/" << param <<"' is not defined" );\
     return false;\
   }
 
@@ -47,8 +47,8 @@ inline std::string to_string( const bool& val )
 #define GET_AND_DEFAULT( nh, param, value, def )\
   if (!nh.getParam(param,value) )\
   {\
-    ROS_WARN("The param '%s/%s' is not defined", nh.getNamespace().c_str(), std::string( param ).c_str() );\
-    ROS_WARN("Default value '%s' superimposed. ", std::to_string( def ).c_str() );\
+    CNR_WARB(this->logger(), "The param '"<< nh.getNamespace() << "/" << param <<"' is not defined" );\
+    CNR_WARB(this->logger(), "Default value '"<< std::to_string( def ) <<"' superimposed. ");\
     value=def;\
   }
 
@@ -98,7 +98,7 @@ inline bool JointImpedanceController::doInit( )
 
     if(!this->getControllerNh().getParam("use_wrench", m_use_wrench))
     {
-      ROS_WARN_STREAM(this->getControllerNh().getNamespace()+"/'use_wrench' does not exist. Default value false.");
+      CNR_WARN(this->logger(), this->getControllerNh().getNamespace() << "/'use_wrench' does not exist. Default value false.");
       m_use_wrench = false;
     }
 
@@ -169,13 +169,12 @@ inline bool JointImpedanceController::doInit( )
     {
       if (torque_deadband.at(iAx)<=0)
       {
-        ROS_INFO("torque_deadband value of Joint %d is not positive, disabling impedance control for this axis",iAx);
+        CNR_INFO(this->logger(), "torque_deadband value of Joint '"<< iAx << "'is not positive, disabling impedance control for this axis");
         eu::at(m_effort_db,iAx)=0.0;
       }
       else
         eu::at(m_effort_db,iAx)=torque_deadband.at(iAx);
     }
-
     m_wrench_db = Eigen::Matrix<double,6,1>( wrench_deadband.data() );
     
   }
@@ -184,8 +183,7 @@ inline bool JointImpedanceController::doInit( )
     ROS_FATAL("EXCEPTION: %s", e.what());
     return false;
   }
-  ROS_INFO("[ %s ] init OK controller", this->getControllerNh().getNamespace().c_str());
-
+  
   this->setPriority(this->QD_PRIORITY);
 
   return true;
@@ -218,7 +216,7 @@ inline bool JointImpedanceController::doUpdate(const ros::Time& /*time*/, const 
   m_is_configured    = m_target_ok && m_effort_ok;
   if (m_is_configured && !is_configured)
   {
-    ROS_INFO("Joint Impedance Controller Configured");
+    CNR_INFO(this->logger(), "Joint Impedance Controller Configured");
   }
   // ==================================================================
 
@@ -247,11 +245,12 @@ inline void JointImpedanceController::setTargetCallback(const boost::shared_ptr<
   try 
   {
     sensor_msgs::JointState tmp_msg = *msg;
+    std::stringstream report;
     if (!name_sorting::permutationName(this->jointNames(),
                                        tmp_msg.name,tmp_msg.position,tmp_msg.velocity,tmp_msg.effort,
-                                       "JOINT IMP CTRL - SET TARGET CALLBACK"))
+                                       &report))
     {
-      CNR_WARN(this->logger(), "Target Callback - Error in the joint names");
+      CNR_WARN(this->logger(), "Target Callback - Error in the joint names: " << report.str());
       m_target_ok = false;
       return;
     }
@@ -278,13 +277,14 @@ inline void JointImpedanceController::setEffortCallback(const boost::shared_ptr<
   {
 
     sensor_msgs::JointState tmp_msg=*msg;
-    if (!name_sorting::permutationName(this->jointNames(),tmp_msg.name,tmp_msg.effort, "JOINT IMP CTRL - set EFFORT CALLBACK"))
+    std::stringstream report;
+    if (!name_sorting::permutationName(this->jointNames(),tmp_msg.name,tmp_msg.effort, &report))
     {
-      ROS_ERROR("joints not found");
+      CNR_WARN(this->logger(), "Effort Callback - Error in the joint names: " << report.str());
       m_effort_ok=false;
       return;
     }
-    ROS_DEBUG_ONCE( "EFFORT FEEDBACK RECEIVED!");
+    
     m_effort_ok=true;
     for (unsigned int iAx=0;iAx<this->nAx();iAx++)
     {
