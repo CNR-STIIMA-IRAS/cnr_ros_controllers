@@ -5,6 +5,7 @@
 #include <mutex>
 #include <vector>
 #include <string>
+#include <state_space_filters/iir_filters.h>
 #include <state_space_controllers/controllers.h>
 #include <rosdyn_core/primitives.h>
 #include <sensor_msgs/JointState.h>
@@ -16,11 +17,15 @@ namespace cnr
 namespace control
 {
 
+typedef ect::FirstOrderLowPass<-1,rosdyn::max_num_axes> FirstOrderLowPassX;
 typedef ect::Controller<-1,rosdyn::max_num_axes> ControllerX;
 using DiscreteStateSpaceX = ect::DiscreteStateSpace<-1,-1,-1,
                                   rosdyn::max_num_axes,rosdyn::max_num_axes,rosdyn::max_num_axes>;
 
-
+/**
+ * @class PositionToVelocityControllerMath
+ * 
+ */
 class PositionToVelocityControllerMath
 {
 public:
@@ -53,8 +58,8 @@ protected:
 
   ControllerX         m_controller;
   ControllerX         m_integral_controller;
-  DiscreteStateSpaceX m_pos_filter;
-  DiscreteStateSpaceX m_target_pos_filter;
+  FirstOrderLowPassX  m_pos_filter;
+  FirstOrderLowPassX  m_target_pos_filter;
 
   bool m_use_feedback;
   bool m_interpolate_setpoint;

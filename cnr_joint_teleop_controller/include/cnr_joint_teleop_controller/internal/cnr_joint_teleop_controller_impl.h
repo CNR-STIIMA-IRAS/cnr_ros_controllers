@@ -38,11 +38,6 @@ inline bool JointTeleopController::doInit()
 
   this->setPriority(this->QD_PRIORITY);
 
-  if(!this->getControllerNh().getParam("dump_time", m_dump.dump_time))
-  {
-    m_dump.dump_time = 100 * this->m_sampling_period;
-  }
-
   ect::FilteredVectorXd::Value dead_band;
   ect::FilteredVectorXd::Value saturation;
   ect::FilteredVectorXd::Value init_value;
@@ -58,9 +53,7 @@ inline bool JointTeleopController::doInit()
   m_pos_sp = this->getPosition();
 
   m_has_pos_sp = false;
-  eu::resize(m_scaling_factor,this->nAx());
-  eu::setZero(m_scaling_factor);
-
+  
   CNR_RETURN_TRUE(this->logger());
 }
 
@@ -164,7 +157,6 @@ inline void JointTeleopController::callback(const sensor_msgs::JointStateConstPt
         m_dist_to_pos_sp = m_pos_sp - this->getPosition();
         m_vel_sp = eu::dot(m_vel_sp, eu::normalized(m_dist_to_pos_sp) )*eu::normalized(m_dist_to_pos_sp);
       }
-      m_dump.tick();
     }
     catch(...)
     {

@@ -46,29 +46,6 @@ protected:
   rosdyn::VectorXd m_dpos_sp;
   rosdyn::VectorXd m_vel_sp_last;
   rosdyn::VectorXd m_dist_to_pos_sp;
-  rosdyn::VectorXd m_scaling_factor;
-
-  struct DumpFilter
-  {
-    bool          active;
-    double        dump_time;
-    ros::WallTime last_msg_time;
-    double dumpFactor()
-    {
-      if(!active)
-        return 0.0;
-
-      double dt = (ros::WallTime::now() - last_msg_time).toSec();
-      return (dt > dump_time) ? 0.0 : std::cos( (dt/dump_time) * M_PI/2.0 );
-    }
-    DumpFilter() = default;
-    DumpFilter(double time_window) : active(false), dump_time( time_window ){}
-    void tick()
-    {
-      active |= true;
-      last_msg_time = ros::WallTime::now();
-    }
-  } m_dump;
 };
 
 

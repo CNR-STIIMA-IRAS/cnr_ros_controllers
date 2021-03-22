@@ -17,10 +17,11 @@ template<class H, class T>
 inline bool PositionToVelocityControllerBase<H,T>::doInit()
 {
   CNR_TRACE_START(this->logger());
-  if(this->nAx()>1)
-  {
-    CNR_RETURN_FALSE(this->logger(), "The controller is designed to control only one joint.");
-  }
+//  if(this->nAx()>1)
+//  {
+//    CNR_ERROR(this->logger(), "The controller is designed to control only one joint.");
+//    CNR_RETURN_FALSE(this->logger());
+//  }
 
   std::string setpoint_topic_name;
   //std::string feedforward_topic_name;

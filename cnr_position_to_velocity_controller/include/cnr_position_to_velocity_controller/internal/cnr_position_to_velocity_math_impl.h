@@ -147,10 +147,10 @@ inline bool PositionToVelocityControllerMath::starting(const rosdyn::VectorXd& f
   rosdyn::VectorXd init_pos;
   init_pos = fb_pos;
   m_last_target_pos = fb_pos;
-  m_pos_filter.setStateFromLastIO(init_pos, init_pos);
+  m_pos_filter.setStateFromLastInput(init_pos);
 
   init_pos = fb_pos;
-  m_target_pos_filter.setStateFromLastIO(init_pos, init_pos);
+  m_target_pos_filter.setStateFromLastInput(init_pos);
 
   rosdyn::VectorXd init_vel;
   if (m_use_target_velocity)
