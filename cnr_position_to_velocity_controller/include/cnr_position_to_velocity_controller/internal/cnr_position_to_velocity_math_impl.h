@@ -53,12 +53,14 @@ inline bool PositionToVelocityControllerMath::init(
   }
   //=================================
 
+std::cout << "m_antiwindup_gain" << m_antiwindup_gain << std::endl;
   //================================= default values
   eu::setZero(m_pos_minimum_error);
   eu::setConstant(m_pos_maximum_error,0.1);
   eu::setZero(m_last_target_pos       );
   eu::setZero(m_pos_deadband          );
   eu::setDiagonal(m_antiwindup_gain, 1.0);
+  std::cout << "m_antiwindup_gain" << m_antiwindup_gain << std::endl;
   eu::setZero(m_pos_cmd               );
   eu::setZero(m_vel_cmd               );
   eu::setZero(m_eff_cmd               );
@@ -73,12 +75,12 @@ inline bool PositionToVelocityControllerMath::init(
   // PARAM
   bool ok = true;
   std::string msg;
-  ok &= append_string( what,ru::getParam(nh,"position_minimum_error"    , m_pos_minimum_error         , msg, &m_pos_minimum_error   ), msg);
-  ok &= append_string( what,ru::getParam(nh,"position_minimum_error"    , m_pos_minimum_error         , msg, &m_pos_minimum_error   ), msg);
-  ok &= append_string( what,ru::getParam(nh,"position_maximum_error"    , m_pos_maximum_error         , msg, &m_pos_maximum_error   ), msg);
+  std::vector<double> pos_minimum_error, pos_maximum_error,  antiwindup_gain;
+  ok &= append_string( what,ru::getParam(nh,"position_minimum_error"    , pos_minimum_error           , msg, &pos_minimum_error   ), msg);
+  ok &= append_string( what,ru::getParam(nh,"position_maximum_error"    , pos_maximum_error           , msg, &pos_maximum_error   ), msg);
   ok &= append_string( what,ru::getParam(nh,"interpolate_setpoint"      , m_interpolate_setpoint      , msg, &m_interpolate_setpoint), msg) ;
   ok &= append_string( what,ru::getParam(nh,"maximum_interpolation_time", m_maximum_interpolation_time, msg, &m_maximum_interpolation_time), msg);
-  ok &= append_string( what,ru::getParam(nh,"antiwindup_ratio"          , m_antiwindup_gain           , msg, &m_antiwindup_gain), msg);
+  ok &= append_string( what,ru::getParam(nh,"antiwindup_ratio"          , antiwindup_gain             , msg, &antiwindup_gain), msg);
   ok &= append_string( what,ru::getParam(nh,"use_target_velocity"       , m_use_target_velocity       , msg, &m_use_target_velocity), msg);
   ok &= append_string( what,ru::getParam(nh,"use_target_torque"         , m_use_target_torque         , msg, &m_use_target_torque), msg );
   ok &= append_string( what,ect::setMatricesFromParam(m_target_pos_filter  ,nh, "target_pos_filter"   , msg), msg );
@@ -86,11 +88,6 @@ inline bool PositionToVelocityControllerMath::init(
   ok &= append_string( what,ect::setMatricesFromParam(m_controller         ,nh, "controller"          , msg), msg );
   ok &= append_string( what,ect::setMatricesFromParam(m_integral_controller,nh, "integral_controller" , msg), msg );
 
-
-  if(!ok)
-  {
-    return false;
-  }
   //=============
 
   std::vector<std::pair<int, std::string>> checks2 =
@@ -103,6 +100,10 @@ inline bool PositionToVelocityControllerMath::init(
     { m_controller.yDim() == eu::size(speed_limit) ? 1 : -1, "Wrong Controller output dimension"},
     { m_integral_controller.uDim() == eu::size(speed_limit) ? 1 : -1, "Wrong Integral Controller input dimension"},
     { m_integral_controller.yDim() == eu::size(speed_limit) ? 1 : -1, "Wrong Integral Controller output dimension"},
+    { eu::rows(pos_minimum_error) == eu::rows(m_pos_minimum_error) || eu::rows(pos_minimum_error)==1, "Wrong position_minimum_error dimension"},
+    { eu::rows(pos_maximum_error) == eu::rows(m_pos_maximum_error) || eu::rows(pos_maximum_error)==1, "Wrong position_maximum_error dimension"},
+    { eu::rows(antiwindup_gain)   == eu::rows(m_antiwindup_gain)   || eu::rows(antiwindup_gain)==1, "Wrong antiwindup_gain dimension, got" 
+      + std::to_string(eu::rows(antiwindup_gain)) +", expected 1 or " + std::to_string(eu::rows(m_antiwindup_gain)) },
   };
 
   for(size_t i=0;i<checks2.size();i++)
@@ -114,6 +115,33 @@ inline bool PositionToVelocityControllerMath::init(
   if(!ok)
   {
     return false;
+  }
+
+  if(eu::rows(pos_minimum_error) == eu::rows(m_pos_minimum_error))
+  {
+    eu::copy(m_pos_minimum_error, pos_minimum_error);
+  }
+  else
+  {
+    eu::setConstant(m_pos_minimum_error, pos_minimum_error.at(0));
+  }
+
+  if(eu::rows(pos_maximum_error) == eu::rows(m_pos_maximum_error))
+  {
+    eu::copy(m_pos_maximum_error, pos_maximum_error);
+  }
+  else
+  {
+    eu::setConstant(m_pos_maximum_error, pos_maximum_error.at(0));
+  }
+
+  if(eu::rows(antiwindup_gain) == eu::rows(m_antiwindup_gain))
+  {
+    eu::setDiagonal(m_antiwindup_gain, antiwindup_gain);
+  }
+  else
+  {
+    eu::setDiagonal(m_antiwindup_gain, antiwindup_gain.at(0));
   }
 
   m_max_velocity = speed_limit;
@@ -223,6 +251,8 @@ inline bool PositionToVelocityControllerMath::update(const ros::Time& time,
       eu::setZero(m_vel_cmd);
       return false;
     }
+    auto s = [](const std::string w, auto & v) { std::cout <<w << ": " << eu::rows(v) << "x" << eu::cols(v) << std::endl;};
+       
     integral_controller_input = target_filter_output - filter_output + m_antiwindup_gain * m_antiwindup; //integral controller error
 
     controller_output = m_controller.update(controller_input);

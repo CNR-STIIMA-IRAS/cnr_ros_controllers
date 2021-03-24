@@ -59,6 +59,7 @@ inline bool RobotStateController::doInit( )
 //!
 inline bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
+  CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   size_t ll = __LINE__;
   try
   {
@@ -123,7 +124,7 @@ inline bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros:
   {
     CNR_WARN(this->logger(), "Exception in the update method at line: " + std::to_string((long int)(ll)) );
   }
-  CNR_RETURN_TRUE(this->logger());
+  CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
 }
 
 
