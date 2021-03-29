@@ -11,17 +11,16 @@ namespace ros
 namespace control
 {
   
-  class AnalogStatePublisher: public cnr_controller_interface::Controller<hardware_interface::AnalogStateInterface>
+  class AnalogStatePublisher: public cnr::control::Controller<hardware_interface::AnalogStateInterface>
   {
   public:
     virtual bool doInit( );
-    virtual bool doStarting(const ros::Time& time);
     virtual bool doUpdate(const ros::Time& time, const ros::Duration& period);
-    virtual bool doStopping(const ros::Time& time);
     
   protected:
     std::vector<std::string> m_analog_names;
     std::string m_topic_name;
+    size_t m_pub_idx;
     
     std::size_t m_nax;
   };

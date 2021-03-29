@@ -9,10 +9,12 @@
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cnr_controller_interface</build_depend>
   <build_depend>controller_interface</build_depend>
   <build_depend>controller_manager</build_depend>
   <build_depend>hardware_interface</build_depend>
-  <build_depend>eigen_state_space_systems</build_depend>
+  <build_depend>state_space_controllers</build_depend>
+  <build_depend>state_space_ros</build_depend>
   <build_depend>subscription_notifier</build_depend>
   <build_depend>pluginlib</build_depend>
   <build_depend>roscpp</build_depend>
@@ -20,10 +22,12 @@
   <build_depend>std_msgs</build_depend>
   
   <run_depend>pluginlib</run_depend>
+  <run_depend>cnr_controller_interface</run_depend>
   <run_depend>controller_interface</run_depend>
   <run_depend>controller_manager</run_depend>
   <run_depend>hardware_interface</run_depend>
-  <run_depend>eigen_state_space_systems</run_depend>
+  <run_depend>state_space_controllers</run_depend>
+  <run_depend>state_space_ros</run_depend>
   <run_depend>subscription_notifier</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>sensor_msgs</run_depend>

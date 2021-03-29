@@ -1,0 +1,6 @@
+<library path="lib/libforce_torque_publisher">
+  <class name="ros/control/JointStatePublisher" type="ros::control::JointStatePublisher" base_class_type="controller_interface::ControllerBase">
+    <description>
+    </description>
+  </class>
+</library>

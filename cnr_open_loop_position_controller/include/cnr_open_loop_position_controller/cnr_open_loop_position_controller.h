@@ -1,5 +1,5 @@
-#ifndef cnr_open_loop_position_controller__20190204
-#define cnr_open_loop_position_controller__20190204
+#ifndef CNR_OPEN_LOOP_POSITION_CONTROLLER__CNR_OPEN_LOOP_POSITION_CONTROLLER__H
+#define CNR_OPEN_LOOP_POSITION_CONTROLLER__CNR_OPEN_LOOP_POSITION_CONTROLLER__H
 
 
 #include <hardware_interface/joint_command_interface.h>
@@ -20,8 +20,12 @@ namespace cnr
 namespace control
 {
 
-
-class OpenLoopPositionController : public cnr_controller_interface::JointCommandController<hardware_interface::PositionJointInterface>
+/**
+ * @brief The OpenLoopPositionController class
+ */
+class OpenLoopPositionController :
+  public cnr::control::JointCommandController<hardware_interface::JointHandle,
+                                                            hardware_interface::PositionJointInterface>
 {
 public:
   bool doInit();
@@ -29,30 +33,20 @@ public:
   bool doStarting(const ros::Time& time);
   bool doStopping(const ros::Time& time);
 
-  virtual void startJointKinematicStatus(Eigen::VectorXd& q,
-                                         Eigen::VectorXd& qd,
-                                         Eigen::VectorXd& qdd,
-                                         Eigen::VectorXd& effort );
-
-  virtual void updateJointKinematicStatus(Eigen::VectorXd& q,
-                                          Eigen::VectorXd& qd,
-                                          Eigen::VectorXd& qdd,
-                                          Eigen::VectorXd& effort );
-
-
 protected:
 
-  std::string setpoint_topic_name;
+  std::string m_setpoint_topic_name;
   bool        m_configured;
 
-  void callback(const sensor_msgs::JointStateConstPtr msg);
-  bool extractJoint(const sensor_msgs::JointState &msg);
+  void callback(const sensor_msgs::JointStateConstPtr& msg);
+  bool extractJoint(const sensor_msgs::JointState& msg);
 
   const std::string   SP_TOPIC_ID = "sp";
 };
 
+}  // namespace control
+}  // namespace cnr
 
-}
-}
+#include <cnr_open_loop_position_controller/internal/cnr_open_loop_position_controller_impl.h>
 
-# endif
+# endif  // CNR_OPEN_LOOP_POSITION_CONTROLLER__CNR_OPEN_LOOP_POSITION_CONTROLLER__H

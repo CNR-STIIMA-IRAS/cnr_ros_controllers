@@ -1,102 +1,88 @@
-#ifndef __cnr_pos_to_vel_control_math__
-#define __cnr_pos_to_vel_control_math__
+#ifndef CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER_MATH_H
+#define CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER_MATH_H
 
-#include <eigen_state_space_systems/eigen_state_space_systems.h>
-#include <eigen_state_space_systems/eigen_controllers.h>
 #include <thread>
 #include <mutex>
-#include <boost/graph/graph_concepts.hpp>
-#include <ros/ros.h>
-#include <subscription_notifier/subscription_notifier.h>
+#include <vector>
+#include <string>
+#include <state_space_filters/iir_filters.h>
+#include <state_space_controllers/controllers.h>
+#include <rosdyn_core/primitives.h>
 #include <sensor_msgs/JointState.h>
-#include <pluginlib/class_list_macros.h>
-#include <ros/callback_queue.h>
+
+namespace ect = eigen_control_toolbox;
 
 namespace cnr
 {
 namespace control
 {
 
+typedef ect::FirstOrderLowPass<-1,rosdyn::max_num_axes> FirstOrderLowPassX;
+typedef ect::Controller<-1,rosdyn::max_num_axes> ControllerX;
+using DiscreteStateSpaceX = ect::DiscreteStateSpace<-1,-1,-1,
+                                  rosdyn::max_num_axes,rosdyn::max_num_axes,rosdyn::max_num_axes>;
+
+/**
+ * @class PositionToVelocityControllerMath
+ * 
+ */
 class PositionToVelocityControllerMath
 {
 public:
+  PositionToVelocityControllerMath() = default;
+  bool init(ros::NodeHandle& ctrl_nh, const rosdyn::VectorXd& speed_limit, std::string& what);
+  bool update(const ros::Time& time,
+              const rosdyn::VectorXd* const trg_pos,
+              const rosdyn::VectorXd* const trg_vel,
+              const rosdyn::VectorXd* const trg_eff,
+              const double* const last_sp_time,
+              const rosdyn::VectorXd& fb_pos,
+              const rosdyn::VectorXd& fb_vel);
+  bool starting(const rosdyn::VectorXd& fb_pos, const rosdyn::VectorXd& fb_vel, std::string& what);
+  void stopping();
 
-  PositionToVelocityControllerMath() {}
-  bool init(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh);
-  void update(const ros::Time& time, const ros::Duration& period, const double& fb_pos, const double& fb_vel);
-  void starting(const ros::Time& time, const double& fb_pos, const double& fb_vel);
-  void stopping(const ros::Time& time);
-
-
-  double&            getPosCmd()
+  const rosdyn::VectorXd& getPosCmd() const
   {
     return m_pos_cmd;
   }
-  double&            getVelCmd()
+  const rosdyn::VectorXd& getVelCmd() const
   {
     return m_vel_cmd;
   }
-  double&            getEffCmd()
+  const rosdyn::VectorXd& getEffCmd() const
   {
     return m_eff_cmd;
-  }
-  const std::string& getJointName() const
-  {
-    return m_joint_name;
-  }
-  const bool&        isWellInit() const
-  {
-    return m_well_init;
   }
 
 protected:
 
-  bool m_well_init;
+  ControllerX         m_controller;
+  ControllerX         m_integral_controller;
+  FirstOrderLowPassX  m_pos_filter;
+  FirstOrderLowPassX  m_target_pos_filter;
+
   bool m_use_feedback;
   bool m_interpolate_setpoint;
   double m_maximum_interpolation_time;
-  double m_last_sp_time;
-  ros::CallbackQueue m_queue;
-  boost::shared_ptr<ros::AsyncSpinner> m_spinner;
+  rosdyn::VectorXd m_last_target_pos;
+  rosdyn::VectorXd m_pos_minimum_error;
+  rosdyn::VectorXd m_pos_maximum_error;
+  rosdyn::VectorXd m_pos_deadband;
+  rosdyn::MatrixXd m_antiwindup_gain;
+  rosdyn::VectorXd m_pos_cmd;
+  rosdyn::VectorXd m_vel_cmd;
+  rosdyn::VectorXd m_eff_cmd;
+  rosdyn::VectorXd m_antiwindup;
+  rosdyn::VectorXd m_max_velocity;
 
-  eigen_control_toolbox::Controller m_controller;
-  eigen_control_toolbox::Controller m_integral_controller;
-  eigen_control_toolbox::DiscreteStateSpace m_pos_filter;
-  eigen_control_toolbox::DiscreteStateSpace m_target_pos_filter;
-
-  double m_pos_deadband;
-  std::string m_joint_name;
-  double m_position_minimum_error;
-  double m_antiwindup_gain;
-  double m_pos_cmd;
-  double m_vel_cmd;
-  double m_eff_cmd;
-  double m_target_pos;
-  double m_target_vel;
-  double m_target_eff;
-
-  double m_antiwindup;
-  double m_max_velocity;
-
-
-  std::shared_ptr<ros_helper::SubscriptionNotifier<sensor_msgs::JointState>> m_target_js_rec;
-
-  ros::NodeHandle m_root_nh;
-  ros::NodeHandle m_controller_nh;
-  bool m_configured;
   bool m_use_target_torque;
   bool m_use_target_velocity;
-  bool m_error;
-  double m_position_maximum_error;
-
-
-  void callback(const sensor_msgs::JointStateConstPtr msg);
-  bool extractJoint(const sensor_msgs::JointState msg, const std::string name, double& pos, double& vel, double& eff);
-  void stopThreads();
 };
 
 
 }
 }
 
-# endif
+#include <cnr_position_to_velocity_controller/internal/cnr_position_to_velocity_math_impl.h>
+
+#endif // CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER_MATH_H

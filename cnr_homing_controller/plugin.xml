@@ -1,0 +1,7 @@
+<library path="lib/libcnr_homing_controller">
+  <class name="cnr/control/HomingController" type="cnr::control::HomingController" base_class_type="controller_interface::ControllerBase">
+		<description>
+			Homing controller
+		</description>
+	</class>
+</library>

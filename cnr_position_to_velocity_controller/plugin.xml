@@ -1,17 +1,17 @@
 <library path="lib/libcnr_position_to_velocity_controller">
-  <class name="itia/control/PositionToVelocityController" type="itia::control::PositionToVelocityController" base_class_type="controller_interface::ControllerBase">
+  <class name="cnr/control/PositionToVelocityController" type="cnr::control::PositionToVelocityController" base_class_type="controller_interface::ControllerBase">
     <description>
     </description>
   </class>
-  <class name="itia/control/PositionToVelocityControllerFfw" type="itia::control::PositionToVelocityControllerFfw" base_class_type="controller_interface::ControllerBase">
+  <class name="cnr/control/PositionToVelocityControllerFfw" type="cnr::control::PositionToVelocityControllerFfw" base_class_type="controller_interface::ControllerBase">
     <description>
     </description>
   </class>
-  <class name="itia/control/StateSpacePositionToVelocityController" type="itia::control::StateSpacePositionToVelocityController" base_class_type="controller_interface::ControllerBase">
+  <class name="cnr/control/StateSpacePositionToVelocityController" type="cnr::control::StateSpacePositionToVelocityController" base_class_type="controller_interface::ControllerBase">
     <description>
     </description>
   </class>
-  <class name="itia/control/StateSpacePositionToVelocityControllerFfw" type="itia::control::StateSpacePositionToVelocityControllerFfw" base_class_type="controller_interface::ControllerBase">
+  <class name="cnr/control/StateSpacePositionToVelocityControllerFfw" type="cnr::control::StateSpacePositionToVelocityControllerFfw" base_class_type="controller_interface::ControllerBase">
     <description>
     </description>
   </class>
