@@ -1,7 +1,0 @@
-<library path="lib/libdummy_controller">
-  <class name="cnr/control/DummyController" type="cnr::control::DummyController" base_class_type="controller_interface::ControllerBase">
-		<description>
-			Dummy controller
-		</description>
-	</class>
-</library>
