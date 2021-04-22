@@ -45,7 +45,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doInit()
   eu::setZero(m_target_eff);
 
   rosdyn::VectorXd speed_limit;
-  eu::copy(speed_limit, this->m_chain.getDQMax());
+  eu::copy(speed_limit, this->chain().getDQMax());
   std::string what;
   if(!ctrl.init(this->getControllerNh(), speed_limit,what))
   {

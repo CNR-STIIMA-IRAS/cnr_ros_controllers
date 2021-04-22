@@ -23,7 +23,7 @@ inline bool RobotStateController::doInit( )
     CNR_RETURN_FALSE(this->logger(), "Param 'frames' not defined");
   }
 
-  std::vector<std::string> link_names=this->m_chain.getLinksName();
+  std::vector<std::string> link_names=this->chain().getLinksName();
 
   for (unsigned int idx=0;idx<m_frames.size();idx++)
   {
@@ -67,8 +67,8 @@ inline bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros:
     static Eigen::VectorXd _qd(this->nAx());
     _q = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_q(), this->nAx());
     _qd = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_q(), this->nAx());
-    auto T_base_links = this->m_chain.getTransformations(_q);
-    auto twists       = this->m_chain.getTwist(_q,_qd);
+    auto T_base_links = this->chainState().linkPose();
+    auto twists       = this->chainState().linkTwist();
 
     for (unsigned int idx=0;idx<m_frames.size();idx++)
     {
@@ -91,7 +91,7 @@ inline bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros:
 
       ll = __LINE__;
       msg->header.stamp=ros::Time::now();
-      msg->header.frame_id=this->m_chain.getLinksName().front();
+      msg->header.frame_id=this->chain().getLinksName().front();
       ll = __LINE__;
       if(!this->publish(m_base_pub_idx.at(idx), msg))
       {

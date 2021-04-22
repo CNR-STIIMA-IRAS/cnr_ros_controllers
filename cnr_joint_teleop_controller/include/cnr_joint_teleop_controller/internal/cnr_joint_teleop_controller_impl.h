@@ -42,8 +42,8 @@ inline bool JointTeleopController::doInit()
   ect::FilteredVectorXd::Value saturation;
   ect::FilteredVectorXd::Value init_value;
 
-  dead_band = 0.0 * m_chain.getDQMax();
-  saturation = m_chain.getDQMax();
+  dead_band = 0.0 * this->chain().getDQMax();
+  saturation = this->chain().getDQMax();
   init_value = dead_band;
   if(!m_vel_fitler_sp.activateFilter ( dead_band, saturation, (10.0 / 2.0 / M_PI), this->m_sampling_period, init_value ))
   {
@@ -106,7 +106,7 @@ inline bool JointTeleopController::doUpdate(const ros::Time& /*time*/, const ros
     m_vel_fitler_sp.update(vel_sp);
     m_pos_sp = m_pos_sp + m_vel_fitler_sp.getUpdatedValue()* period.toSec();
     pos_sp   = m_pos_sp;
-    if(rosdyn::saturatePosition(this->m_chain,pos_sp, &report))
+    if(rosdyn::saturatePosition(this->chain(),pos_sp, &report))
     {
       CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
     }
@@ -134,7 +134,7 @@ inline void JointTeleopController::callback(const sensor_msgs::JointStateConstPt
       eu::setZero(m_vel_sp);
       for( size_t iJoint=0; iJoint< this->jointNames().size(); iJoint++)
       {
-        auto it = std::find(msg->name.begin(), msg->name.end(), this->m_chain.getActiveJointName(iJoint));
+        auto it = std::find(msg->name.begin(), msg->name.end(), this->chain().getActiveJointName(iJoint));
         if(it!=msg->name.end())
         {
           size_t iMsg = std::distance(msg->name.begin(), it);
@@ -150,7 +150,7 @@ inline void JointTeleopController::callback(const sensor_msgs::JointStateConstPt
             
       if(m_has_pos_sp)
       {
-        if(rosdyn::saturatePosition(this->m_chain,m_pos_sp, &report))
+        if(rosdyn::saturatePosition(this->chain(),m_pos_sp, &report))
         {
           CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
         }
