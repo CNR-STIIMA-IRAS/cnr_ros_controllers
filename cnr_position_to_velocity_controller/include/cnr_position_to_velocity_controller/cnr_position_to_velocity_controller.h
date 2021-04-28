@@ -63,7 +63,6 @@ public:
   bool doUpdate(const ros::Time& time, const ros::Duration& period);
   bool doStarting(const ros::Time& time);
   bool doStopping(const ros::Time& time);
-
 };
 
 }  // namespace control

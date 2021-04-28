@@ -53,14 +53,12 @@ inline bool PositionToVelocityControllerMath::init(
   }
   //=================================
 
-std::cout << "m_antiwindup_gain" << m_antiwindup_gain << std::endl;
   //================================= default values
   eu::setZero(m_pos_minimum_error);
   eu::setConstant(m_pos_maximum_error,0.1);
   eu::setZero(m_last_target_pos       );
   eu::setZero(m_pos_deadband          );
   eu::setDiagonal(m_antiwindup_gain, 1.0);
-  std::cout << "m_antiwindup_gain" << m_antiwindup_gain << std::endl;
   eu::setZero(m_pos_cmd               );
   eu::setZero(m_vel_cmd               );
   eu::setZero(m_eff_cmd               );
