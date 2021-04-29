@@ -19,3 +19,9 @@
 -git:
     local-name: eigen_matrix_utils
     uri: https://github.com/CNR-STIIMA-IRAS/eigen_matrix_utils
+-git:
+    local-name: rosdyn
+    uri: https://github.com/CNR-STIIMA-IRAS/rosdyn
+-git:
+    local-name: rosdyn_utilities
+    uri: https://github.com/CNR-STIIMA-IRAS/rosdyn_utilities
