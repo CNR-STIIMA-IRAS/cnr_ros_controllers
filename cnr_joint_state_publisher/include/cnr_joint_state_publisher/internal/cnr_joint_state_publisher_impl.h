@@ -35,12 +35,6 @@ inline bool JointStatePublisher::doInit()
   }
   m_pub_handle = this->template add_publisher<sensor_msgs::JointState>("joint_states", 1);
 
-  m_msg.reset(new sensor_msgs::JointState());
-  m_msg->position.resize(this->nAx(), 0);
-  m_msg->velocity.resize(this->nAx(), 0);
-  m_msg->effort.resize(this->nAx(), 0);
-  m_msg->name = this->jointNames();
-
   if(!this->getPublisher(m_pub_handle))
   {
     CNR_FATAL(this->logger(), "Failed in creating the publisher 'joint_states '");
@@ -73,15 +67,22 @@ inline bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   try
   {
+    sensor_msgs::JointStatePtr  msg;
+    msg.reset(new sensor_msgs::JointState());
+    msg->position.resize(this->nAx(), 0);
+    msg->velocity.resize(this->nAx(), 0);
+    msg->effort.resize(this->nAx(), 0);
+    msg->name = this->jointNames();
+
     for(std::size_t iAx = 0; iAx<this->chain().getActiveJointsNumber(); iAx++)
     {
-      m_msg->name    .at(iAx) = this->chain().getActiveJointName(iAx);
-      m_msg->position.at(iAx) = this->getPosition(iAx);
-      m_msg->velocity.at(iAx) = this->getVelocity(iAx);
-      m_msg->effort  .at(iAx) = this->getEffort(iAx);
+      msg->name    .at(iAx) = this->chain().getActiveJointName(iAx);
+      msg->position.at(iAx) = this->getPosition(iAx);
+      msg->velocity.at(iAx) = this->getVelocity(iAx);
+      msg->effort  .at(iAx) = this->getEffort(iAx);
     }
-    m_msg->header.stamp = ros::Time::now();
-    if(!this->publish(m_pub_handle, *m_msg))
+    msg->header.stamp = ros::Time::now();
+    if(!this->publish(m_pub_handle,msg))
     {
       CNR_RETURN_FALSE(this->logger());
     }
