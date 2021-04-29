@@ -1,4 +1,4 @@
-<library path="lib/libcnr_joint_teleop_controller">
+<library path="lib/libcnr_joint_velocity_controller">
   <class name="cnr/control/JointTeleopController"
          type="cnr::control::JointTeleopController"
          base_class_type="controller_interface::ControllerBase">

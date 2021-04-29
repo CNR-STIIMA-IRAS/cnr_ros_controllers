@@ -1,5 +1,5 @@
-#ifndef cnr_joint_teleop_controller__20188101642
-#define cnr_joint_teleop_controller__20188101642
+#ifndef cnr_joint_velocity_controller__20188101642
+#define cnr_joint_velocity_controller__20188101642
 
 #include <cmath>
 #include <Eigen/Core>
@@ -52,7 +52,7 @@ protected:
 }
 }
 
-#include <cnr_joint_teleop_controller/internal/cnr_joint_teleop_controller_impl.h>
+#include <cnr_joint_velocity_controller/internal/cnr_joint_velocity_controller_impl.h>
 
 
 

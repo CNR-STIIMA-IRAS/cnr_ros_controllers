@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>cnr_joint_teleop_controller</name>
+  <name>cnr_joint_velocity_controller</name>
   <version>0.0.0</version>
-  <description>The cnr_joint_teleop_controller package</description>
+  <description>The cnr_joint_velocity_controller package</description>
 
   <maintainer email="abel@todo.todo">abel</maintainer>
   <license>TODO</license>

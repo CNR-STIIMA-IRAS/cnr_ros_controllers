@@ -1,11 +1,11 @@
 #pragma once
 
-#ifndef cnr_joint_teleop_controller__cnr_joint_teleop_controller_impl_h
-#define cnr_joint_teleop_controller__cnr_joint_teleop_controller_impl_h
+#ifndef cnr_joint_velocity_controller__cnr_joint_velocity_controller_impl_h
+#define cnr_joint_velocity_controller__cnr_joint_velocity_controller_impl_h
 
 #include <state_space_filters/filtered_values.h>
 #include <eigen_matrix_utils/overloads.h>
-#include <cnr_joint_teleop_controller/cnr_joint_teleop_controller.h>
+#include <cnr_joint_velocity_controller/cnr_joint_velocity_controller.h>
 
 namespace eu = eigen_utils;
 namespace ect = eigen_control_toolbox;

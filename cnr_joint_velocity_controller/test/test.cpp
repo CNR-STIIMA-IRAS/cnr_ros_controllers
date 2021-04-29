@@ -42,7 +42,7 @@
 #include <cnr_controller_interface/cnr_controller_interface.h>
 #include <cnr_controller_interface/cnr_joint_controller_interface.h>
 #include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
-#include <cnr_joint_teleop_controller/cnr_joint_teleop_controller.h>
+#include <cnr_joint_velocity_controller/cnr_joint_velocity_controller.h>
 
 std::shared_ptr<ros::NodeHandle> root_nh;
 std::shared_ptr<ros::NodeHandle> robot_nh;
