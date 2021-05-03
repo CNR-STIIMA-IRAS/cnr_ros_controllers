@@ -29,6 +29,4 @@ protected:
 }  // namespace control
 }  // namespace ros
 
-#include <cnr_joint_state_publisher/internal/cnr_joint_state_publisher_impl.h>
-
 #endif  // CNR_JOINT_STATE_PUBLISHER__NR_JOINT_STATE_PUBLISHER__H

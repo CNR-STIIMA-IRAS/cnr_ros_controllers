@@ -40,6 +40,4 @@ protected:
 }  // namespace control
 }  // namespace cnr
 
-#include <cnr_open_loop_effort_controller/internal/cnr_open_loop_effort_controller_impl.h>
-
 #endif  // CNR_OPEN_LOOP_EFFORT_CONTROLLER__CNR_OPEN_LOOP_EFFORT_CONTROLLER__H

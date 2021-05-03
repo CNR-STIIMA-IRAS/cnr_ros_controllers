@@ -68,6 +68,4 @@ public:
 }  // namespace control
 }  // namespace cnr
 
-#include <cnr_position_to_velocity_controller/internal/cnr_position_to_velocity_controller_impl.h>
-
 #endif  // CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER__H

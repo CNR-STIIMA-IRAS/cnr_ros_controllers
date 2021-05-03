@@ -52,8 +52,4 @@ protected:
 }
 }
 
-#include <cnr_joint_velocity_controller/internal/cnr_joint_velocity_controller_impl.h>
-
-
-
 #endif

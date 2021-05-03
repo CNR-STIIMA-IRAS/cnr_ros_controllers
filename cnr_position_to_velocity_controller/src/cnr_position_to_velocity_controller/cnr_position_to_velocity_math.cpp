@@ -1,8 +1,3 @@
-#pragma once // workaraound qtcreator clang-tidy
-
-#ifndef CNR_POSITION_TO_VELOCITY_CNR__POSITION_TO_VELOCITY_MATH_IMPL_H
-#define CNR_POSITION_TO_VELOCITY_CNR__POSITION_TO_VELOCITY_MATH_IMPL_H
-
 #include <ros/node_handle.h>
 #include <Eigen/Core>
 #include <rosparam_utilities/rosparam_utilities.h>
@@ -289,4 +284,3 @@ inline bool PositionToVelocityControllerMath::update(const ros::Time& time,
 
 }
 }
-#endif  // CNR_POSITION_TO_VELOCITY_CNR__POSITION_TO_VELOCITY_MATH_IMPL_H

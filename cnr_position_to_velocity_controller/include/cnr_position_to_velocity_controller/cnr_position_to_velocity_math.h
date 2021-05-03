@@ -79,10 +79,7 @@ protected:
   bool m_use_target_velocity;
 };
 
-
 }
 }
-
-#include <cnr_position_to_velocity_controller/internal/cnr_position_to_velocity_math_impl.h>
 
 #endif // CNR_POSITION_TO_VELOCITY_CONTROLLER__CNR_POSITION_TO_VELOCITY_CONTROLLER_MATH_H

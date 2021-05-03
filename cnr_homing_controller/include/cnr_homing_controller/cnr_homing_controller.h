@@ -24,6 +24,4 @@ public:
 }
 } 
 
-#include <cnr_homing_controller/internal/cnr_homing_controller_impl.h>
-
 #endif  // CNR_HOMING_CONTROLLER__CNR_HOMING_CONTROLLER_H

@@ -66,9 +66,4 @@ protected:
 } // namespace control
 } // namespace cnr
 
-
-#include <cnr_velocity_to_torque_controller/internal/cnr_velocity_to_torque_controller_impl.h>
-
-
-
 # endif  // cnr_vel_to_torque_control__20188101642

@@ -47,6 +47,4 @@ protected:
 }  // namespace control
 }  // namespace cnr
 
-#include <cnr_open_loop_position_controller/internal/cnr_open_loop_position_controller_impl.h>
-
 # endif  // CNR_OPEN_LOOP_POSITION_CONTROLLER__CNR_OPEN_LOOP_POSITION_CONTROLLER__H

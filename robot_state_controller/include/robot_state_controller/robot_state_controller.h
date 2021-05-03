@@ -33,8 +33,4 @@ protected:
 }
 }
 
-
-#include <robot_state_controller/internal/robot_state_controller_impl.h>
-
-
 #endif
