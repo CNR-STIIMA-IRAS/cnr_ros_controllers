@@ -23,10 +23,18 @@ inline bool OpenLoopPositionController::doInit()
   {
     CNR_RETURN_FALSE(this->m_logger,"The param '"+this->getControllerNamespace()+"/setpoint_topic_name' does not exist");
   }
+  bool setpoint_watchdog=true;
+  if(!this->getControllerNh().getParam("enable_setpoint_watchdog", setpoint_watchdog))
+  {
+    CNR_DEBUG(this->m_logger,"The param '"+this->getControllerNamespace()+"/enable_setpoint_watchdog' does not exist, enable watchdog by default");
+    setpoint_watchdog=true;
+  }
   this->template add_subscriber<sensor_msgs::JointState>(m_setpoint_topic_name, 1,
-        boost::bind(&OpenLoopPositionController::callback, this, _1) );
+      boost::bind(&OpenLoopPositionController::callback, this, _1),
+      setpoint_watchdog);
 
   this->setPriority(this->Q_PRIORITY);
+
 
   CNR_DEBUG(this->m_logger, "Controller ' "+this->getControllerNamespace()+"' controls the following joint: "
                      + cnr::control::to_string(this->jointNames()));
@@ -101,6 +109,15 @@ inline bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointSta
   {
     this->setCommandPosition(target);
   }
+  else
+  {
+    CNR_FATAL(this->m_logger, this->getControllerNamespace() + " command message dimension is wrong. found "+std::to_string(cnt)+" over "+std::to_string(this->nAx())+" joints");
+    for (size_t iAx=0; iAx < this->jointNames().size(); iAx++)
+    {
+      CNR_FATAL(this->m_logger, this->getControllerNamespace() + " controlled joints: "+this->jointNames().at(iAx));
+    }
+    CNR_FATAL(this->m_logger, this->getControllerNamespace() + " received message\n"<< msg);
+  }
   return ok;
 }
 
@@ -113,10 +130,7 @@ inline void OpenLoopPositionController::callback(const sensor_msgs::JointStateCo
   {
     m_configured = true;
   }
-  else
-  {
-    CNR_FATAL(this->m_logger, this->getControllerNamespace() + " command message dimension is wrong.");
-  }
+
   CNR_RETURN_OK_THROTTLE(this->m_logger, void(), 1.0);
 }
 
