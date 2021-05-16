@@ -8,7 +8,6 @@
   <license>TODO</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>urdf</build_depend>
   <build_depend>controller_interface</build_depend>
   <build_depend>cnr_controller_interface</build_depend>
   <build_depend>state_space_filters</build_depend>
@@ -22,7 +21,6 @@
   <build_depend>subscription_notifier</build_depend>
   <build_depend>cnr_hardware_interface</build_depend>
 
-  <build_export_depend>urdf</build_export_depend>
   <build_export_depend>controller_interface</build_export_depend>
   <build_export_depend>cnr_controller_interface</build_export_depend>
   <build_export_depend>state_space_filters</build_export_depend>
@@ -36,7 +34,6 @@
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>subscription_notifier</build_export_depend>
   
-  <exec_depend>urdf</exec_depend>
   <exec_depend>controller_interface</exec_depend>
   <exec_depend>cnr_controller_interface</exec_depend>
   <exec_depend>state_space_filters</exec_depend>
@@ -51,6 +48,7 @@
 
   <depend>name_sorting</depend>
   <depend>joint_limits_interface</depend>
+  <depend>tf_conversions</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

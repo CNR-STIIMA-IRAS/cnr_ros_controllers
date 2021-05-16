@@ -12,7 +12,8 @@
 #include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
 #include <cnr_hardware_interface/posveleff_command_interface.h>
 #include <cnr_hardware_interface/veleff_command_interface.h>
-
+#include <eigen_conversions/eigen_msg.h>
+#include <tf_conversions/tf_eigen.h>
 
 namespace ect = eigen_control_toolbox;
 
@@ -40,17 +41,21 @@ public:
 protected:
 
   std::mutex m_mtx;
-  bool       m_has_pos_sp;
 
-  ect::FilteredVectorXd m_vel_fitler_sp;
   rosdyn::VectorXd m_vel_sp;
   rosdyn::VectorXd m_pos_sp;
-  rosdyn::VectorXd m_dpos_sp;
   rosdyn::VectorXd m_vel_sp_last;
   rosdyn::VectorXd m_dist_to_pos_sp;
 
+  double m_max_cart_lin_vel;
+  double m_max_cart_lin_acc;
+  double m_max_cart_ang_vel;
+  double m_max_cart_ang_acc;
+
   std::shared_ptr<tf::TransformListener> m_listener;
-  Eigen::Vector6d m_twist_in_b;
+  Eigen::Vector6d m_twist_of_t_in_b;
+  Eigen::Vector6d m_last_twist_of_in_b;
+
 };
 
 
