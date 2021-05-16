@@ -45,7 +45,6 @@ protected:
   rosdyn::VectorXd m_vel_sp;
   rosdyn::VectorXd m_pos_sp;
   rosdyn::VectorXd m_vel_sp_last;
-  rosdyn::VectorXd m_dist_to_pos_sp;
 
   double m_max_cart_lin_vel;
   double m_max_cart_lin_acc;

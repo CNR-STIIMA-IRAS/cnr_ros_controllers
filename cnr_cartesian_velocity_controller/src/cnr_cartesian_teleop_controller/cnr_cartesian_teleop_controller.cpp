@@ -106,7 +106,7 @@ namespace cnr
  * @param period
  * @return
  */
-  inline bool CartesianTeleopController::doUpdate(const ros::Time& time, const ros::Duration& period)
+  inline bool CartesianTeleopController::doUpdate(const ros::Time& /*time*/, const ros::Duration& period)
   {
     CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
     std::stringstream report;
@@ -168,6 +168,7 @@ namespace cnr
       CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
     }
 
+    m_vel_sp=vel_sp;
 
     m_pos_sp = m_pos_sp + vel_sp* period.toSec();
     pos_sp   = m_pos_sp;
