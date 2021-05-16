@@ -46,25 +46,25 @@ namespace cnr
 
     if (!this->getControllerNh().getParam("max_cartesian_linear_speed",m_max_cart_lin_vel))
     {
-      ROS_INFO("%s/max_cartesian_linear_speed not defined, using 0.25 m/s",this->getControllerNh().getNamespace().c_str());
+      CNR_INFO(this->logger(),this->getControllerNh()<<"/max_cartesian_linear_speed not defined, using 0.25 m/s");
       m_max_cart_lin_vel=0.25;
     }
 
     if (!this->getControllerNh().getParam("max_cartesian_linear_acceleration",m_max_cart_lin_acc))
     {
-      ROS_INFO("%s/max_cartesian_linear_acceleration not defined, using 0.75 m/s^2",this->getControllerNh().getNamespace().c_str());
+      CNR_INFO(this->logger(),this->getControllerNh()<<"/max_cartesian_linear_acceleration not defined, using 0.75 m/s^2");
       m_max_cart_lin_acc=0.75;
     }
 
     if (!this->getControllerNh().getParam("max_cartesian_angular_speed",m_max_cart_ang_vel))
     {
-      ROS_INFO("%s/max_cartesian_angular_speed not defined, using 0.5 rad/s",this->getControllerNh().getNamespace().c_str());
+      CNR_INFO(this->logger(),this->getControllerNh()<<"/max_cartesian_angular_speed not defined, using 0.5 rad/s");
       m_max_cart_ang_vel=0.5;
     }
 
     if (!this->getControllerNh().getParam("max_cartesian_angular_acceleration",m_max_cart_ang_acc))
     {
-      ROS_INFO("%s/max_cartesian_angular_acceleration not defined, using 1.5 rad/s^2",this->getControllerNh().getNamespace().c_str());
+      CNR_INFO(this->logger(),this->getControllerNh()<<"/max_cartesian_angular_acceleration not defined, using 1.5 rad/s^2");
       m_max_cart_ang_acc=1.5;
     }
 
@@ -163,7 +163,7 @@ namespace cnr
       }
     }
 
-    if(rosdyn::saturateSpeed(this->chainNonConst(),vel_sp,m_vel_sp,m_pos_sp,period.toSec(), 1.0, 1.0, &report)) // CHECK!
+    if(rosdyn::saturateSpeed(this->chainNonConst(),vel_sp,m_vel_sp,m_pos_sp,period.toSec(), 1.0, true, &report)) // CHECK!
     {
       CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
     }
