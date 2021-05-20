@@ -22,6 +22,10 @@ bool ForceTorquePublisher::doInit()
   }
 
   m_w_sub_handle = add_publisher<geometry_msgs::WrenchStamped>(published_topic,1);
+  for (const std::string& resource: m_hw->getNames())
+    CNR_DEBUG(m_logger, "resouce: "<<resource);
+
+  m_ft_handle = m_hw->getHandle( m_name );
   CNR_RETURN_TRUE(m_logger);
 }
 
@@ -29,14 +33,14 @@ bool ForceTorquePublisher::doUpdate(const ros::Time& /*time*/, const ros::Durati
 {
   geometry_msgs::WrenchStampedPtr msg(new geometry_msgs::WrenchStamped());
 
-  msg->header.frame_id = m_hw->getHandle( m_name ).getFrameId( );
-  msg->wrench.force.x  = m_hw->getHandle( m_name ).getForce()[0];
-  msg->wrench.force.y  = m_hw->getHandle( m_name ).getForce()[1];
-  msg->wrench.force.z  = m_hw->getHandle( m_name ).getForce()[2];
+  msg->header.frame_id = m_ft_handle.getFrameId( );
 
-  msg->wrench.torque.x = m_hw->getHandle( m_name ).getTorque()[0];
-  msg->wrench.torque.y = m_hw->getHandle( m_name ).getTorque()[1];
-  msg->wrench.torque.z = m_hw->getHandle( m_name ).getTorque()[2];
+  msg->wrench.force.x  = m_ft_handle.getForce()[0];
+  msg->wrench.force.y  = m_ft_handle.getForce()[1];
+  msg->wrench.force.z  = m_ft_handle.getForce()[2];
+  msg->wrench.torque.x = m_ft_handle.getTorque()[0];
+  msg->wrench.torque.y = m_ft_handle.getTorque()[1];
+  msg->wrench.torque.z = m_ft_handle.getTorque()[2];
 
   msg->header.stamp=ros::Time::now();
   if(!publish(m_w_sub_handle, msg))
