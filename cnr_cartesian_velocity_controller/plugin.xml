@@ -1,6 +1,6 @@
-<library path="lib/libcnr_cartesian_teleop_controller">
-  <class name="cnr/control/CartesianTeleopController"
-         type="cnr::control::CartesianTeleopController"
+<library path="lib/libcnr_cartesian_velocity_controller">
+  <class name="cnr/control/CartesianVelocityController"
+         type="cnr::control::CartesianVelocityController"
          base_class_type="controller_interface::ControllerBase">
     <description>
       The Joint Teleop controller
