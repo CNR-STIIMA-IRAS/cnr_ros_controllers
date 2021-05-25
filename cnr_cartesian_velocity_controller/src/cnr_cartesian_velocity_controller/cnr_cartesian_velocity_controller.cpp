@@ -1,16 +1,14 @@
 #include <boost/algorithm/string.hpp>
-
+#include <ros/time.h>
 #include <tf/tf.h>
 #include <tf_conversions/tf_eigen.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/Pose.h>
-#include <state_space_filters/filtered_values.h>
-#include <eigen_matrix_utils/overloads.h>
+#include <pluginlib/class_list_macros.h>
+#include <cnr_logger/cnr_logger_macros.h>
+
 #include <cnr_cartesian_velocity_controller/cnr_cartesian_velocity_controller.h>
 
-#include <pluginlib/class_list_macros.h>
-
-namespace eu = eigen_utils;
-namespace ect = eigen_control_toolbox;
 
 PLUGINLIB_EXPORT_CLASS(cnr::control::CartesianVelocityController, controller_interface::ControllerBase)
 
@@ -44,7 +42,7 @@ inline bool CartesianVelocityController::doInit()
       CNR_WARN(this->logger(),"target_twist_topic not set. Default value superimposed.");
 
   this->template add_subscriber<geometry_msgs::TwistStamped>(
-        setpoint_topic_name,5,boost::bind(&CartesianVelocityController::callback,this,_1), false);
+        setpoint_topic_name,5,boost::bind(&CartesianVelocityController::twistSetPointCallback,this,_1), false);
 
   this->setPriority(this->QD_PRIORITY);
 
@@ -184,10 +182,10 @@ inline bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, con
 }
 
 /**
- * @brief CartesianVelocityController::callback
+ * @brief CartesianVelocityController::twistSetPointCallback
  * @param msg
  */
-inline void CartesianVelocityController::callback(const geometry_msgs::TwistStampedConstPtr &msg)
+inline void CartesianVelocityController::twistSetPointCallback(const geometry_msgs::TwistStampedConstPtr &msg)
 {
   Eigen::Vector6d twist_of_t_in_b = Eigen::Vector6d::Zero( );
   std::string base_link = this->chain().getLinksName().front();
