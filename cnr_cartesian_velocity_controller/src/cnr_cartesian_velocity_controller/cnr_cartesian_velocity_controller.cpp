@@ -33,7 +33,7 @@ inline bool CartesianVelocityController::doInit()
 {
   //INIT PUB/SUB
   std::string setpoint_topic_name;
-  setpoint_topic_name = this->getControllerNamespace() + "/target_joint_teleop";
+  setpoint_topic_name = this->getControllerNamespace() + "/target_cart_teleop";
 
   this->setKinUpdatePeriod(this->m_sampling_period); // superimposing the fkin_update_period, 
                                                      // we can then use chainCommand() sync and updated
@@ -157,9 +157,9 @@ inline bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, con
   }
 
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(J_of_t_in_b, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  auto sv = svd.singularValues(); 
   CNR_WARN_COND_THROTTLE(this->logger(),
-    (svd.singularValues()(svd.cols()-1)==0) || (svd.singularValues()(0)/svd.singularValues()(svd.cols()-1) > 1e2),
-    2, "SINGULARITY POINT" );
+                          (sv(sv.rows()-1)==0) || (sv(0)/sv(sv.rows()-1) > 1e2), 2, "SINGULARITY POINT" );
 
   vel_sp = svd.solve(twist_of_t_in_b);
   if(rosdyn::saturateSpeed(this->chainNonConst(),vel_sp,vel_sp,
