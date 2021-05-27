@@ -22,7 +22,7 @@ bool ForceTorquePublisher::doInit()
   }
 
   m_w_sub_handle = add_publisher<geometry_msgs::WrenchStamped>(published_topic,1);
-  
+
   for (const std::string& resource: m_hw->getNames())
     CNR_DEBUG(m_logger, "resouce: "<<resource);
 
@@ -42,7 +42,7 @@ bool ForceTorquePublisher::doUpdate(const ros::Time& /*time*/, const ros::Durati
   msg->wrench.torque.x = m_ft_handle.getTorque()[0];
   msg->wrench.torque.y = m_ft_handle.getTorque()[1];
   msg->wrench.torque.z = m_ft_handle.getTorque()[2];
-  
+
   msg->header.stamp=ros::Time::now();
   if(!publish(m_w_sub_handle, msg))
   {
