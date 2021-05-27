@@ -1,6 +1,6 @@
 <library path="lib/libcnr_joint_velocity_controller">
-  <class name="cnr/control/JointTeleopController"
-         type="cnr::control::JointTeleopController"
+  <class name="cnr/control/JointVelocityController"
+         type="cnr::control::JointVelocityController"
          base_class_type="controller_interface::ControllerBase">
     <description>
       The Joint Teleop controller

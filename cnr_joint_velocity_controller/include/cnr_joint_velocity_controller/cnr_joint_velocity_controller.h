@@ -21,21 +21,21 @@ namespace control
 
 
 /**
- * @brief The JointTeleopController class
+ * @brief The JointVelocityController class
  */
-class JointTeleopController:
+class JointVelocityController:
     public cnr::control::JointCommandController<
                   hardware_interface::PosVelEffJointHandle, hardware_interface::PosVelEffJointInterface>
 {
 public:
-  JointTeleopController();
+  JointVelocityController();
   bool doInit();
   bool doUpdate(const ros::Time& time, const ros::Duration& period);
   bool doStarting(const ros::Time& time);
   bool doStopping(const ros::Time& time);
-  void callback(const sensor_msgs::JointStateConstPtr &msg);
 
 protected:
+  void setPointCallback(const sensor_msgs::JointStateConstPtr &msg);
 
   std::mutex m_mtx;
   bool       m_has_pos_sp;

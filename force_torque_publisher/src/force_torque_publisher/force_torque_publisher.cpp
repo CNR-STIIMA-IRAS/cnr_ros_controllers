@@ -22,6 +22,7 @@ bool ForceTorquePublisher::doInit()
   }
 
   m_w_sub_handle = add_publisher<geometry_msgs::WrenchStamped>(published_topic,1);
+
   for (const std::string& resource: m_hw->getNames())
     CNR_DEBUG(m_logger, "resouce: "<<resource);
 

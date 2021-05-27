@@ -42,33 +42,33 @@
 #include <cnr_controller_interface/cnr_controller_interface.h>
 #include <cnr_controller_interface/cnr_joint_controller_interface.h>
 #include <cnr_controller_interface/cnr_joint_command_controller_interface.h>
-#include <cnr_cartesian_teleop_controller/cnr_cartesian_teleop_controller.h>
+#include <cnr_cartesian_velocity_controller/cnr_cartesian_velocity_controller.h>
 
 std::shared_ptr<ros::NodeHandle> root_nh;
 std::shared_ptr<ros::NodeHandle> robot_nh;
 std::shared_ptr<ros::NodeHandle> ctrl_nh;
 std::shared_ptr<cnr_hardware_interface::FakeRobotHW> robot_hw;
-std::shared_ptr<cnr::control::CartesianTeleopController> ctrl;
+std::shared_ptr<cnr::control::CartesianVelocityController> ctrl;
 
-std::shared_ptr<cnr::control::CartesianTeleopController > jc_ctrl_x;
-std::shared_ptr<cnr::control::CartesianTeleopController > jc_ctrl_6;
+std::shared_ptr<cnr::control::CartesianVelocityController > jc_ctrl_x;
+std::shared_ptr<cnr::control::CartesianVelocityController > jc_ctrl_6;
 
 // Declare a test
 TEST(TestSuite, Constructor)
 {
-  EXPECT_NO_FATAL_FAILURE(ctrl.reset(new cnr::control::CartesianTeleopController()));
+  EXPECT_NO_FATAL_FAILURE(ctrl.reset(new cnr::control::CartesianVelocityController()));
   EXPECT_TRUE(ctrl->init(robot_hw->get<hardware_interface::PosVelEffJointInterface>(), *robot_nh, *ctrl_nh));
 }
 
 TEST(TestSuite, JCXConstructor)
 {
-  EXPECT_NO_FATAL_FAILURE(jc_ctrl_x.reset(new cnr::control::CartesianTeleopController()));
+  EXPECT_NO_FATAL_FAILURE(jc_ctrl_x.reset(new cnr::control::CartesianVelocityController()));
   EXPECT_TRUE(jc_ctrl_x->init(robot_hw->get<hardware_interface::PosVelEffJointInterface>(), *robot_nh, *ctrl_nh));
 }
 
 TEST(TestSuite, JC6Constructor)
 {
-  EXPECT_NO_FATAL_FAILURE(jc_ctrl_6.reset(new cnr::control::CartesianTeleopController()));
+  EXPECT_NO_FATAL_FAILURE(jc_ctrl_6.reset(new cnr::control::CartesianVelocityController()));
   EXPECT_TRUE(jc_ctrl_6->init(robot_hw->get<hardware_interface::PosVelEffJointInterface>(), *robot_nh, *ctrl_nh));
 }
 

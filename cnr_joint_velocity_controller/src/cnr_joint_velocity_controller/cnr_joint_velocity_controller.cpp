@@ -3,7 +3,7 @@
 #include <cnr_joint_velocity_controller/cnr_joint_velocity_controller.h>
 #include <pluginlib/class_list_macros.h>
 
-PLUGINLIB_EXPORT_CLASS(cnr::control::JointTeleopController  , controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(cnr::control::JointVelocityController, controller_interface::ControllerBase)
 
 namespace eu = eigen_utils;
 namespace ect = eigen_control_toolbox;
@@ -14,24 +14,24 @@ namespace control
 {
 
 /**
- * @brief JointTeleopController::JointTeleopController
+ * @brief JointVelocityController::JointVelocityController
  */
-inline JointTeleopController::JointTeleopController()
+inline JointVelocityController::JointVelocityController()
 {
 }
 
 /**
- * @brief JointTeleopController::doInit
+ * @brief JointVelocityController::doInit
  * @return
  */
-inline bool JointTeleopController::doInit()
+inline bool JointVelocityController::doInit()
 {
   //INIT PUB/SUB
   std::string setpoint_topic_name;
   setpoint_topic_name = this->getControllerNamespace() + "/target_joint_teleop";
 
   this->template add_subscriber<sensor_msgs::JointState>(
-        setpoint_topic_name,5,boost::bind(&JointTeleopController::callback,this,_1), false);
+        setpoint_topic_name,5,boost::bind(&JointVelocityController::setPointCallback,this,_1), false);
 
   this->setPriority(this->QD_PRIORITY);
 
@@ -55,10 +55,10 @@ inline bool JointTeleopController::doInit()
 }
 
 /**
- * @brief JointTeleopController::doStarting
+ * @brief JointVelocityController::doStarting
  * @param time
  */
-inline bool JointTeleopController::doStarting(const ros::Time& /*time*/)
+inline bool JointVelocityController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger(),"Starting Controller");
   m_pos_sp = this->getPosition();
@@ -69,22 +69,22 @@ inline bool JointTeleopController::doStarting(const ros::Time& /*time*/)
 }
 
 /**
- * @brief JointTeleopController::stopping
+ * @brief JointVelocityController::stopping
  * @param time
  */
-inline bool JointTeleopController::doStopping(const ros::Time& /*time*/)
+inline bool JointVelocityController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger(),"Stopping Controller");
   CNR_RETURN_TRUE(this->logger());
 }
 
 /**
- * @brief JointTeleopController::doUpdate
+ * @brief JointVelocityController::doUpdate
  * @param time
  * @param period
  * @return
  */
-inline bool JointTeleopController::doUpdate(const ros::Time& /*time*/, const ros::Duration& period)
+inline bool JointVelocityController::doUpdate(const ros::Time& /*time*/, const ros::Duration& period)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   std::stringstream report;
@@ -116,10 +116,10 @@ inline bool JointTeleopController::doUpdate(const ros::Time& /*time*/, const ros
 }
 
 /**
- * @brief JointTeleopController::callback
+ * @brief JointVelocityController::setPointCallback
  * @param msg
  */
-inline void JointTeleopController::callback(const sensor_msgs::JointStateConstPtr& msg)
+inline void JointVelocityController::setPointCallback(const sensor_msgs::JointStateConstPtr& msg)
 {
   if(msg->velocity.size() == msg->name.size())
   {
