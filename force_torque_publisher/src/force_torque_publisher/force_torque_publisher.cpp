@@ -34,13 +34,15 @@ bool ForceTorquePublisher::doUpdate(const ros::Time& /*time*/, const ros::Durati
 {
   geometry_msgs::WrenchStampedPtr msg(new geometry_msgs::WrenchStamped());
 
+  msg->header.frame_id = m_ft_handle.getFrameId( );
+
   msg->wrench.force.x  = m_ft_handle.getForce()[0];
   msg->wrench.force.y  = m_ft_handle.getForce()[1];
   msg->wrench.force.z  = m_ft_handle.getForce()[2];
   msg->wrench.torque.x = m_ft_handle.getTorque()[0];
   msg->wrench.torque.y = m_ft_handle.getTorque()[1];
   msg->wrench.torque.z = m_ft_handle.getTorque()[2];
-
+  
   msg->header.stamp=ros::Time::now();
   if(!publish(m_w_sub_handle, msg))
   {
