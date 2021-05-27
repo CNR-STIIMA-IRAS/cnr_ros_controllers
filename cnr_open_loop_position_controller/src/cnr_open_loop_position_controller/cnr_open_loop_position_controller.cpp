@@ -125,13 +125,12 @@ inline bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointSta
 //!
 inline void OpenLoopPositionController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
-  CNR_TRACE_START_THROTTLE(this->m_logger, 1.0);
+  CNR_TRACE_START_THROTTLE_DEFAULT(this->m_logger);
   if(extractJoint(*msg))
   {
     m_configured = true;
   }
-
-  CNR_RETURN_OK_THROTTLE(this->m_logger, void(), 1.0);
+  CNR_RETURN_OK_THROTTLE_DEFAULT(this->m_logger, void());
 }
 
 }
