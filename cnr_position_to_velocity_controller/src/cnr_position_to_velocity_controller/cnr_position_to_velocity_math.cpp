@@ -25,8 +25,8 @@ bool append_string(std::string& what, bool ok, const std::string& msg)
 }
 
 //!
-inline bool PositionToVelocityControllerMath::init(
-    ros::NodeHandle& nh,const rosdyn::VectorXd& speed_limit,std::string& what)
+bool PositionToVelocityControllerMath::init(
+    ros::NodeHandle& ctrl_nh,const rosdyn::VectorXd& speed_limit,std::string& what)
 {
   what = "";
 
@@ -69,17 +69,17 @@ inline bool PositionToVelocityControllerMath::init(
   bool ok = true;
   std::string msg;
   std::vector<double> pos_minimum_error, pos_maximum_error,  antiwindup_gain;
-  ok &= append_string( what,ru::getParam(nh,"position_minimum_error"    , pos_minimum_error           , msg, &pos_minimum_error   ), msg);
-  ok &= append_string( what,ru::getParam(nh,"position_maximum_error"    , pos_maximum_error           , msg, &pos_maximum_error   ), msg);
-  ok &= append_string( what,ru::getParam(nh,"interpolate_setpoint"      , m_interpolate_setpoint      , msg, &m_interpolate_setpoint), msg) ;
-  ok &= append_string( what,ru::getParam(nh,"maximum_interpolation_time", m_maximum_interpolation_time, msg, &m_maximum_interpolation_time), msg);
-  ok &= append_string( what,ru::getParam(nh,"antiwindup_ratio"          , antiwindup_gain             , msg, &antiwindup_gain), msg);
-  ok &= append_string( what,ru::getParam(nh,"use_target_velocity"       , m_use_target_velocity       , msg, &m_use_target_velocity), msg);
-  ok &= append_string( what,ru::getParam(nh,"use_target_torque"         , m_use_target_torque         , msg, &m_use_target_torque), msg );
-  ok &= append_string( what,ect::setMatricesFromParam(m_target_pos_filter  ,nh, "target_pos_filter"   , msg), msg );
-  ok &= append_string( what,ect::setMatricesFromParam(m_pos_filter         ,nh, "pos_filter"          , msg), msg );
-  ok &= append_string( what,ect::setMatricesFromParam(m_controller         ,nh, "controller"          , msg), msg );
-  ok &= append_string( what,ect::setMatricesFromParam(m_integral_controller,nh, "integral_controller" , msg), msg );
+  ok &= append_string( what,ru::getParam(ctrl_nh,"position_minimum_error"    , pos_minimum_error           , msg, &pos_minimum_error   ), msg);
+  ok &= append_string( what,ru::getParam(ctrl_nh,"position_maximum_error"    , pos_maximum_error           , msg, &pos_maximum_error   ), msg);
+  ok &= append_string( what,ru::getParam(ctrl_nh,"interpolate_setpoint"      , m_interpolate_setpoint      , msg, &m_interpolate_setpoint), msg) ;
+  ok &= append_string( what,ru::getParam(ctrl_nh,"maximum_interpolation_time", m_maximum_interpolation_time, msg, &m_maximum_interpolation_time), msg);
+  ok &= append_string( what,ru::getParam(ctrl_nh,"antiwindup_ratio"          , antiwindup_gain             , msg, &antiwindup_gain), msg);
+  ok &= append_string( what,ru::getParam(ctrl_nh,"use_target_velocity"       , m_use_target_velocity       , msg, &m_use_target_velocity), msg);
+  ok &= append_string( what,ru::getParam(ctrl_nh,"use_target_torque"         , m_use_target_torque         , msg, &m_use_target_torque), msg );
+  ok &= append_string( what,ect::setMatricesFromParam(m_target_pos_filter  ,ctrl_nh, "target_pos_filter"   , msg), msg );
+  ok &= append_string( what,ect::setMatricesFromParam(m_pos_filter         ,ctrl_nh, "pos_filter"          , msg), msg );
+  ok &= append_string( what,ect::setMatricesFromParam(m_controller         ,ctrl_nh, "controller"          , msg), msg );
+  ok &= append_string( what,ect::setMatricesFromParam(m_integral_controller,ctrl_nh, "integral_controller" , msg), msg );
 
   //=============
 
@@ -144,7 +144,7 @@ inline bool PositionToVelocityControllerMath::init(
 }
 
 //!
-inline bool PositionToVelocityControllerMath::starting(const rosdyn::VectorXd& fb_pos, const rosdyn::VectorXd& fb_vel, std::string& what)
+bool PositionToVelocityControllerMath::starting(const rosdyn::VectorXd& fb_pos, const rosdyn::VectorXd& fb_vel, std::string& what)
 {
   if(fb_pos.rows()!=m_last_target_pos.rows() || fb_vel.rows()!=m_last_target_pos.rows())
   {
@@ -191,14 +191,14 @@ inline bool PositionToVelocityControllerMath::starting(const rosdyn::VectorXd& f
 }
 
 //!
-inline void PositionToVelocityControllerMath::stopping()
+void PositionToVelocityControllerMath::stopping()
 {
   eu::setZero(m_vel_cmd);
   eu::setZero(m_eff_cmd);
 }
 
 //!
-inline bool PositionToVelocityControllerMath::update(const ros::Time& time,
+bool PositionToVelocityControllerMath::update(const ros::Time& time,
       const rosdyn::VectorXd* const trg_pos,
       const rosdyn::VectorXd* const trg_vel,
       const rosdyn::VectorXd* const trg_eff,
