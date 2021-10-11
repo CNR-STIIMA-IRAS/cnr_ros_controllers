@@ -126,15 +126,15 @@ inline bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, con
   if (period.toSec()>0.0)
   {
     Dtwist_of_t_in_b = (twist_of_t_in_b-last_twist_of_in_b_)/period.toSec();
-    
+    double scaling=1.0;
     if (Dtwist_of_t_in_b.block(0,0,3,1).norm()>max_cart_lin_acc_)
-      Dtwist_of_t_in_b*=max_cart_lin_acc_/Dtwist_of_t_in_b.norm();
+      scaling=max_cart_lin_acc_/Dtwist_of_t_in_b.norm();
     
     if (Dtwist_of_t_in_b.block(3,0,3,1).norm()>max_cart_ang_acc_)
-      Dtwist_of_t_in_b*=max_cart_ang_acc_/Dtwist_of_t_in_b.norm();
+      scaling=std::min(scaling,max_cart_ang_acc_/Dtwist_of_t_in_b.norm());
     
+    Dtwist_of_t_in_b*=scaling;
     twist_of_t_in_b=last_twist_of_in_b_+Dtwist_of_t_in_b*period.toSec();
-    last_twist_of_in_b_=twist_of_t_in_b;
   }
   else
   {
@@ -142,7 +142,7 @@ inline bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, con
     last_twist_of_in_b_ = Eigen::Vector6d::Zero( );
   }
 
-  rosdyn::VectorXd vel_sp = this->getCommandVelocity();
+  rosdyn::VectorXd old_vel_sp = this->getCommandVelocity();
   rosdyn::VectorXd pos_sp = this->getCommandPosition();
   Eigen::Matrix6Xd J_of_t_in_b;
 
@@ -151,30 +151,59 @@ inline bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, con
   Eigen::FullPivLU<Eigen::MatrixXd> pinv_J(J_of_t_in_b);
 
   pinv_J.setThreshold ( 1e-2 );
-  if(pinv_J.rank()<6)
-  {
-    CNR_FATAL(this->logger(),"rank: "<<pinv_J.rank()<<"\nJacobian\n"<<J_of_t_in_b);
-  }
+
 
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(J_of_t_in_b, Eigen::ComputeThinU | Eigen::ComputeThinV);
   auto sv = svd.singularValues(); 
   CNR_WARN_COND_THROTTLE(this->logger(),
                           (sv(sv.rows()-1)==0) || (sv(0)/sv(sv.rows()-1) > 1e2), 2, "SINGULARITY POINT" );
 
-  vel_sp = svd.solve(twist_of_t_in_b);
-  if(rosdyn::saturateSpeed(this->chainNonConst(),vel_sp,vel_sp,
+  if(pinv_J.rank()<6)
+  {
+    CNR_WARN_THROTTLE(this->logger(),2,"rank: "<<pinv_J.rank()<<"\nJacobian\n"<<J_of_t_in_b);
+  }
+
+  rosdyn::VectorXd vel_sp = svd.solve(twist_of_t_in_b);
+
+  if(rosdyn::saturateSpeed(this->chainNonConst(),vel_sp,old_vel_sp,
+                           this->getCommandPosition(),period.toSec(), 1.0, true, &report)) // CHECK!
+  {
+    CNR_DEBUG_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
+  }
+
+  Eigen::Vector6d twist_of_t_in_b_command=J_of_t_in_b*vel_sp;
+  Eigen::Vector6d versor=twist_of_t_in_b.normalized();
+  Eigen::Vector6d parallel_twist=twist_of_t_in_b_command.dot(versor)*versor;
+  Eigen::Vector6d perpendicular_twist=twist_of_t_in_b_command -parallel_twist;
+
+  if (perpendicular_twist.norm()>1e-6)
+  {
+    vel_sp*=1e-6/perpendicular_twist.norm();
+    CNR_WARN_THROTTLE(this->logger(),1,"saturating velocity, direction error (perpendicular norm = " << perpendicular_twist.norm() <<  ") due to singularity and joint limits");
+    CNR_DEBUG_THROTTLE(this->logger(),1,
+                      "twist_of_t_in_b         = " << twist_of_t_in_b.transpose() << std::endl <<
+                      "twist_of_t_in_b_command = " << twist_of_t_in_b_command.transpose() << std::endl <<
+                      "parallel_twist velocity = " << parallel_twist.transpose() << std::endl <<
+                      "perpedicular velocity   = " << perpendicular_twist.transpose()
+                      );
+  }
+  last_twist_of_in_b_=J_of_t_in_b*vel_sp;
+
+  if(rosdyn::saturateSpeed(this->chainNonConst(),vel_sp,old_vel_sp,
                               this->getCommandPosition(),period.toSec(), 1.0, true, &report)) // CHECK!
   {
-    CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
+    CNR_DEBUG_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
   }
+
 
   pos_sp = this->getCommandPosition() + vel_sp * period.toSec();
   
   if(rosdyn::saturatePosition(this->chainNonConst(),pos_sp, &report))
   {
-    CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
+    CNR_DEBUG_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
   }
 
+  last_twist_of_in_b_=J_of_t_in_b*vel_sp;
   this->setCommandPosition( pos_sp );
   this->setCommandVelocity( vel_sp );
 
@@ -209,7 +238,7 @@ inline void CartesianVelocityController::twistSetPointCallback(const geometry_ms
       twist = Eigen::Vector6d::Zero();
     }
 
-    CNR_WARN_THROTTLE( this->logger(), 2, "[ " << this->getControllerNamespace()
+    CNR_DEBUG_THROTTLE( this->logger(), 2, "[ " << this->getControllerNamespace()
                           <<" ] Reference Twist {" << msg->header.frame_id << "}     : " << twist.transpose() );
 
     std::string frame_id = boost::to_lower_copy( msg->header.frame_id);

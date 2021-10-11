@@ -34,6 +34,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doInit()
 
   this->template add_subscriber<sensor_msgs::JointState>(setpoint_topic_name, 1,
               boost::bind(&PositionToVelocityControllerBase<H,T>::callback,this,_1));
+  m_command_pub = this->template add_publisher<sensor_msgs::JointState>("command",1);
 
   eu::resize(m_target_pos, this->nAx());
   eu::resize(m_target_vel, this->nAx());
@@ -81,13 +82,21 @@ template<class H, class T>
 inline bool PositionToVelocityControllerBase<H,T>::doUpdate(const ros::Time& time, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
+  sensor_msgs::JointStatePtr cmd_msg=boost::make_shared<sensor_msgs::JointState>();
+  cmd_msg->name=this->jointNames();
+  cmd_msg->header.stamp=ros::Time::now();
+  cmd_msg->position.resize( this->nAx(), 0.0);
+  cmd_msg->velocity.resize( this->nAx(), 0.0);
+  cmd_msg->effort.resize(   this->nAx(), 0.0);
   try
   {
     if(!m_configured)
     {
       m_target_pos = this->getPosition();
       eu::setZero(m_target_vel);
-      ctrl.update(time, &m_target_pos, nullptr, nullptr, nullptr, this->getPosition(), this->getVelocity());
+      eu::setZero(m_target_eff);
+      double t=time.toSec();
+      ctrl.update(time, &m_target_pos, &m_target_vel, &m_target_eff, &t, this->getPosition(), this->getVelocity());
     }
     else
     {
@@ -101,6 +110,12 @@ inline bool PositionToVelocityControllerBase<H,T>::doUpdate(const ros::Time& tim
     this->setCommandVelocity(0,0);
     CNR_RETURN_FALSE_THROTTLE(this->logger(), 2.0, "Exception!");
   }
+  for (unsigned int idx=0;idx<this->nAx();idx++)
+  {
+    cmd_msg->position.at(idx)=m_target_pos(idx);
+    cmd_msg->velocity.at(idx)=ctrl.getVelCmd()(idx);
+  }
+  this->getPublisher(m_command_pub)->publish(cmd_msg);
   CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
 }
 
@@ -152,7 +167,7 @@ inline bool PositionToVelocityControllerBase<H,T>::extractJoint(
     size_t iJoint = std::distance(msg.name.begin(), it);
     eu::at(pos,i) = msg.position.at(iJoint);
     eu::at(vel,i) = msg.velocity.size() == msg.name.size() ? msg.velocity.at(iJoint) : 0 ;
-    eu::at(eff,i) = msg.effort.size() == msg.name.size() ? msg.effort.at(iJoint) : 0 ;
+    eu::at(eff,i) = msg.effort.size()   == msg.name.size() ? msg.effort.at(iJoint)   : 0 ;
   }
 
   return true;
@@ -198,7 +213,7 @@ inline bool PositionToVelocityControllerBase<H,T>::extractJoint(
 inline bool PositionToVelocityControllerFfw::doInit()
 {
   CNR_TRACE_START(this->logger());
-  if(this->PositionToVelocityControllerFfwBase::doInit())
+  if(not this->PositionToVelocityControllerFfwBase::doInit())
   {
     CNR_RETURN_FALSE(this->logger());
   }
@@ -209,7 +224,7 @@ inline bool PositionToVelocityControllerFfw::doInit()
 inline bool PositionToVelocityControllerFfw::doStarting(const ros::Time& time)
 {
   CNR_TRACE_START(this->logger());
-  if(this->PositionToVelocityControllerFfwBase::doStarting(time))
+  if(not this->PositionToVelocityControllerFfwBase::doStarting(time))
   {
     CNR_RETURN_FALSE(this->logger());
   }
@@ -220,7 +235,7 @@ inline bool PositionToVelocityControllerFfw::doStarting(const ros::Time& time)
 inline bool PositionToVelocityControllerFfw::doStopping(const ros::Time& time)
 {
   CNR_TRACE_START(this->logger());
-  if(this->PositionToVelocityControllerFfwBase::doStopping(time))
+  if(not this->PositionToVelocityControllerFfwBase::doStopping(time))
   {
     CNR_RETURN_FALSE(this->logger());
   }

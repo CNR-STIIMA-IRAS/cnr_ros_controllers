@@ -43,6 +43,7 @@ protected:
   bool             m_configured;
   double           m_last_sp_time;
 
+  size_t           m_command_pub;
   void callback(const sensor_msgs::JointStateConstPtr msg);
   bool extractJoint(const sensor_msgs::JointState msg, const std::vector<std::string>& name,
                         rosdyn::VectorXd& pos, rosdyn::VectorXd& vel, rosdyn::VectorXd& eff);
