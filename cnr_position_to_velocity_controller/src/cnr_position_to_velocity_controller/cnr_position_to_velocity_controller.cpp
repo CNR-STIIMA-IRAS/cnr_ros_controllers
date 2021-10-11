@@ -87,7 +87,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doUpdate(const ros::Time& tim
   cmd_msg->header.stamp=ros::Time::now();
   cmd_msg->position.resize( this->nAx(), 0.0);
   cmd_msg->velocity.resize( this->nAx(), 0.0);
-  cmd_msg->effort.resize(   this->nAx()+2, 0.0);
+  cmd_msg->effort.resize(   this->nAx(), 0.0);
   try
   {
     if(!m_configured)
@@ -114,10 +114,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doUpdate(const ros::Time& tim
   {
     cmd_msg->position.at(idx)=m_target_pos(idx);
     cmd_msg->velocity.at(idx)=ctrl.getVelCmd()(idx);
-    cmd_msg->effort.at(idx)=m_target_pos(idx)-this->getPosition()(idx);
   }
-  cmd_msg->effort.at(this->nAx())=(time.toSec()-cmd_msg->header.stamp.toSec());
-  cmd_msg->effort.at(this->nAx()+1)=cmd_msg->header.stamp.toSec()-this->m_last_sp_time;
   this->getPublisher(m_command_pub)->publish(cmd_msg);
   CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
 }
@@ -172,8 +169,6 @@ inline bool PositionToVelocityControllerBase<H,T>::extractJoint(
     eu::at(vel,i) = msg.velocity.size() == msg.name.size() ? msg.velocity.at(iJoint) : 0 ;
     eu::at(eff,i) = msg.effort.size()   == msg.name.size() ? msg.effort.at(iJoint)   : 0 ;
   }
-  ROS_INFO_STREAM_THROTTLE(1,"msg "<< msg);
-  ROS_INFO_STREAM_THROTTLE(1,"pos "<< pos.transpose());
 
   return true;
 }
