@@ -34,6 +34,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doInit()
 
   this->template add_subscriber<sensor_msgs::JointState>(setpoint_topic_name, 1,
               boost::bind(&PositionToVelocityControllerBase<H,T>::callback,this,_1));
+  m_command_pub = this->template add_publisher<sensor_msgs::JointState>("command",1);
 
   eu::resize(m_target_pos, this->nAx());
   eu::resize(m_target_vel, this->nAx());
@@ -81,6 +82,12 @@ template<class H, class T>
 inline bool PositionToVelocityControllerBase<H,T>::doUpdate(const ros::Time& time, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
+  sensor_msgs::JointStatePtr cmd_msg=boost::make_shared<sensor_msgs::JointState>();
+  cmd_msg->name=this->jointNames();
+  cmd_msg->header.stamp=ros::Time::now();
+  cmd_msg->position.resize( this->nAx(), 0.0);
+  cmd_msg->velocity.resize( this->nAx(), 0.0);
+  cmd_msg->effort.resize(   this->nAx()+2, 0.0);
   try
   {
     if(!m_configured)
@@ -103,6 +110,15 @@ inline bool PositionToVelocityControllerBase<H,T>::doUpdate(const ros::Time& tim
     this->setCommandVelocity(0,0);
     CNR_RETURN_FALSE_THROTTLE(this->logger(), 2.0, "Exception!");
   }
+  for (unsigned int idx=0;idx<this->nAx();idx++)
+  {
+    cmd_msg->position.at(idx)=m_target_pos(idx);
+    cmd_msg->velocity.at(idx)=ctrl.getVelCmd()(idx);
+    cmd_msg->effort.at(idx)=m_target_pos(idx)-this->getPosition()(idx);
+  }
+  cmd_msg->effort.at(this->nAx())=(time.toSec()-cmd_msg->header.stamp.toSec());
+  cmd_msg->effort.at(this->nAx()+1)=cmd_msg->header.stamp.toSec()-this->m_last_sp_time;
+  this->getPublisher(m_command_pub)->publish(cmd_msg);
   CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
 }
 
@@ -154,8 +170,10 @@ inline bool PositionToVelocityControllerBase<H,T>::extractJoint(
     size_t iJoint = std::distance(msg.name.begin(), it);
     eu::at(pos,i) = msg.position.at(iJoint);
     eu::at(vel,i) = msg.velocity.size() == msg.name.size() ? msg.velocity.at(iJoint) : 0 ;
-    eu::at(eff,i) = msg.effort.size() == msg.name.size() ? msg.effort.at(iJoint) : 0 ;
+    eu::at(eff,i) = msg.effort.size()   == msg.name.size() ? msg.effort.at(iJoint)   : 0 ;
   }
+  ROS_INFO_STREAM_THROTTLE(1,"msg "<< msg);
+  ROS_INFO_STREAM_THROTTLE(1,"pos "<< pos.transpose());
 
   return true;
 }
