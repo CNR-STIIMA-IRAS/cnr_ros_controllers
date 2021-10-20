@@ -55,6 +55,7 @@ protected:
   std::thread m_as_thread;
   Eigen::Affine3d T_base_target_;
   Eigen::Affine3d T_base_t_;
+  double target_velocity_=0.001;
 
   void actionGoalCallback   (actionlib::ActionServer<cnr_cartesian_position_controller::RelativeMoveAction>::GoalHandle gh);
   void actionCancelCallback (actionlib::ActionServer<cnr_cartesian_position_controller::RelativeMoveAction>::GoalHandle gh);

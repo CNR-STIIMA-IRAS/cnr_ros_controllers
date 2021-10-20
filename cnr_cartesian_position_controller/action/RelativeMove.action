@@ -1,5 +1,5 @@
 geometry_msgs/PoseStamped relative_pose
-
+float64 target_velocity
 ---
 int32  error_code
 int32  GOAL_EXCEPTION=-1

@@ -109,13 +109,13 @@ inline bool CartesianPositionController::doStarting(const ros::Time& /*time*/)
 inline bool CartesianPositionController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger(),"Stopping Controller");
-  CNR_RETURN_TRUE(this->logger());
 
   m_stop_thread=true;
   if (m_as_thread.joinable())
   {
     m_as_thread.join();
   }
+  CNR_RETURN_TRUE(this->logger());
 }
 
 /**
@@ -145,6 +145,10 @@ inline bool CartesianPositionController::doUpdate(const ros::Time& /*time*/, con
 
   if (twist_of_t_in_b.block(0,0,3,1).norm() > max_cart_lin_vel_)
     twist_of_t_in_b *= max_cart_lin_vel_/twist_of_t_in_b.norm();
+
+  if (twist_of_t_in_b.block(0,0,3,1).norm() > target_velocity_)
+    twist_of_t_in_b *= target_velocity_/twist_of_t_in_b.norm();
+
 
   if (twist_of_t_in_b.block(3,0,3,1).norm()>max_cart_ang_vel_)
     twist_of_t_in_b*=max_cart_ang_vel_/twist_of_t_in_b.norm();
@@ -249,8 +253,6 @@ void CartesianPositionController::actionGoalCallback(actionlib::ActionServer< cn
     current_gh.reset(new actionlib::ActionServer<cnr_cartesian_position_controller::RelativeMoveAction>::GoalHandle(gh));
     m_gh = current_gh;
 
-
-
     mtx_.lock();
     Eigen::Affine3d T_b_actual=T_base_t_;
     mtx_.unlock();
@@ -290,6 +292,17 @@ void CartesianPositionController::actionGoalCallback(actionlib::ActionServer< cn
       m_gh->setRejected(result);
       return;
     }
+    target_velocity_=goal->target_velocity;
+    if (target_velocity_<=0)
+    {
+      ROS_FATAL("target velocity should be positive");
+      T_t_target.setIdentity();
+      cnr_cartesian_position_controller::RelativeMoveResult result;
+      result.error_code   = -1;
+      result.error_string = "target velocity should be positive";
+      m_gh->setRejected(result);
+      return;
+    }
 
     CNR_INFO(this->logger(),"[ "<<this->getControllerNamespace()<<" ] New Goal Received, action start!");
     m_gh->setAccepted();
@@ -321,7 +334,6 @@ void CartesianPositionController::actionGoalCallback(actionlib::ActionServer< cn
     result.error_string = "goal exception";
     m_gh->setAborted(result);
   }
-
 }
 
 void CartesianPositionController::actionCancelCallback(actionlib::ActionServer< cnr_cartesian_position_controller::RelativeMoveAction >::GoalHandle /*gh*/)
@@ -373,6 +385,7 @@ void CartesianPositionController::actionThreadFunction()
       result.error_code   = 0;
       result.error_string = "finished";
       m_gh->setSucceeded(result);
+      ROS_FATAL("FINITO");
       break;
     }
 
@@ -385,14 +398,10 @@ void CartesianPositionController::actionThreadFunction()
       break;
     }
 
-
     m_gh->publishFeedback(fb);
-
-
-
-
   }
   m_gh.reset();
+  ROS_FATAL("exit thread");
 }
 
 
