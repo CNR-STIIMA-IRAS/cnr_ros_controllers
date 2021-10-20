@@ -1,0 +1,9 @@
+<library path="lib/libcnr_cartesian_position_controller">
+  <class name="cnr/control/CartesianPositionController"
+         type="cnr::control::CartesianPositionController"
+         base_class_type="controller_interface::ControllerBase">
+    <description>
+      The Relative Pose move
+    </description>
+  </class>
+</library>

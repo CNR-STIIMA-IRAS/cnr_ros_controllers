@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cnr_cartesian_position_controller</name>
+  <version>0.0.0</version>
+  <description>The cnr_cartesian_position_controller package</description>
+
+  <maintainer email="abel@todo.todo">abel</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>urdf</build_depend>
+  <build_depend>controller_interface</build_depend>
+  <build_depend>cnr_controller_interface</build_depend>
+  <build_depend>state_space_filters</build_depend>
+  <build_depend>cnr_hardware_interface</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf_conversions</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>subscription_notifier</build_depend>
+  <build_depend>cnr_hardware_interface</build_depend>
+
+  <build_export_depend>urdf</build_export_depend>
+  <build_export_depend>controller_interface</build_export_depend>
+  <build_export_depend>cnr_controller_interface</build_export_depend>
+  <build_export_depend>state_space_filters</build_export_depend>
+  <build_export_depend>cnr_hardware_interface</build_export_depend>
+  <build_export_depend>tf</build_export_depend>
+  <build_export_depend>tf_conversions</build_export_depend>
+
+  <build_export_depend>pluginlib</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>subscription_notifier</build_export_depend>
+
+  <exec_depend>urdf</exec_depend>
+  <exec_depend>controller_interface</exec_depend>
+  <exec_depend>cnr_controller_interface</exec_depend>
+  <exec_depend>state_space_filters</exec_depend>
+  <exec_depend>cnr_hardware_interface</exec_depend>
+  <exec_depend>pluginlib</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>subscription_notifier</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>tf_conversions</exec_depend>
+
+  <depend>name_sorting</depend>
+  <depend>joint_limits_interface</depend>
+  <depend>actionlib_msgs</depend>
+  <depend>actionlib</depend>
+  <depend>eigen_conversions</depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <controller_interface plugin="${prefix}/plugin.xml"/>
+  </export>
+</package>
