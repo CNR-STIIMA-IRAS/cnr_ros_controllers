@@ -1,0 +1,7 @@
+<library path="lib/libcnr_open_loop_posvel_controller">
+  <class name="cnr/control/OpenLoopPosVelController" type="cnr::control::OpenLoopPosVelController" base_class_type="controller_interface::ControllerBase">
+		<description>
+			Single Joint Velocity controller Open Loop by using Effort interface
+		</description>
+	</class>
+</library>

@@ -210,10 +210,10 @@ inline bool PositionToVelocityControllerBase<H,T>::extractJoint(
  * @return
  */
 
-inline bool PositionToVelocityControllerFfw::doInit()
+bool PositionToVelocityControllerFfw::doInit()
 {
   CNR_TRACE_START(this->logger());
-  if(not this->PositionToVelocityControllerFfwBase::doInit())
+  if(!this->PositionToVelocityControllerFfwBase::doInit())
   {
     CNR_RETURN_FALSE(this->logger());
   }
@@ -221,10 +221,10 @@ inline bool PositionToVelocityControllerFfw::doInit()
 }
 
 
-inline bool PositionToVelocityControllerFfw::doStarting(const ros::Time& time)
+bool PositionToVelocityControllerFfw::doStarting(const ros::Time& time)
 {
   CNR_TRACE_START(this->logger());
-  if(not this->PositionToVelocityControllerFfwBase::doStarting(time))
+  if(!this->PositionToVelocityControllerFfwBase::doStarting(time))
   {
     CNR_RETURN_FALSE(this->logger());
   }
@@ -232,10 +232,10 @@ inline bool PositionToVelocityControllerFfw::doStarting(const ros::Time& time)
 }
 
 
-inline bool PositionToVelocityControllerFfw::doStopping(const ros::Time& time)
+bool PositionToVelocityControllerFfw::doStopping(const ros::Time& time)
 {
   CNR_TRACE_START(this->logger());
-  if(not this->PositionToVelocityControllerFfwBase::doStopping(time))
+  if(!this->PositionToVelocityControllerFfwBase::doStopping(time))
   {
     CNR_RETURN_FALSE(this->logger());
   }
