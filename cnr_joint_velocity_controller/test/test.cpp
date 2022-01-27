@@ -48,27 +48,27 @@ std::shared_ptr<ros::NodeHandle> root_nh;
 std::shared_ptr<ros::NodeHandle> robot_nh;
 std::shared_ptr<ros::NodeHandle> ctrl_nh;
 std::shared_ptr<cnr_hardware_interface::FakeRobotHW> robot_hw;
-std::shared_ptr<cnr::control::JointTeleopController> ctrl;
+std::shared_ptr<cnr::control::JointVelocityController> ctrl;
 
-std::shared_ptr<cnr::control::JointTeleopController > jc_ctrl_x;
-std::shared_ptr<cnr::control::JointTeleopController > jc_ctrl_6;
+std::shared_ptr<cnr::control::JointVelocityController > jc_ctrl_x;
+std::shared_ptr<cnr::control::JointVelocityController > jc_ctrl_6;
 
 // Declare a test
 TEST(TestSuite, Constructor)
 {
-  EXPECT_NO_FATAL_FAILURE(ctrl.reset(new cnr::control::JointTeleopController()));
+  EXPECT_NO_FATAL_FAILURE(ctrl.reset(new cnr::control::JointVelocityController()));
   EXPECT_TRUE(ctrl->init(robot_hw->get<hardware_interface::PosVelEffJointInterface>(), *robot_nh, *ctrl_nh));
 }
 
 TEST(TestSuite, JCXConstructor)
 {
-  EXPECT_NO_FATAL_FAILURE(jc_ctrl_x.reset(new cnr::control::JointTeleopController()));
+  EXPECT_NO_FATAL_FAILURE(jc_ctrl_x.reset(new cnr::control::JointVelocityController()));
   EXPECT_TRUE(jc_ctrl_x->init(robot_hw->get<hardware_interface::PosVelEffJointInterface>(), *robot_nh, *ctrl_nh));
 }
 
 TEST(TestSuite, JC6Constructor)
 {
-  EXPECT_NO_FATAL_FAILURE(jc_ctrl_6.reset(new cnr::control::JointTeleopController()));
+  EXPECT_NO_FATAL_FAILURE(jc_ctrl_6.reset(new cnr::control::JointVelocityController()));
   EXPECT_TRUE(jc_ctrl_6->init(robot_hw->get<hardware_interface::PosVelEffJointInterface>(), *robot_nh, *ctrl_nh));
 }
 

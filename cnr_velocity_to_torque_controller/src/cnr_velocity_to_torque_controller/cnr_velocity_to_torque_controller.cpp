@@ -11,7 +11,7 @@ namespace control
 {
 
 //!
-inline bool VelocityToTorqueController::doInit( )
+bool VelocityToTorqueController::doInit( )
 {
   CNR_TRACE_START(this->logger());
   std::string setpoint_topic_name;
@@ -103,7 +103,7 @@ inline bool VelocityToTorqueController::doInit( )
 }
 
 //!
-inline bool VelocityToTorqueController::doStarting(const ros::Time& /*time*/)
+bool VelocityToTorqueController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   m_configured = false;
@@ -131,7 +131,7 @@ inline bool VelocityToTorqueController::doStarting(const ros::Time& /*time*/)
 }
 
 //!
-inline bool VelocityToTorqueController::doStopping(const ros::Time& /*time*/)
+bool VelocityToTorqueController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   m_configured = false;
@@ -140,7 +140,7 @@ inline bool VelocityToTorqueController::doStopping(const ros::Time& /*time*/)
 }
 
 //!
-inline bool VelocityToTorqueController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+bool VelocityToTorqueController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   try
@@ -200,7 +200,7 @@ inline bool VelocityToTorqueController::doUpdate(const ros::Time& /*time*/, cons
 
 
 //!
-inline bool VelocityToTorqueController::extractJoint(
+bool VelocityToTorqueController::extractJoint(
     const sensor_msgs::JointState& msg, const std::vector<std::string>& names,
     rosdyn::VectorXd& vel, rosdyn::VectorXd& eff)
 {
@@ -226,7 +226,7 @@ inline bool VelocityToTorqueController::extractJoint(
 }
 
 //!
-inline void VelocityToTorqueController::callback(const sensor_msgs::JointStateConstPtr& msg)
+void VelocityToTorqueController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
   if (extractJoint(*msg, this->jointNames(), m_target_vel, m_target_eff))
   {

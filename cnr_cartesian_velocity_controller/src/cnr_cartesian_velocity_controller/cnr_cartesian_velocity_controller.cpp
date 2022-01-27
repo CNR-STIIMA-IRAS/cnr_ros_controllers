@@ -21,7 +21,7 @@ namespace control
 /**
  * @brief CartesianVelocityController::CartesianVelocityController
  */
-inline CartesianVelocityController::CartesianVelocityController()
+CartesianVelocityController::CartesianVelocityController()
 {
 }
 
@@ -29,7 +29,7 @@ inline CartesianVelocityController::CartesianVelocityController()
  * @brief CartesianVelocityController::doInit
  * @return
  */
-inline bool CartesianVelocityController::doInit()
+bool CartesianVelocityController::doInit()
 {
   //INIT PUB/SUB
   std::string setpoint_topic_name;
@@ -80,7 +80,7 @@ inline bool CartesianVelocityController::doInit()
  * @brief CartesianVelocityController::doStarting
  * @param time
  */
-inline bool CartesianVelocityController::doStarting(const ros::Time& /*time*/)
+bool CartesianVelocityController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger(),"Starting Controller");
   this->setCommandVelocity(0.0*this->getVelocity()); //not needed, already superimposed in enterStarting()
@@ -95,7 +95,7 @@ inline bool CartesianVelocityController::doStarting(const ros::Time& /*time*/)
  * @brief CartesianVelocityController::stopping
  * @param time
  */
-inline bool CartesianVelocityController::doStopping(const ros::Time& /*time*/)
+bool CartesianVelocityController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger(),"Stopping Controller");
   CNR_RETURN_TRUE(this->logger());
@@ -107,7 +107,7 @@ inline bool CartesianVelocityController::doStopping(const ros::Time& /*time*/)
  * @param period
  * @return
  */
-inline bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, const ros::Duration& period)
+bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, const ros::Duration& period)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   std::stringstream report;
@@ -214,7 +214,7 @@ inline bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, con
  * @brief CartesianVelocityController::twistSetPointCallback
  * @param msg
  */
-inline void CartesianVelocityController::twistSetPointCallback(const geometry_msgs::TwistStampedConstPtr &msg)
+void CartesianVelocityController::twistSetPointCallback(const geometry_msgs::TwistStampedConstPtr &msg)
 {
   Eigen::Vector6d twist_of_t_in_b = Eigen::Vector6d::Zero( );
   std::string base_link = this->chain().getLinksName().front();
