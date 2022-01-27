@@ -56,3 +56,5 @@ install(DIRECTORY include/${PROJECT_NAME}/
   PATTERN ".svn" EXCLUDE
 )
 
+install(FILES plugin.xml
+  DESTINATION share/${PROJECT_NAME})
