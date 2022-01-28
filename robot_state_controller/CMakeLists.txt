@@ -13,12 +13,14 @@ find_package(catkin REQUIRED COMPONENTS
   controller_interface
   hardware_interface
   roscpp
-  rosdyn_core)
+  rosdyn_core
+  robot_state_controller_msgs
+)
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES robot_state_controller
-  CATKIN_DEPENDS cnr_controller_interface controller_interface hardware_interface roscpp rosdyn_core
+  CATKIN_DEPENDS cnr_controller_interface controller_interface hardware_interface roscpp rosdyn_core robot_state_controller_msgs
   DEPENDS
   )
 include_directories(
@@ -31,7 +33,7 @@ add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 target_link_libraries(${PROJECT_NAME}  ${catkin_LIBRARIES})
 target_compile_options(${PROJECT_NAME} PUBLIC -Wall -faligned-new
         $<$<CONFIG:Release>:-Ofast -funroll-loops -ffast-math >)
-if(${CMAKE_VERSION} VERSION_GREATER  "3.16.0") 
+if(${CMAKE_VERSION} VERSION_GREATER  "3.16.0")
 	target_precompile_headers(${PROJECT_NAME} PUBLIC
     <cnr_controller_interface/cnr_joint_controller_interface.h>
     <hardware_interface/joint_state_interface.h>
@@ -59,4 +61,3 @@ ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 RUNTIME DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
-

@@ -1,5 +1,7 @@
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <robot_state_controller_msgs/PoseTwistArray.h>
+#include <robot_state_controller_msgs/PoseTwist.h>
 #include <rosdyn_core/primitives.h>
 #include <rosdyn_core/urdf_parser.h>
 #include <robot_state_controller/robot_state_controller.h>
@@ -19,6 +21,11 @@ inline bool RobotStateController::doInit( )
   if (!this->getControllerNh().getParam("frames",m_frames))
   {
     CNR_RETURN_FALSE(this->logger(), "Param 'frames' not defined");
+  }
+
+  if (!this->getControllerNh().getParam("publish_twist_as_separate",m_publish_twist_as_separate))
+  {
+    m_publish_twist_as_separate=false;
   }
 
   std::vector<std::string> link_names=this->chain().getLinksName();
@@ -44,13 +51,28 @@ inline bool RobotStateController::doInit( )
     }
   }
 
-  for (unsigned int idx=0;idx<m_frames.size();idx++)
+  if (m_publish_twist_as_separate)
   {
-    size_t idx_base = this->template add_publisher<geometry_msgs::TwistStamped>("/"+m_frames.at(idx)+"/twist_in_link",1);
-    m_base_pub_idx.push_back(idx_base);
-    size_t idx_link = this-> template add_publisher<geometry_msgs::TwistStamped>("/"+m_frames.at(idx)+"/twist_in_tool",1);
-    m_link_pub_idx.push_back(idx_link);
+    for (unsigned int idx=0;idx<m_frames.size();idx++)
+    {
+      size_t idx_base = this->template add_publisher<geometry_msgs::TwistStamped>("/"+m_frames.at(idx)+"/twist_in_base",1);
+      m_base_pub_idx.push_back(idx_base);
+      size_t idx_link = this-> template add_publisher<geometry_msgs::TwistStamped>("/"+m_frames.at(idx)+"/twist_in_tool",1);
+      m_link_pub_idx.push_back(idx_link);
+    }
   }
+  else
+  {
+    // TO BE MODIFIED WITH NEW CUSTOM MESSAGE
+    for (unsigned int idx=0;idx<m_frames.size();idx++)
+    {
+      size_t idx_base = this->template add_publisher<geometry_msgs::TwistStamped>("/"+m_frames.at(idx)+"/pose_twist_in_base",1);
+      m_base_pub_idx.push_back(idx_base);
+      size_t idx_link = this-> template add_publisher<geometry_msgs::TwistStamped>("/"+m_frames.at(idx)+"/twist_in_tool",1);
+      m_link_pub_idx.push_back(idx_link);
+    }
+  }
+
   return true;
 }
 
@@ -64,9 +86,11 @@ inline bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros:
     static Eigen::VectorXd _q(this->nAx());
     static Eigen::VectorXd _qd(this->nAx());
     _q = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_q(), this->nAx());
-    _qd = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_q(), this->nAx());
+    _qd = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_qd(), this->nAx());
     auto T_base_links = this->chainState().linkPose();
     auto twists       = this->chainState().linkTwist();
+
+    std::cout << _q(0) << "\t" << _qd(0) << "\t" << twists.back()(0) << "\t" << T_base_links.back().translation()(1) << std::endl;
 
     for (unsigned int idx=0;idx<m_frames.size();idx++)
     {

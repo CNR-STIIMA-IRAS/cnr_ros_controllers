@@ -20,7 +20,7 @@ namespace control
 //! \brief OpenLoopPosVelController::doInit
 //! \return
 //!
-inline bool OpenLoopPosVelController::doInit()
+bool OpenLoopPosVelController::doInit()
 {
   CNR_TRACE_START(this->logger());
   if(!this->getControllerNh().getParam("setpoint_topic_name", m_setpoint_topic_name))
@@ -51,7 +51,7 @@ inline bool OpenLoopPosVelController::doInit()
 //! \brief OpenLoopPosVelController::doStarting
 //! \return
 //!
-inline bool OpenLoopPosVelController::doStarting(const ros::Time& /*time*/)
+bool OpenLoopPosVelController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   m_configured = false;
@@ -62,7 +62,7 @@ inline bool OpenLoopPosVelController::doStarting(const ros::Time& /*time*/)
 //! \brief OpenLoopPosVelController::doStopping
 //! \return
 //!
-inline bool OpenLoopPosVelController::doStopping(const ros::Time& /*time*/)
+bool OpenLoopPosVelController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   m_configured = false;
@@ -73,7 +73,7 @@ inline bool OpenLoopPosVelController::doStopping(const ros::Time& /*time*/)
 //! \brief OpenLoopPosVelController::doUpdate
 //! \return
 //!
-inline bool OpenLoopPosVelController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+bool OpenLoopPosVelController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
 
@@ -85,7 +85,7 @@ inline bool OpenLoopPosVelController::doUpdate(const ros::Time& /*time*/, const 
 //! \param msg
 //! \return
 //!
-inline bool OpenLoopPosVelController::extractJoint(const sensor_msgs::JointState& msg)
+bool OpenLoopPosVelController::extractJoint(const sensor_msgs::JointState& msg)
 {
   size_t cnt = 0;
   auto q_target = this->getCommandPosition();
@@ -130,7 +130,7 @@ inline bool OpenLoopPosVelController::extractJoint(const sensor_msgs::JointState
 
 
 //!
-inline void OpenLoopPosVelController::callback(const sensor_msgs::JointStateConstPtr& msg)
+void OpenLoopPosVelController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   if(extractJoint(*msg))
