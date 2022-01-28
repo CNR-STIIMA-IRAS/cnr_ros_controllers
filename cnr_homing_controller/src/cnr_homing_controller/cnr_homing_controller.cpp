@@ -10,7 +10,7 @@ namespace control
 {
 
 //!
-inline bool HomingController::doInit()
+bool HomingController::doInit()
 {
   CNR_TRACE_START(this->logger());
 //  if(this->nAx() > 1)
@@ -22,7 +22,7 @@ inline bool HomingController::doInit()
 }
 
 //!
-inline bool HomingController::doStarting(const ros::Time& /*time*/)
+bool HomingController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   CNR_INFO(this->logger(), "Start homing of joint " << cnr::control::to_string(this->chain().getActiveJointsName()));
@@ -30,7 +30,7 @@ inline bool HomingController::doStarting(const ros::Time& /*time*/)
 }
 
 //!
-inline bool HomingController::doStopping(const ros::Time& /*time*/)
+bool HomingController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   CNR_INFO(this->logger(), "Stop homing of joint " << cnr::control::to_string(this->chain().getActiveJointsName()));
@@ -38,7 +38,7 @@ inline bool HomingController::doStopping(const ros::Time& /*time*/)
 }
 
 //!
-inline bool HomingController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+bool HomingController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
 }

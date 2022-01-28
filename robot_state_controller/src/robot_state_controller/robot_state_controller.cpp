@@ -15,7 +15,7 @@ namespace control
 {
 
 //!
-inline bool RobotStateController::doInit( )
+bool RobotStateController::doInit( )
 {
 
   if (!this->getControllerNh().getParam("frames",m_frames))
@@ -77,7 +77,7 @@ inline bool RobotStateController::doInit( )
 }
 
 //!
-inline bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   size_t ll = __LINE__;

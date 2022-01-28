@@ -16,7 +16,7 @@ namespace control
 //! \brief OpenLoopPositionController::doInit
 //! \return
 //!
-inline bool OpenLoopPositionController::doInit()
+bool OpenLoopPositionController::doInit()
 {
   CNR_TRACE_START(this->m_logger);
   if(!this->getControllerNh().getParam("setpoint_topic_name", m_setpoint_topic_name))
@@ -47,7 +47,7 @@ inline bool OpenLoopPositionController::doInit()
 //! \brief OpenLoopPositionController::doStarting
 //! \return
 //!
-inline bool OpenLoopPositionController::doStarting(const ros::Time& /*time*/)
+bool OpenLoopPositionController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->m_logger);
   m_configured = false;
@@ -58,7 +58,7 @@ inline bool OpenLoopPositionController::doStarting(const ros::Time& /*time*/)
 //! \brief OpenLoopPositionController::doStopping
 //! \return
 //!
-inline bool OpenLoopPositionController::doStopping(const ros::Time& /*time*/)
+bool OpenLoopPositionController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->m_logger);
   m_configured = false;
@@ -69,7 +69,7 @@ inline bool OpenLoopPositionController::doStopping(const ros::Time& /*time*/)
 //! \brief OpenLoopPositionController::doUpdate
 //! \return
 //!
-inline bool OpenLoopPositionController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+bool OpenLoopPositionController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->m_logger);
 
@@ -81,7 +81,7 @@ inline bool OpenLoopPositionController::doUpdate(const ros::Time& /*time*/, cons
 //! \param msg
 //! \return
 //!
-inline bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointState& msg)
+bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointState& msg)
 {
   size_t cnt = 0;
   auto target = this->getCommandPosition();
@@ -123,7 +123,7 @@ inline bool OpenLoopPositionController::extractJoint(const sensor_msgs::JointSta
 
 
 //!
-inline void OpenLoopPositionController::callback(const sensor_msgs::JointStateConstPtr& msg)
+void OpenLoopPositionController::callback(const sensor_msgs::JointStateConstPtr& msg)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->m_logger);
   if(extractJoint(*msg))

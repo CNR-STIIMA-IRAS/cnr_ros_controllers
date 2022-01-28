@@ -16,7 +16,7 @@ namespace control
 /**
  * @brief JointVelocityController::JointVelocityController
  */
-inline JointVelocityController::JointVelocityController()
+JointVelocityController::JointVelocityController()
 {
 }
 
@@ -24,7 +24,7 @@ inline JointVelocityController::JointVelocityController()
  * @brief JointVelocityController::doInit
  * @return
  */
-inline bool JointVelocityController::doInit()
+bool JointVelocityController::doInit()
 {
   //INIT PUB/SUB
   std::string setpoint_topic_name;
@@ -58,7 +58,7 @@ inline bool JointVelocityController::doInit()
  * @brief JointVelocityController::doStarting
  * @param time
  */
-inline bool JointVelocityController::doStarting(const ros::Time& /*time*/)
+bool JointVelocityController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger(),"Starting Controller");
   m_pos_sp = this->getPosition();
@@ -72,7 +72,7 @@ inline bool JointVelocityController::doStarting(const ros::Time& /*time*/)
  * @brief JointVelocityController::stopping
  * @param time
  */
-inline bool JointVelocityController::doStopping(const ros::Time& /*time*/)
+bool JointVelocityController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger(),"Stopping Controller");
   CNR_RETURN_TRUE(this->logger());
@@ -84,7 +84,7 @@ inline bool JointVelocityController::doStopping(const ros::Time& /*time*/)
  * @param period
  * @return
  */
-inline bool JointVelocityController::doUpdate(const ros::Time& /*time*/, const ros::Duration& period)
+bool JointVelocityController::doUpdate(const ros::Time& /*time*/, const ros::Duration& period)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   std::stringstream report;
@@ -119,7 +119,7 @@ inline bool JointVelocityController::doUpdate(const ros::Time& /*time*/, const r
  * @brief JointVelocityController::setPointCallback
  * @param msg
  */
-inline void JointVelocityController::setPointCallback(const sensor_msgs::JointStateConstPtr& msg)
+void JointVelocityController::setPointCallback(const sensor_msgs::JointStateConstPtr& msg)
 {
   if(msg->velocity.size() == msg->name.size())
   {

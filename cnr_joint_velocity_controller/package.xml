@@ -46,6 +46,8 @@
   <depend>name_sorting</depend>
   <depend>joint_limits_interface</depend>
 
+  <test_depend>cnr_fake_hardware_interface</test_depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
