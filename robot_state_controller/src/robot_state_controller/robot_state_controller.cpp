@@ -85,8 +85,6 @@ bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Durati
     auto T_base_links = this->chainState().linkPose();
     auto twists       = this->chainState().linkTwist();
 
-    std::cout << _q(0) << "\t" << _qd(0) << "\t" << twists.back()(1) << "\t" << T_base_links.back().translation()(1) << std::endl;
-
     if (m_publish_twist_as_separate)
     {
       for (unsigned int idx=0;idx<m_frames.size();idx++)
