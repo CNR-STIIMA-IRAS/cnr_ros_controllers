@@ -14,7 +14,7 @@ namespace control
 //! \brief OpenLoopEffortController::doInit
 //! \return
 //!
-inline bool OpenLoopEffortController::doInit( )
+bool OpenLoopEffortController::doInit( )
 {
   CNR_TRACE_START(this->logger());
   if (!this->getControllerNh().getParam("setpoint_topic_name", m_setpoint_topic_name))
@@ -53,7 +53,7 @@ inline bool OpenLoopEffortController::doInit( )
 //! \brief OpenLoopEffortController::doStarting
 //! \return
 //!
-inline bool OpenLoopEffortController::doStarting(const ros::Time& /*time*/)
+bool OpenLoopEffortController::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   m_configured = false;
@@ -64,7 +64,7 @@ inline bool OpenLoopEffortController::doStarting(const ros::Time& /*time*/)
 //! \brief OpenLoopEffortController::doStopping
 //! \return
 //!
-inline bool OpenLoopEffortController::doStopping(const ros::Time& /*time*/)
+bool OpenLoopEffortController::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   m_configured = false;
@@ -75,7 +75,7 @@ inline bool OpenLoopEffortController::doStopping(const ros::Time& /*time*/)
 //! \brief OpenLoopEffortController::doUpdate
 //! \return
 //!
-inline bool OpenLoopEffortController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+bool OpenLoopEffortController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE(this->logger(), 10.0);
   try
@@ -108,7 +108,7 @@ inline bool OpenLoopEffortController::doUpdate(const ros::Time& /*time*/, const 
 //! \param msg
 //! \return
 //!
-inline bool OpenLoopEffortController::extractJoint(const sensor_msgs::JointState& msg)
+bool OpenLoopEffortController::extractJoint(const sensor_msgs::JointState& msg)
 {
   size_t cnt = 0;
   auto target = this->getCommandEffort();
@@ -138,7 +138,7 @@ inline bool OpenLoopEffortController::extractJoint(const sensor_msgs::JointState
 //! \brief OpenLoopEffortController::callback
 //! \param msg
 //!
-inline void OpenLoopEffortController::callback(const boost::shared_ptr<sensor_msgs::JointState const>& msg)
+void OpenLoopEffortController::callback(const boost::shared_ptr<sensor_msgs::JointState const>& msg)
 {
   CNR_TRACE_START_THROTTLE(this->logger(), 5.0);
   if (extractJoint(*msg))

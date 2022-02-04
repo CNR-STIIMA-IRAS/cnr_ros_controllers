@@ -9,7 +9,7 @@ PLUGINLIB_EXPORT_CLASS(ros::control::DigitalOutputController, controller_interfa
 
 namespace std
 {
-inline std::string to_string( const std::vector<std::string>& vals )
+std::string to_string( const std::vector<std::string>& vals )
 {
   std::string ret = "< ";
   for( auto const & val : vals ) ret += val + ", ";
@@ -17,12 +17,12 @@ inline std::string to_string( const std::vector<std::string>& vals )
   return ret;
 }
 
-inline std::string to_string( const std::string& val )
+std::string to_string( const std::string& val )
 {
   return val;
 }
 
-inline std::string to_string( const bool& val )
+std::string to_string( const bool& val )
 {
   return val ? "TRUE" : "FALSE";
 }

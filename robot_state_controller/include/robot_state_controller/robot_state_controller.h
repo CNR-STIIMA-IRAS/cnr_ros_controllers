@@ -24,6 +24,7 @@ public:
   virtual bool doUpdate(const ros::Time& time, const ros::Duration& period);
 
 protected:
+  bool m_publish_twist_as_separate;
   std::vector<std::string>  m_frames;
   std::vector<size_t>       m_base_pub_idx;
   std::vector<size_t>       m_link_pub_idx;

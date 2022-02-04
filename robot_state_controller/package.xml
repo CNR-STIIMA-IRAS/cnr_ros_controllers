@@ -64,6 +64,8 @@
   <exec_depend>hardware_interface</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rosdyn_core</exec_depend>
+  <depend>robot_state_controller_msgs</depend>
+
 
   <export>
     <controller_interface plugin="${prefix}/plugin.xml"/>

@@ -62,6 +62,19 @@ install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+# Mark cpp header files for installation
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
+
+install(FILES plugin.xml
+  DESTINATION share/${PROJECT_NAME})
+
+
+
+
 
 ## Add gtest based cpp test target and link libraries
 if(CATKIN_ENABLE_TESTING)

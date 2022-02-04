@@ -13,7 +13,7 @@ namespace control
 {
 
 template<class H, class T>
-inline bool PositionToVelocityControllerBase<H,T>::doInit()
+bool PositionToVelocityControllerBase<H,T>::doInit()
 {
   CNR_TRACE_START(this->logger());
 //  if(this->nAx()>1)
@@ -61,7 +61,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doInit()
 }
 
 template<class H, class T>
-inline bool PositionToVelocityControllerBase<H,T>::doStarting(const ros::Time& /*time*/)
+bool PositionToVelocityControllerBase<H,T>::doStarting(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   m_target_pos = this->getPosition();
@@ -79,7 +79,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doStarting(const ros::Time& /
 }
 
 template<class H, class T>
-inline bool PositionToVelocityControllerBase<H,T>::doUpdate(const ros::Time& time, const ros::Duration& /*period*/)
+bool PositionToVelocityControllerBase<H,T>::doUpdate(const ros::Time& time, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   sensor_msgs::JointStatePtr cmd_msg=boost::make_shared<sensor_msgs::JointState>();
@@ -120,7 +120,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doUpdate(const ros::Time& tim
 }
 
 template<class H, class T>
-inline bool PositionToVelocityControllerBase<H,T>::doStopping(const ros::Time& /*time*/)
+bool PositionToVelocityControllerBase<H,T>::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
   m_configured = false;
@@ -130,7 +130,7 @@ inline bool PositionToVelocityControllerBase<H,T>::doStopping(const ros::Time& /
 }
 
 template<class H, class T>
-inline void PositionToVelocityControllerBase<H,T>::callback(const sensor_msgs::JointStateConstPtr msg)
+void PositionToVelocityControllerBase<H,T>::callback(const sensor_msgs::JointStateConstPtr msg)
 {
   if(this->extractJoint(*msg, this->jointNames(), m_target_pos, m_target_vel, m_target_eff))
   {
@@ -147,7 +147,7 @@ inline void PositionToVelocityControllerBase<H,T>::callback(const sensor_msgs::J
 }
 
 template<class H, class T>
-inline bool PositionToVelocityControllerBase<H,T>::extractJoint(
+bool PositionToVelocityControllerBase<H,T>::extractJoint(
     const sensor_msgs::JointState msg, const std::vector<std::string>& names,
     rosdyn::VectorXd& pos, rosdyn::VectorXd& vel, rosdyn::VectorXd& eff)
 {
@@ -210,10 +210,10 @@ inline bool PositionToVelocityControllerBase<H,T>::extractJoint(
  * @return
  */
 
-inline bool PositionToVelocityControllerFfw::doInit()
+bool PositionToVelocityControllerFfw::doInit()
 {
   CNR_TRACE_START(this->logger());
-  if(not this->PositionToVelocityControllerFfwBase::doInit())
+  if(!this->PositionToVelocityControllerFfwBase::doInit())
   {
     CNR_RETURN_FALSE(this->logger());
   }
@@ -221,10 +221,10 @@ inline bool PositionToVelocityControllerFfw::doInit()
 }
 
 
-inline bool PositionToVelocityControllerFfw::doStarting(const ros::Time& time)
+bool PositionToVelocityControllerFfw::doStarting(const ros::Time& time)
 {
   CNR_TRACE_START(this->logger());
-  if(not this->PositionToVelocityControllerFfwBase::doStarting(time))
+  if(!this->PositionToVelocityControllerFfwBase::doStarting(time))
   {
     CNR_RETURN_FALSE(this->logger());
   }
@@ -232,10 +232,10 @@ inline bool PositionToVelocityControllerFfw::doStarting(const ros::Time& time)
 }
 
 
-inline bool PositionToVelocityControllerFfw::doStopping(const ros::Time& time)
+bool PositionToVelocityControllerFfw::doStopping(const ros::Time& time)
 {
   CNR_TRACE_START(this->logger());
-  if(not this->PositionToVelocityControllerFfwBase::doStopping(time))
+  if(!this->PositionToVelocityControllerFfwBase::doStopping(time))
   {
     CNR_RETURN_FALSE(this->logger());
   }
@@ -245,7 +245,7 @@ inline bool PositionToVelocityControllerFfw::doStopping(const ros::Time& time)
 }
 
 
-inline bool PositionToVelocityControllerFfw::doUpdate(const ros::Time& time, const ros::Duration& period)
+bool PositionToVelocityControllerFfw::doUpdate(const ros::Time& time, const ros::Duration& period)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
   try
