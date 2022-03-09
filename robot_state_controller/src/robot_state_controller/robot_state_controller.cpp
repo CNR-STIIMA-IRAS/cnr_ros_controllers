@@ -189,8 +189,6 @@ bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Durati
         CNR_RETURN_FALSE(this->logger());
       }
     }
-
-
   }
   catch(...)
   {
