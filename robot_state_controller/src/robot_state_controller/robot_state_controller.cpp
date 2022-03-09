@@ -75,22 +75,16 @@ bool RobotStateController::doInit( )
 bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 {
   CNR_TRACE_START_THROTTLE_DEFAULT(this->logger());
-  #if 0
   size_t ll = __LINE__;
   try
   {
     
     ll = __LINE__;
     static Eigen::VectorXd _q(this->nAx());
-    ll = __LINE__;
     static Eigen::VectorXd _qd(this->nAx());
-    ll = __LINE__;
     _q = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_q(), this->nAx());
-    ll = __LINE__;
     _qd = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_qd(), this->nAx());
-    ll = __LINE__;
     auto T_base_links = this->chainState().linkPose();
-    ll = __LINE__;
     auto twists       = this->chainState().linkTwist();
     ll = __LINE__;
 
@@ -202,7 +196,7 @@ bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Durati
   {
     CNR_WARN(this->logger(), "Exception in the update method at line: " + std::to_string((long int)(ll)) );
   }
-  #endif
+  
   CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
 }
 
