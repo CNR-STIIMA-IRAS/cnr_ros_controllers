@@ -16,6 +16,11 @@ namespace control
 JointStatePublisher::~JointStatePublisher()
 {
   CNR_TRACE_START(this->logger());
+  if(this->getPublisher(m_pub_handle))
+  {
+    this->getPublisher(m_pub_handle)->shutdown();
+  }
+
   if (!this->isStopped())
   {
     this->stopping(ros::Time::now());
@@ -84,6 +89,7 @@ bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duratio
     msg->header.stamp = ros::Time::now();
     if(!this->publish(m_pub_handle,msg))
     {
+      CNR_TRACE(this->logger(), "The publisher " + std::to_string(m_pub_handle) + "failed" );
       CNR_RETURN_FALSE(this->logger());
     }
   }
@@ -101,9 +107,7 @@ bool JointStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Duratio
 bool JointStatePublisher::doStopping(const ros::Time& /*time*/)
 {
   CNR_TRACE_START(this->logger());
-  if(this->getPublisher(m_pub_handle))
-    this->getPublisher(m_pub_handle)->shutdown();
-  CNR_RETURN_TRUE(this->logger());
+  CNR_RETURN_TRUE(this->logger()); 
 }
 
 }
