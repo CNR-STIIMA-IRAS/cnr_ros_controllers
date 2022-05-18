@@ -78,12 +78,15 @@ bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Durati
   size_t ll = __LINE__;
   try
   {
+    
+    ll = __LINE__;
     static Eigen::VectorXd _q(this->nAx());
     static Eigen::VectorXd _qd(this->nAx());
     _q = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_q(), this->nAx());
     _qd = Eigen::Map<const Eigen::VectorXd>(this->chainState().handle_to_qd(), this->nAx());
     auto T_base_links = this->chainState().linkPose();
     auto twists       = this->chainState().linkTwist();
+    ll = __LINE__;
 
     if (m_publish_twist_as_separate)
     {
@@ -186,13 +189,12 @@ bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Durati
         CNR_RETURN_FALSE(this->logger());
       }
     }
-
-
   }
   catch(...)
   {
     CNR_WARN(this->logger(), "Exception in the update method at line: " + std::to_string((long int)(ll)) );
   }
+  
   CNR_RETURN_TRUE_THROTTLE_DEFAULT(this->logger());
 }
 
