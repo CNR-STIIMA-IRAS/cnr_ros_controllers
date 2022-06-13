@@ -3,4 +3,8 @@
     <description>
     </description>
   </class>
+    <class name="cnr/control/MultiChainStatePublisher" type="cnr::control::MultiChainStatePublisher" base_class_type="controller_interface::ControllerBase">
+    <description>
+    </description>
+  </class>
 </library>
