@@ -227,21 +227,6 @@ bool MultiChainStatePublisher::doStopping(const ros::Time& time)
   CNR_RETURN_TRUE(this->logger()); 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 }
 

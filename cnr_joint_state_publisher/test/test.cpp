@@ -38,6 +38,9 @@
 
 #include <gtest/gtest.h>
 
+#include <controller_interface/controller_base.h>
+
+#include <memory>
 #include <cnr_fake_hardware_interface/cnr_fake_robot_hw.h>
 #include <cnr_controller_interface/cnr_controller_interface.h>
 #include <cnr_controller_interface/cnr_joint_controller_interface.h>
@@ -62,7 +65,32 @@ TEST(TestSuite, Constructor)
 TEST(TestSuite, MCConstructor)
 {
   EXPECT_NO_FATAL_FAILURE(mc_ctrl.reset(new cnr::control::MultiChainStatePublisher()));
-  EXPECT_TRUE(mc_ctrl->init(robot_hw->get<hardware_interface::JointStateInterface>(), *robot_nh, *ctrl_nh));
+  //EXPECT_TRUE(mc_ctrl->init(robot_hw->get<hardware_interface::JointStateInterface>(), *robot_nh, *ctrl_nh));
+}
+
+
+TEST(TestSuite, MCInit)
+{
+  controller_interface::ControllerBase::ClaimedResources claimed_resources;
+  EXPECT_NO_FATAL_FAILURE(std::dynamic_pointer_cast<controller_interface::ControllerBase>(mc_ctrl)
+                            ->initRequest(robot_hw.get(), *robot_nh, *ctrl_nh, claimed_resources  ));
+}
+
+
+TEST(TestSuite, MCStarting)
+{
+  EXPECT_NO_FATAL_FAILURE(mc_ctrl->startRequest(ros::Time::now()));
+  //EXPECT_NO_FATAL_FAILURE(mc_ctrl->starting(ros::Time::now()));
+}
+
+TEST(TestSuite, MCUpdate)
+{
+  EXPECT_NO_FATAL_FAILURE(mc_ctrl->update(ros::Time::now(), ros::Duration(1.0)));
+}
+
+TEST(TestSuite, MCStopping)
+{
+  EXPECT_NO_FATAL_FAILURE(mc_ctrl->stopRequest(ros::Time::now()));
 }
 
 TEST(TestSuite, Desctructor)
