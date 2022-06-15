@@ -65,7 +65,6 @@ TEST(TestSuite, Constructor)
 TEST(TestSuite, MCConstructor)
 {
   EXPECT_NO_FATAL_FAILURE(mc_ctrl.reset(new cnr::control::MultiChainStatePublisher()));
-  //EXPECT_TRUE(mc_ctrl->init(robot_hw->get<hardware_interface::JointStateInterface>(), *robot_nh, *ctrl_nh));
 }
 
 
@@ -73,7 +72,7 @@ TEST(TestSuite, MCInit)
 {
   controller_interface::ControllerBase::ClaimedResources claimed_resources;
   EXPECT_NO_FATAL_FAILURE(std::dynamic_pointer_cast<controller_interface::ControllerBase>(mc_ctrl)
-                            ->initRequest(robot_hw.get(), *robot_nh, *ctrl_nh, claimed_resources  ));
+                            ->initRequest(robot_hw.get(), *robot_nh, *ctrl_nh, claimed_resources));
 }
 
 
