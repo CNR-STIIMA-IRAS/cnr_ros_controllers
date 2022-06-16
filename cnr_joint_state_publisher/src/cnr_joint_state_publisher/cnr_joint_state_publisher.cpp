@@ -187,9 +187,10 @@ bool MultiChainStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Du
   {
     sensor_msgs::JointStatePtr  msg;
     msg.reset(new sensor_msgs::JointState());
-    msg->position.resize(this->totalNAx(), 0);
-    msg->velocity.resize(this->totalNAx(), 0);
-    msg->effort.resize(this->totalNAx(), 0);
+    msg->name.clear();
+    msg->position.clear();
+    msg->velocity.clear();
+    msg->effort.clear();
 
     for(const auto & id : this->chainNames() )
     {
