@@ -190,16 +190,15 @@ bool MultiChainStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Du
     msg->position.resize(this->totalNAx(), 0);
     msg->velocity.resize(this->totalNAx(), 0);
     msg->effort.resize(this->totalNAx(), 0);
-    msg->name = this->allJointNames();
 
     for(const auto & id : this->chainNames() )
     {
       for(std::size_t iAx = 0; iAx<this->chain(id).getActiveJointsNumber(); iAx++)
       {
-        msg->name    .at(iAx) = this->chain(id).getActiveJointName(iAx);
-        msg->position.at(iAx) = this->getPosition(id,iAx);
-        msg->velocity.at(iAx) = this->getVelocity(id,iAx);
-        msg->effort  .at(iAx) = this->getEffort(id,iAx);
+        msg->name    .push_back( this->chain(id).getActiveJointName(iAx) );
+        msg->position.push_back( this->getPosition(id,iAx) );
+        msg->velocity.push_back( this->getVelocity(id,iAx) );
+        msg->effort  .push_back( this->getEffort(id,iAx) );
       }
     }
     msg->header.stamp = ros::Time::now();
