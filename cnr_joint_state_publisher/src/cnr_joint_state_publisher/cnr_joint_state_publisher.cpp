@@ -196,6 +196,7 @@ bool MultiChainStatePublisher::doUpdate(const ros::Time& /*time*/, const ros::Du
     {
       for(std::size_t iAx = 0; iAx<this->chain(id).getActiveJointsNumber(); iAx++)
       {
+        
         msg->name    .push_back( this->chain(id).getActiveJointName(iAx) );
         msg->position.push_back( this->getPosition(id,iAx) );
         msg->velocity.push_back( this->getVelocity(id,iAx) );
