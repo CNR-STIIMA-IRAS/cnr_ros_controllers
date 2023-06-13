@@ -103,7 +103,7 @@ bool JointVelocityController::doUpdate(const ros::Time& /*time*/, const ros::Dur
     m_vel_fitler_sp.update(vel_sp);
     m_pos_sp = m_pos_sp + m_vel_fitler_sp.getUpdatedValue()* period.toSec();
     pos_sp   = m_pos_sp;
-    if(rosdyn::saturatePosition(this->chain(),pos_sp, &report))
+    if(rdyn::saturatePosition(this->chain(),pos_sp, &report))
     {
       CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
     }
@@ -147,7 +147,7 @@ void JointVelocityController::setPointCallback(const sensor_msgs::JointStateCons
             
       if(m_has_pos_sp)
       {
-        if(rosdyn::saturatePosition(this->chain(),m_pos_sp, &report))
+        if(rdyn::saturatePosition(this->chain(),m_pos_sp, &report))
         {
           CNR_WARN_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
         }

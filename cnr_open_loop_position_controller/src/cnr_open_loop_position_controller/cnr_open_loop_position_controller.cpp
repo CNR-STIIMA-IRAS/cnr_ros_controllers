@@ -29,6 +29,7 @@ bool OpenLoopPositionController::doInit()
     CNR_DEBUG(this->m_logger,"The param '"+this->getControllerNamespace()+"/enable_setpoint_watchdog' does not exist, enable watchdog by default");
     setpoint_watchdog=true;
   }
+  
   this->template add_subscriber<sensor_msgs::JointState>(m_setpoint_topic_name, 1,
       boost::bind(&OpenLoopPositionController::callback, this, _1),
       setpoint_watchdog);

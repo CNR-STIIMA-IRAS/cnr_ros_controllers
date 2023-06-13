@@ -165,7 +165,7 @@ bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, const ros:
 
   rosdyn::VectorXd vel_sp = svd.solve(twist_of_t_in_b);
 
-  if(rosdyn::saturateSpeed(this->chainNonConst(),vel_sp,old_vel_sp,
+  if(rdyn::saturateSpeed(this->chainNonConst(),vel_sp,old_vel_sp,
                            this->getCommandPosition(),period.toSec(), 1.0, true, &report)) // CHECK!
   {
     CNR_DEBUG_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
@@ -189,7 +189,7 @@ bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, const ros:
   }
   last_twist_of_in_b_=J_of_t_in_b*vel_sp;
 
-  if(rosdyn::saturateSpeed(this->chainNonConst(),vel_sp,old_vel_sp,
+  if(rdyn::saturateSpeed(this->chainNonConst(),vel_sp,old_vel_sp,
                               this->getCommandPosition(),period.toSec(), 1.0, true, &report)) // CHECK!
   {
     CNR_DEBUG_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
@@ -198,7 +198,7 @@ bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, const ros:
 
   pos_sp = this->getCommandPosition() + vel_sp * period.toSec();
   
-  if(rosdyn::saturatePosition(this->chainNonConst(),pos_sp, &report))
+  if(rdyn::saturatePosition(this->chainNonConst(),pos_sp, &report))
   {
     CNR_DEBUG_THROTTLE(this->logger(), 2.0, "\n" << report.str() );
   }
@@ -247,7 +247,7 @@ void CartesianVelocityController::twistSetPointCallback(const geometry_msgs::Twi
 
     if ( frame_id == "tool" )
     {
-      twist_of_t_in_b = rosdyn::spatialRotation( twist, Tbt.rotation());
+      twist_of_t_in_b = rdyn::spatialRotation( twist, Tbt.rotation());
     }
     else if ( frame_id == "base" )
     {
@@ -264,7 +264,7 @@ void CartesianVelocityController::twistSetPointCallback(const geometry_msgs::Twi
       Eigen::Affine3d T_bf;
       tf::transformTFToEigen(TF_T_bf, T_bf);
 
-      twist_of_t_in_b = rosdyn::spatialRotation( twist, T_bf.rotation());
+      twist_of_t_in_b = rdyn::spatialRotation( twist, T_bf.rotation());
     }
     CNR_DEBUG_THROTTLE( this->logger(), 2, "[ " << this->getControllerNh().getNamespace() 
                           << " ] Reference Twist {base}     : " << twist_of_t_in_b_.transpose() );

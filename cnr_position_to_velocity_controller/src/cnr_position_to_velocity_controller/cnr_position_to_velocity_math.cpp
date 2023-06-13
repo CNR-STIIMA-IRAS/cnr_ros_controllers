@@ -146,48 +146,79 @@ bool PositionToVelocityControllerMath::init(
 //!
 bool PositionToVelocityControllerMath::starting(const rosdyn::VectorXd& fb_pos, const rosdyn::VectorXd& fb_vel, std::string& what)
 {
-  if(fb_pos.rows()!=m_last_target_pos.rows() || fb_vel.rows()!=m_last_target_pos.rows())
+  size_t ll = __LINE__;
+  try
   {
-    what = "The input args has incorrect dimension. fb pos: " + std::to_string(fb_pos.rows())+", fb vel: "+std::to_string(fb_vel.rows());
-    what += " last pos: (" + std::to_string(m_last_target_pos.rows())+"x"+std::to_string(m_last_target_pos.cols())+")";
-    return false;
-  }
-  if(m_pos_filter.uDim()!=fb_pos.rows() || m_target_pos_filter.uDim()!=fb_pos.rows())
-  {
-    what = "The input args has incorrect dimension. fb pos: " + std::to_string(fb_pos.rows())+", fb vel: "+std::to_string(fb_vel.rows());
-    what += " pos filter: " + std::to_string(m_pos_filter.uDim()) + "  target pos filter: "+std::to_string( m_target_pos_filter.uDim())+")";
-    return false;
-  }
-  if(m_pos_filter.yDim()!=fb_pos.rows() || m_target_pos_filter.yDim()!=fb_pos.rows())
-  {
-    what = "The input args has incorrect dimension. fb pos: " + std::to_string(fb_pos.rows())+", fb vel: "+std::to_string(fb_vel.rows());
-    what += " pos filter: " + std::to_string(m_pos_filter.yDim()) + "  target pos filter: "+std::to_string( m_target_pos_filter.yDim())+")";
-    return false;
-  }
-  
-  rosdyn::VectorXd init_pos;
-  init_pos = fb_pos;
-  m_last_target_pos = fb_pos;
-  m_pos_filter.setStateFromLastInput(init_pos);
+    ll = __LINE__;
+    if(fb_pos.rows()!=m_last_target_pos.rows() || fb_vel.rows()!=m_last_target_pos.rows())
+    {
+      what = "The input args has incorrect dimension. fb pos: " + std::to_string(fb_pos.rows())+", fb vel: "+std::to_string(fb_vel.rows());
+      what += " last pos: (" + std::to_string(m_last_target_pos.rows())+"x"+std::to_string(m_last_target_pos.cols())+")";
+      return false;
+    }
+    ll = __LINE__;
+    if(m_pos_filter.uDim()!=fb_pos.rows() || m_target_pos_filter.uDim()!=fb_pos.rows())
+    {
+      what = "The input args has incorrect dimension. fb pos: " + std::to_string(fb_pos.rows())+", fb vel: "+std::to_string(fb_vel.rows());
+      what += " pos filter: " + std::to_string(m_pos_filter.uDim()) + "  target pos filter: "+std::to_string( m_target_pos_filter.uDim())+")";
+      return false;
+    }
+    ll = __LINE__;
+    if(m_pos_filter.yDim()!=fb_pos.rows() || m_target_pos_filter.yDim()!=fb_pos.rows())
+    {
+      what = "The input args has incorrect dimension. fb pos: " + std::to_string(fb_pos.rows())+", fb vel: "+std::to_string(fb_vel.rows());
+      what += " pos filter: " + std::to_string(m_pos_filter.yDim()) + "  target pos filter: "+std::to_string( m_target_pos_filter.yDim())+")";
+      return false;
+    }
+    
+    ll = __LINE__;
+    rosdyn::VectorXd init_pos;
+    init_pos = fb_pos;
+    m_last_target_pos = fb_pos;
+    m_pos_filter.setStateFromLastInput(init_pos);
 
-  init_pos = fb_pos;
-  m_target_pos_filter.setStateFromLastInput(init_pos);
+    ll = __LINE__;
+    init_pos = fb_pos;
+    m_target_pos_filter.setStateFromLastInput(init_pos);
 
-  rosdyn::VectorXd init_vel;
-  if (m_use_target_velocity)
-  {
-    init_vel = fb_vel - fb_vel;
-  }
-  else
-  {
-    init_vel = fb_vel;
-  }
-  rosdyn::VectorXd init_error=m_target_pos_filter.y() - m_pos_filter.y();
+    ll = __LINE__;
+    rosdyn::VectorXd init_vel;
+    if (m_use_target_velocity)
+    {
+      init_vel = fb_vel - fb_vel;
+    }
+    else
+    {
+      init_vel = fb_vel;
+    }
+    rosdyn::VectorXd init_error=m_target_pos_filter.y() - m_pos_filter.y();
 
-  m_controller.setStateFromLastIO(init_error, init_vel);
-  m_integral_controller.setStateFromLastIO(init_error, init_vel); // TODO fix INITIALIZATION of two controllers
-  eu::setZero(m_antiwindup);
-  return true;
+    ll = __LINE__;
+    m_controller.setStateFromLastIO(init_error, init_vel);
+
+    ll = __LINE__;
+    m_integral_controller.setStateFromLastIO(init_error, init_vel); // TODO fix INITIALIZATION of two controllers
+
+    ll = __LINE__;
+    eu::setZero(m_antiwindup);
+    return true;
+  }
+  catch(std::exception& e)
+  {
+    what = "A standard exception has been caught (last line executed: " + std::to_string(ll) +") Error: " + std::string(e.what()) + "\n"; 
+  }
+  catch(...)
+  {
+    what = "A generic exception has been caught (last line executed: " + std::to_string(ll) +")\n"; 
+  }
+
+  what += "\n Data:";
+  what += "\n fb pos [IN]: " + std::to_string(fb_pos.rows());
+  what += "\n fb vel [IN]: " + std::to_string(fb_vel.rows());
+  what += "\n target pos        [STATE]: ("+ std::to_string(m_last_target_pos.rows())+"x"+std::to_string(m_last_target_pos.cols())+")";
+  what += "\n target pos filter [STATE]: " + std::to_string( m_target_pos_filter.uDim())+")";
+  what += "\n pos filter        [STATE]: " + std::to_string(m_pos_filter.uDim()) ;
+  return false;
 }
 
 //!

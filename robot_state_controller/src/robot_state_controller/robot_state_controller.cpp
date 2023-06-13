@@ -2,8 +2,8 @@
 #include <geometry_msgs/TwistStamped.h>
 #include <robot_state_controller_msgs/PoseTwistArray.h>
 #include <robot_state_controller_msgs/PoseTwist.h>
-#include <rosdyn_core/primitives.h>
-#include <rosdyn_core/urdf_parser.h>
+#include <rdyn_core/primitives.h>
+#include <rdyn_core/urdf_parser.h>
 #include <robot_state_controller/robot_state_controller.h>
 #include <pluginlib/class_list_macros.h> // header for PLUGINLIB_EXPORT_CLASS. NOTE IT SHOULD STAY IN THE CPP FILE NOTE
 
@@ -96,7 +96,7 @@ bool RobotStateController::doUpdate(const ros::Time& /*time*/, const ros::Durati
         Eigen::Vector6d twist_of_link_in_base=twists.at(m_frame_idxs.at(idx));
 
         ll = __LINE__;
-        Eigen::Vector6d twist_of_link_in_link=rosdyn::spatialRotation(twist_of_link_in_base,T_base_links.at(idx).linear().inverse());
+        Eigen::Vector6d twist_of_link_in_link=rdyn::spatialRotation(twist_of_link_in_base,T_base_links.at(idx).linear().inverse());
 
         ll = __LINE__;
         geometry_msgs::TwistStampedPtr msg=boost::make_shared<geometry_msgs::TwistStamped>();

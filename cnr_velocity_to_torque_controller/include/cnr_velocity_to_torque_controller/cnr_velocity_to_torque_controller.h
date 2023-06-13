@@ -21,9 +21,9 @@ namespace cnr
 namespace control
 {
 
-typedef ect::Controller<-1,rosdyn::max_num_axes> ControllerX;
+typedef ect::Controller<-1,rdyn::max_num_axes> ControllerX;
 using DiscreteStateSpaceX = ect::DiscreteStateSpace<-1,-1,-1,
-                                  rosdyn::max_num_axes,rosdyn::max_num_axes,rosdyn::max_num_axes>;
+                                  rdyn::max_num_axes,rdyn::max_num_axes,rdyn::max_num_axes>;
 
 
 //!
