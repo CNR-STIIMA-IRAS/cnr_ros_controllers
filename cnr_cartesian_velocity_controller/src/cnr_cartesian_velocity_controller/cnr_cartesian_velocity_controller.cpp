@@ -6,6 +6,7 @@
 #include <geometry_msgs/Pose.h>
 #include <pluginlib/class_list_macros.h>
 #include <cnr_logger/cnr_logger_macros.h>
+#include <std_msgs/Bool.h>
 
 #include <cnr_cartesian_velocity_controller/cnr_cartesian_velocity_controller.h>
 
@@ -43,6 +44,8 @@ bool CartesianVelocityController::doInit()
 
   this->template add_subscriber<geometry_msgs::TwistStamped>(
         setpoint_topic_name,5,boost::bind(&CartesianVelocityController::twistSetPointCallback,this,_1), false);
+
+  m_singularity_pub = this->template add_publisher<std_msgs::Bool>("/cartesian_velocity/singolarity",1);
 
   this->setPriority(this->QD_PRIORITY);
 
@@ -176,6 +179,7 @@ bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, const ros:
   Eigen::Vector6d parallel_twist=twist_of_t_in_b_command.dot(versor)*versor;
   Eigen::Vector6d perpendicular_twist=twist_of_t_in_b_command -parallel_twist;
 
+  std_msgs::Bool singularity_msg;
   if (perpendicular_twist.norm()>1e-6)
   {
     vel_sp*=1e-6/perpendicular_twist.norm();
@@ -186,7 +190,20 @@ bool CartesianVelocityController::doUpdate(const ros::Time& /*time*/, const ros:
                       "parallel_twist velocity = " << parallel_twist.transpose() << std::endl <<
                       "perpedicular velocity   = " << perpendicular_twist.transpose()
                       );
+    singularity_times += 1;
+    if (singularity_times == 10)
+    {
+        singularity_msg.data = true;
+        this->publish(m_singularity_pub, singularity_msg);
+    }
   }
+  else
+  {
+    singularity_times = 0;
+    singularity_msg.data = false;
+    this->publish(m_singularity_pub, singularity_msg);
+  }
+
   last_twist_of_in_b_=J_of_t_in_b*vel_sp;
 
   if(rosdyn::saturateSpeed(this->chainNonConst(),vel_sp,old_vel_sp,

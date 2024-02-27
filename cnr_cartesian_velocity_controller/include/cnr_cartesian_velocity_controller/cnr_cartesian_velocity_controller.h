@@ -35,6 +35,9 @@ protected:
 
   tf::TransformListener listener_;
 
+  size_t m_singularity_pub;
+  int singularity_times = 0;
+
   std::mutex mtx_;
   Eigen::Vector6d twist_of_t_in_b_;
   Eigen::Vector6d last_twist_of_in_b_;
